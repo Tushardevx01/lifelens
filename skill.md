@@ -1,113 +1,158 @@
-# Skill: How to Work on This Project
+# Agent Skills
 
-## Overview
+## Project Rules
 
-This file defines how AI coding agents should work on the LifeLens project.
+1. Before making changes, read `memory.md`, `skill.md`, and `docs/ARCHITECTURE.md`
+2. After making meaningful changes, update the relevant documentation
+3. The application MUST remain Expo Go compatible
+4. Do not introduce native dependencies without explicit approval
+5. Keep changes focused and minimal
 
-## Rules
+## Coding Standards
 
-### 1. Understand Before Modifying
-
-Before making any changes:
-
-1. Read `memory.md` to understand project history and decisions
-2. Read `skill.md` (this file) to understand working rules
-3. Read `ARCHITECTURE.md` to understand system structure
-4. Inspect the relevant source files
-5. Understand the existing implementation
-6. Plan the smallest appropriate change
-
-### 2. Code Quality
-
-- Prefer small, focused changes
-- Reuse existing components and utilities
-- Do not duplicate logic
-- Keep TypeScript strict and properly typed
-- Avoid `any` unless there is a documented reason
+- Use TypeScript for all code
 - Follow existing naming conventions
-- Keep business logic outside UI components when appropriate
+- Keep code simple and readable
+- Do not over-engineer solutions
+- Prefer composition over inheritance
+- Keep components focused and small
 
-### 3. Security
+## TypeScript Rules
 
-- Do not hard-code secrets
-- Do not commit API keys, tokens, or passwords
-- Use environment variables for sensitive configuration
-- Never put secrets in documentation files
+- Use strict TypeScript
+- Prefer `type` or `interface` over `any`
+- Avoid unnecessary type assertions
+- Keep shared types in `src/types/`
+- Feature-specific types should stay close to their feature
 
-### 4. Dependencies
+## React Native Rules
 
-- Do not introduce dependencies without justification
-- Every dependency must have a clear reason to exist
-- Check if existing dependencies can solve the problem first
+- Use React Native's standard styling system
+- Keep components focused and small
+- Avoid putting large amounts of UI logic in route files
+- Extract complex logic into custom hooks
+- Handle loading and error states
 
-### 5. Testing and Verification
+## Expo Rules
 
-- Test or verify changes before considering them complete
-- Run type checking: `npm run typecheck`
-- Run linting: `npm run lint`
-- Verify the application works as expected
+- Use Expo packages when available
+- Prefer Expo SDK packages over third-party alternatives
+- Follow Expo Router conventions for navigation
+- Use Expo's environment variable approach
 
-### 6. Documentation
+## Expo Go Restrictions
 
-- Update documentation after meaningful architectural or behavioral changes
-- Never silently change an existing architectural decision
-- If an architectural decision must change, document the reason in `memory.md`
+**CRITICAL:** This project MUST run in Expo Go.
 
-### 7. Git
+Before adding a package:
 
-- Make focused commits
-- Use conventional commit messages:
-  - `feat:` for new features
-  - `fix:` for bug fixes
-  - `refactor:` for code refactoring
-  - `docs:` for documentation changes
-  - `chore:` for maintenance tasks
-- Do not commit generated files unless intentionally required
-- Never remove or rewrite existing Git history unless explicitly requested
+1. Verify it works with Expo Go
+2. Check Expo SDK compatibility
+3. Do NOT install packages requiring native modules
+4. Do NOT install packages requiring `expo prebuild`
+5. Do NOT install packages requiring a custom development client
 
-### 8. File Organization
+If a feature cannot be implemented using Expo Go, STOP and explain the limitation.
 
-- Keep components in `components/`
-- Keep custom hooks in `hooks/`
-- Keep services/API calls in `services/`
-- Keep utility functions in `utils/`
-- Keep type definitions in `types/`
-- Keep constants in `constants/`
-- Keep configuration in `config/`
+**Expo Go Compatible Packages:**
+- expo-image
+- expo-router
+- expo-camera
+- expo-location
+- expo-notifications
+- expo-secure-store
+- expo-file-system
 
-### 9. Component Guidelines
+## Navigation Rules
 
-- Build reusable UI primitives where appropriate
-- Keep components focused and not too large
-- If a screen becomes complex, extract components, hooks, or services
-- Do not over-engineer simple features
+- Use Expo Router for all navigation
+- Use route groups for logical organization
+- Keep navigation simple and flat
+- Document navigation changes in ARCHITECTURE.md
 
-### 10. Error Handling
+## Component Rules
 
-- Handle errors gracefully
+- Build reusable components in `src/components/`
+- Keep components focused on a single responsibility
+- Extract complex UI into smaller components
+- Handle loading, error, and empty states
+
+## State Management Rules
+
+- Start with React state (useState, useReducer)
+- Use Context for shared state when needed
+- Use custom hooks for reusable state logic
+- Do NOT install Redux, Zustand, or Jotai unless absolutely necessary
+- Document state management decisions in ARCHITECTURE.md
+
+## API Rules
+
+- Keep API calls in `src/services/`
+- Do NOT put API calls in UI components
+- Use environment variables for API URLs
+- Never hard-code secrets or tokens
+- Handle errors appropriately
+
+## Error Handling
+
+- Do not silently ignore errors
 - Provide meaningful error messages
-- Implement loading states where appropriate
-- Implement empty states where appropriate
+- Handle loading states
+- Handle empty states
+- Log errors appropriately
+
+## Testing Rules
+
+- Run type checking before completing tasks
+- Run linting before completing tasks
+- Verify the application starts correctly
+- Test changes in Expo Go when possible
+
+## Documentation Rules
+
+- Update `memory.md` after meaningful changes
+- Update `skill.md` when rules change
+- Update `docs/ARCHITECTURE.md` when architecture changes
+- Keep documentation accurate and current
+- Do not leave stale documentation
+
+## Git Rules
+
+- Make focused, meaningful commits
+- Do not modify unrelated files
+- Do not delete functionality without permission
+- Use clear commit messages
+- Do not commit secrets or sensitive data
+
+## Things Agents Must Not Do
+
+1. Do NOT introduce native dependencies that break Expo Go
+2. Do NOT overwrite entire projects unnecessarily
+3. Do NOT delete files without checking their purpose
+4. Do NOT replace working architecture without justification
+5. Do NOT install random packages
+6. Do NOT hard-code secrets
+7. Do NOT invent backend APIs
+8. Do NOT claim features are complete without verification
+9. Do NOT leave documentation describing outdated architecture
+10. Do NOT skip the documentation update step
 
 ## Workflow
 
 For every task:
 
-1. Read project instructions
-2. Read `memory.md`
-3. Read `skill.md`
-4. Read `ARCHITECTURE.md`
-5. Inspect relevant source files
-6. Understand the existing implementation
-7. Plan the smallest appropriate change
-8. Implement the change
-9. Run type checking
-10. Run linting
-11. Run relevant tests (if they exist)
-12. Verify the application
-13. Update documentation
-14. Review the final diff
-15. Report what changed
+1. Understand the request
+2. Inspect the existing implementation
+3. Check memory.md
+4. Check skill.md
+5. Check docs/ARCHITECTURE.md
+6. Plan the smallest correct change
+7. Implement the change
+8. Run validation (typecheck, lint)
+9. Verify Expo Go compatibility
+10. Update documentation
+11. Review the final diff
+12. Report what changed
 
 ## Commands
 
@@ -125,38 +170,3 @@ npm run format         # Format code with Prettier
 npm run format:check   # Check formatting
 npm run typecheck      # Run TypeScript compiler
 ```
-
-## Documentation Synchronization
-
-After EVERY meaningful code change, check whether any of these files need updating:
-
-- `memory.md`
-- `skill.md`
-- `ARCHITECTURE.md`
-- `AGENTS.md`
-
-If the change affects:
-
-- Architecture
-- Navigation
-- Dependencies
-- Features
-- API behavior
-- Authentication
-- State management
-- Data flow
-- Project structure
-- Development workflow
-- Important decisions
-
-Then update the relevant documentation in the same task.
-
-Do not wait until the end of the project.
-
-## Documentation Accuracy Rule
-
-Documentation must describe the CURRENT state of the codebase.
-
-Never leave documentation describing an old architecture.
-
-Remove obsolete information instead of simply adding new information below it.
