@@ -2,19 +2,19 @@ import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/src/theme/colors';
 
-export default function SettingsScreen() {
+export default function InsightsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       
       {/* Dark Top Section */}
       <View style={styles.topSection}>
-        <Text style={styles.headerTitle}>Profile & Settings</Text>
+        <Text style={styles.headerTitle}>Insights</Text>
       </View>
 
       {/* White Bottom Sheet */}
       <View style={styles.bottomSheet}>
-        <Text style={styles.sheetTitle}>Account Settings</Text>
-        <Text style={styles.subtitle}>More settings coming soon</Text>
+        <Text style={styles.sheetTitle}>Discover Patterns</Text>
+        <Text style={styles.subtitle}>More insights coming soon</Text>
       </View>
       
     </SafeAreaView>

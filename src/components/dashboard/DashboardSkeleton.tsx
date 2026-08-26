@@ -33,14 +33,25 @@ export default function DashboardSkeleton() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <SkeletonBlock style={styles.avatarSkeleton} />
-          <View>
-            <SkeletonBlock style={styles.titleSkeleton} />
-            <SkeletonBlock style={styles.subtitleSkeleton} />
-          </View>
+        <SkeletonBlock style={styles.titleSkeleton} />
+        <SkeletonBlock style={styles.subtitleSkeleton} />
+      </View>
+
+      <View style={styles.heroCard}>
+        <View style={styles.heroLeft}>
+          <SkeletonBlock style={styles.bigScoreSkeleton} />
+          <SkeletonBlock style={styles.changeSkeleton} />
         </View>
-        <SkeletonBlock style={styles.bellSkeleton} />
+        <SkeletonBlock style={styles.circleSkeleton} />
+      </View>
+
+      <View style={styles.gridContainer}>
+        {[1, 2, 3, 4].map((i) => (
+          <View key={i} style={styles.gridItem}>
+            <SkeletonBlock style={styles.gridLabelSkeleton} />
+            <SkeletonBlock style={styles.gridScoreSkeleton} />
+          </View>
+        ))}
       </View>
 
       <View style={styles.card}>
@@ -50,25 +61,18 @@ export default function DashboardSkeleton() {
       </View>
 
       <View style={styles.card}>
-        <View style={styles.scoreSkeletonContainer}>
-          <SkeletonBlock style={styles.bigScoreSkeleton} />
-          <SkeletonBlock style={styles.smallScoreSkeleton} />
-        </View>
-        <View style={styles.gridSkeleton}>
-          <SkeletonBlock style={styles.gridItemSkeleton} />
-          <SkeletonBlock style={styles.gridItemSkeleton} />
-          <SkeletonBlock style={styles.gridItemSkeleton} />
-          <SkeletonBlock style={styles.gridItemSkeleton} />
+        <SkeletonBlock style={styles.cardTitleSkeleton} />
+        <View style={styles.chartSkeleton}>
+          {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+            <SkeletonBlock key={i} style={styles.barSkeleton} />
+          ))}
         </View>
       </View>
 
       <View style={styles.card}>
         <SkeletonBlock style={styles.cardTitleSkeleton} />
-        {[1, 2, 3, 4].map((i) => (
-          <View key={i} style={styles.breakdownRow}>
-            <SkeletonBlock style={styles.breakdownLabel} />
-            <SkeletonBlock style={styles.breakdownBar} />
-          </View>
+        {[1, 2].map((i) => (
+          <SkeletonBlock key={i} style={styles.cardLineSkeleton} />
         ))}
       </View>
     </ScrollView>
@@ -84,100 +88,105 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxxl,
   },
   header: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.md,
+  },
+  titleSkeleton: {
+    width: 120,
+    height: 20,
+    borderRadius: radius.sm,
+    marginBottom: spacing.sm,
+  },
+  subtitleSkeleton: {
+    width: 80,
+    height: 14,
+    borderRadius: radius.sm,
+  },
+  heroCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.hero,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    padding: spacing.xxxl,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
+  heroLeft: {
+    flex: 1,
   },
-  avatarSkeleton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  bigScoreSkeleton: {
+    width: 140,
+    height: 48,
+    borderRadius: radius.sm,
+    marginBottom: spacing.md,
   },
-  titleSkeleton: {
+  changeSkeleton: {
     width: 100,
     height: 14,
-    borderRadius: 4,
-    marginBottom: spacing.xs,
+    borderRadius: radius.sm,
   },
-  subtitleSkeleton: {
+  circleSkeleton: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  gridItem: {
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: radius.xl,
+    padding: spacing.xxl,
+    flex: 1,
+    minWidth: '45%',
+  },
+  gridLabelSkeleton: {
     width: 60,
-    height: 10,
-    borderRadius: 4,
+    height: 12,
+    borderRadius: radius.sm,
+    marginBottom: spacing.sm,
   },
-  bellSkeleton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+  gridScoreSkeleton: {
+    width: 50,
+    height: 32,
+    borderRadius: radius.sm,
   },
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
-    padding: spacing.lg,
+    padding: spacing.xxl,
   },
   cardTitleSkeleton: {
     width: 140,
     height: 16,
-    borderRadius: 4,
-    marginBottom: spacing.md,
+    borderRadius: radius.sm,
+    marginBottom: spacing.lg,
   },
   cardLineSkeleton: {
     width: '100%',
     height: 12,
-    borderRadius: 4,
-    marginBottom: spacing.sm,
-  },
-  scoreSkeletonContainer: {
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-  },
-  bigScoreSkeleton: {
-    width: 120,
-    height: 48,
-    borderRadius: 8,
-    marginBottom: spacing.sm,
-  },
-  smallScoreSkeleton: {
-    width: 80,
-    height: 12,
-    borderRadius: 4,
-  },
-  gridSkeleton: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  gridItemSkeleton: {
-    width: '48%',
-    height: 48,
     borderRadius: radius.sm,
     marginBottom: spacing.sm,
-    marginRight: spacing.sm,
   },
-  breakdownRow: {
+  chartSkeleton: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    height: 120,
   },
-  breakdownLabel: {
-    width: 70,
-    height: 12,
-    borderRadius: 4,
-  },
-  breakdownBar: {
-    flex: 1,
-    height: 8,
-    borderRadius: 4,
+  barSkeleton: {
+    width: 20,
+    borderRadius: radius.sm,
   },
   skeletonBlock: {
-    backgroundColor: colors.surfaceSecondary,
+    backgroundColor: colors.surfaceElevated,
   },
 });

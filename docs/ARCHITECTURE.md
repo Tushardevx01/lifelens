@@ -452,3 +452,12 @@ Tested on:
 - `memory.md` - Project history and decisions
 - `skill.md` - AI agent working rules
 - `docs/ARCHITECTURE.md` - This file
+
+### Redesign Architecture Covered
+- Design system architecture
+- Theme tokens
+- Typography architecture
+- Dashboard component structure
+- Navigation architecture
+- Responsive strategy
+- Visualization architecture

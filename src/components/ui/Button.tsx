@@ -1,3 +1,10 @@
+/**
+ * Button – LifeLens UI Primitive
+ *
+ * Variants: primary | secondary | ghost
+ * Sizes:    sm | md | lg
+ */
+
 import { ReactNode } from 'react';
 import {
   ActivityIndicator,
@@ -9,34 +16,34 @@ import {
   ViewStyle,
 } from 'react-native';
 
-import { colors } from '@/src/theme/colors';
-import { radius } from '@/src/theme/radius';
-import { spacing } from '@/src/theme/spacing';
+import { colors }     from '@/src/theme/colors';
+import { radius }     from '@/src/theme/radius';
+import { spacing }    from '@/src/theme/spacing';
 import { typography } from '@/src/theme/typography';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost';
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonSize    = 'sm' | 'md' | 'lg';
 
 type ButtonProps = {
-  title: string;
-  onPress: () => void;
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  loading?: boolean;
-  disabled?: boolean;
-  icon?: ReactNode;
-  style?: StyleProp<ViewStyle>;
-  textStyle?: StyleProp<TextStyle>;
+  title:             string;
+  onPress:           () => void;
+  variant?:          ButtonVariant;
+  size?:             ButtonSize;
+  loading?:          boolean;
+  disabled?:         boolean;
+  icon?:             ReactNode;
+  style?:            StyleProp<ViewStyle>;
+  textStyle?:        StyleProp<TextStyle>;
   accessibilityLabel?: string;
 };
 
 export function Button({
   title,
   onPress,
-  variant = 'primary',
-  size = 'md',
-  loading = false,
-  disabled = false,
+  variant   = 'primary',
+  size      = 'md',
+  loading   = false,
+  disabled  = false,
   icon,
   style,
   textStyle,
@@ -48,14 +55,14 @@ export function Button({
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
-      accessibilityLabel={accessibilityLabel || title}
+      accessibilityLabel={accessibilityLabel ?? title}
       accessibilityRole="button"
       style={({ pressed }) => [
         styles.base,
         styles[variant],
-        styles[size],
-        pressed && styles.pressed,
-        isDisabled && styles.disabled,
+        styles[`size_${size}`],
+        pressed     && styles.pressed,
+        isDisabled  && styles.disabled,
         style,
       ]}
     >
@@ -71,9 +78,9 @@ export function Button({
             style={[
               styles.text,
               styles[`${variant}Text`],
-              styles[`${size}Text`],
+              styles[`text_${size}`],
               isDisabled && styles.disabledText,
-              icon ? styles.textWithIcon : null,
+              icon        ? styles.textWithIcon : undefined,
               textStyle,
             ]}
           >
@@ -90,9 +97,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     gap: spacing.sm,
   },
+
+  // ─── Variants ─────────────────────────────────────────────────
   primary: {
     backgroundColor: colors.primary,
   },
@@ -106,28 +115,34 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  sm: {
+
+  // ─── Sizes ────────────────────────────────────────────────────
+  size_sm: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
     minHeight: 36,
   },
-  md: {
+  size_md: {
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     minHeight: 48,
   },
-  lg: {
+  size_lg: {
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.xxl,
     minHeight: 56,
   },
+
+  // ─── Press / disabled states ──────────────────────────────────
   pressed: {
     opacity: 0.8,
     transform: [{ scale: 0.98 }],
   },
   disabled: {
-    opacity: 0.5,
+    opacity: 0.45,
   },
+
+  // ─── Text ─────────────────────────────────────────────────────
   text: {
     ...typography.button,
   },
@@ -139,16 +154,16 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   ghostText: {
-    color: colors.text,
+    color: colors.textPrimary,
   },
-  smText: {
+  text_sm: {
     fontSize: 14,
   },
-  mdText: {
+  text_md: {
     fontSize: 16,
   },
-  lgText: {
-    fontSize: 18,
+  text_lg: {
+    fontSize: 17,
   },
   disabledText: {
     opacity: 0.7,

@@ -13,7 +13,7 @@ export default function DashboardEmpty({ onAddEntry }: DashboardEmptyProps) {
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <Ionicons name="analytics-outline" size={64} color={colors.primary} />
+        <Ionicons name="analytics-outline" size={56} color={colors.primary} />
       </View>
       <Text style={styles.title}>Start building your Life Score</Text>
       <Text style={styles.description}>
@@ -21,7 +21,7 @@ export default function DashboardEmpty({ onAddEntry }: DashboardEmptyProps) {
         finances. Your personalized insights will appear here.
       </Text>
       <Pressable style={styles.button} onPress={onAddEntry}>
-        <Ionicons name="add" size={20} color="#000" />
+        <Ionicons name="add" size={20} color="#000000" />
         <Text style={styles.buttonText}>Add New Entry</Text>
       </Pressable>
     </View>
@@ -43,21 +43,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing.xxl,
   },
   title: {
-    color: colors.text,
+    color: colors.textPrimary,
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
     marginBottom: spacing.sm,
+    letterSpacing: -0.3,
   },
   description: {
     color: colors.textSecondary,
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 22,
-    marginBottom: spacing.xxl,
+    marginBottom: spacing.xxxl,
   },
   button: {
     flexDirection: 'row',
@@ -69,7 +70,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
   },
   buttonText: {
-    color: '#000',
+    color: '#000000',
     fontSize: 16,
     fontWeight: '700',
   },

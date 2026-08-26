@@ -40,10 +40,15 @@
 
 ### Design Principles
 
+- Follow centralized design tokens
+- Use premium rounded cards
+- Use large typography for metrics
+- Use floating bottom navigation
+- Use mobile-first composition
+- Use layered surfaces
+- Avoid desktop dashboard patterns
 - Dark backgrounds with high contrast
 - Neon green accent for interactive elements
-- Rounded cards with subtle borders
-- Clean spacing and strong visual hierarchy
 - Premium, modern, minimal appearance
 - AI/data-focused aesthetic
 

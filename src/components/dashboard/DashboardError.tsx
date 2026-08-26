@@ -13,7 +13,7 @@ export default function DashboardError({ onRetry }: DashboardErrorProps) {
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <Ionicons name="warning-outline" size={48} color="#FF9F4A" />
+        <Ionicons name="alert-circle-outline" size={48} color={colors.orange} />
       </View>
       <Text style={styles.title}>Unable to load your dashboard</Text>
       <Text style={styles.description}>
@@ -21,7 +21,7 @@ export default function DashboardError({ onRetry }: DashboardErrorProps) {
         try again.
       </Text>
       <Pressable style={styles.button} onPress={onRetry}>
-        <Ionicons name="refresh" size={18} color={colors.text} />
+        <Ionicons name="refresh" size={18} color={colors.textPrimary} />
         <Text style={styles.buttonText}>Try Again</Text>
       </Pressable>
     </View>
@@ -40,30 +40,31 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#FF9F4A15',
+    backgroundColor: 'rgba(255, 179, 71, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing.xxl,
   },
   title: {
-    color: colors.text,
+    color: colors.textPrimary,
     fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
     marginBottom: spacing.sm,
+    letterSpacing: -0.3,
   },
   description: {
     color: colors.textSecondary,
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 22,
-    marginBottom: spacing.xxl,
+    marginBottom: spacing.xxxl,
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceElevated,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
     borderRadius: radius.md,
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   buttonText: {
-    color: colors.text,
+    color: colors.textPrimary,
     fontSize: 15,
     fontWeight: '600',
   },

@@ -4,14 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
+import { radius } from '@/src/theme/radius';
 
-type TabId = 'dashboard' | 'new-entry' | 'history' | 'settings';
+type TabId = 'home' | 'insights' | 'history' | 'profile';
 
 interface Tab {
   id: TabId;
   label: string;
-  icon: string;
-  activeIcon: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
 }
 
 interface BottomNavigationProps {
@@ -20,10 +20,10 @@ interface BottomNavigationProps {
 }
 
 const tabs: Tab[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: 'grid-outline', activeIcon: 'grid' },
-  { id: 'new-entry', label: 'New Entry', icon: 'add-circle-outline', activeIcon: 'add-circle' },
-  { id: 'history', label: 'History', icon: 'time-outline', activeIcon: 'time' },
-  { id: 'settings', label: 'Settings', icon: 'settings-outline', activeIcon: 'settings' },
+  { id: 'home', label: 'Home', icon: 'home-outline' },
+  { id: 'insights', label: 'Insights', icon: 'bulb-outline' },
+  { id: 'history', label: 'History', icon: 'time-outline' },
+  { id: 'profile', label: 'Profile', icon: 'person-outline' },
 ];
 
 export default function BottomNavigation({ activeTab, onTabPress }: BottomNavigationProps) {
@@ -40,8 +40,8 @@ export default function BottomNavigation({ activeTab, onTabPress }: BottomNaviga
             onPress={() => onTabPress(tab.id)}
           >
             <Ionicons
-              name={(isActive ? tab.activeIcon : tab.icon) as React.ComponentProps<typeof Ionicons>['name']}
-              size={24}
+              name={tab.icon}
+              size={22}
               color={isActive ? colors.primary : colors.textMuted}
             />
             <Text style={[styles.label, isActive && styles.activeLabel]}>
@@ -66,10 +66,12 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     alignItems: 'center',
-    gap: 2,
+    gap: spacing.xxs,
+    paddingVertical: spacing.xs,
   },
   label: {
     fontSize: 10,
+    fontWeight: '500',
     color: colors.textMuted,
   },
   activeLabel: {
