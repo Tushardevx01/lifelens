@@ -2,12 +2,12 @@
 
 ## Project Overview
 
-LifeLens is a mobile application built with Expo and React Native using TypeScript. The application MUST be runnable directly through the Expo Go app during development.
+LifeLens AI is a mobile application built with Expo and React Native using TypeScript. The application MUST be runnable directly through the Expo Go app during development.
 
 ## Current Status
 
-**Phase:** Initial Setup  
-**Date:** 2026-08-24  
+**Phase:** Login Screen & Theme System  
+**Date:** 2026-08-26  
 **Version:** 1.0.0  
 **Expo Go Compatible:** Yes
 
@@ -20,31 +20,50 @@ LifeLens is a mobile application built with Expo and React Native using TypeScri
 - Expo Router ~57.0.16
 - ESLint ^9.39.5
 - Prettier ^3.9.6
+- @expo/vector-icons (icons)
 
 ## Project Structure
 
 ```
 lifelens/
-├── app/                    # Expo Router routes
-│   ├── _layout.tsx
-│   ├── index.tsx
+├── app/                        # Expo Router routes
+│   ├── _layout.tsx             # Root layout (Stack)
+│   ├── login.tsx               # Login screen route
 │   ├── (tabs)/
-│   │   ├── _layout.tsx
-│   │   ├── index.tsx
-│   │   └── two.tsx
+│   │   ├── _layout.tsx         # Tab layout
+│   │   ├── index.tsx           # Dashboard (demo home)
+│   │   └── two.tsx             # Analytics placeholder
 │   ├── modal.tsx
 │   └── +not-found.tsx
 ├── src/
-│   ├── components/         # Reusable components
-│   ├── features/           # Feature-specific code
-│   ├── hooks/              # Custom React hooks
-│   ├── lib/                # Library utilities
-│   ├── services/           # API and external services
-│   ├── constants/          # App constants
-│   ├── types/              # TypeScript type definitions
-│   └── utils/              # Utility functions
-├── assets/                 # Static assets
-├── docs/                   # Documentation
+│   ├── components/
+│   │   └── ui/                 # Reusable UI components
+│   │       ├── Button.tsx
+│   │       ├── Card.tsx
+│   │       ├── Input.tsx
+│   │       ├── Screen.tsx
+│   │       ├── Text.tsx
+│   │       └── index.ts
+│   ├── features/
+│   │   └── auth/
+│   │       ├── LoginScreen.tsx
+│   │       └── index.ts
+│   ├── hooks/
+│   │   ├── useColorScheme.ts
+│   │   └── useClientOnlyValue.ts
+│   ├── theme/
+│   │   ├── colors.ts
+│   │   ├── spacing.ts
+│   │   ├── typography.ts
+│   │   ├── radius.ts
+│   │   └── index.ts
+│   ├── constants/
+│   │   └── Colors.ts
+│   ├── services/
+│   ├── types/
+│   └── utils/
+├── assets/
+├── docs/
 │   └── ARCHITECTURE.md
 ├── memory.md
 ├── skill.md
@@ -55,12 +74,23 @@ lifelens/
 
 ## Current Features
 
-- Initial project structure
-- Expo Router navigation with tabs
-- TypeScript configuration (strict mode)
-- ESLint configuration
-- Prettier configuration
-- Basic home screen with tabs
+- Global dark/neon-green theme system
+- Reusable UI components (Button, Input, Card, Text, Screen)
+- Login screen with:
+  - LifeLens AI branding (heart + pulse icon)
+  - Welcome Back card
+  - Explore Live Demo button
+  - Email/Password inputs with icons
+  - Show/hide password toggle
+  - Forgot password link
+  - Sign In button with loading/disabled states
+  - Register link
+  - Entrance animations
+  - Keyboard handling
+- Dashboard demo placeholder
+- Analytics placeholder
+- Dark status bar
+- Tab navigation (Dashboard, Analytics)
 
 ## In Progress
 
@@ -73,8 +103,17 @@ None
 - [x] Set up ESLint with TypeScript support
 - [x] Set up Prettier for code formatting
 - [x] Created src/ directory structure
-- [x] Created documentation files (memory.md, skill.md, docs/ARCHITECTURE.md)
+- [x] Created documentation files
 - [x] Verified Expo Go compatibility
+- [x] Created global theme system (colors, spacing, typography, radius)
+- [x] Created reusable UI components
+- [x] Built login screen with all required sections
+- [x] Set up navigation (login as initial route)
+- [x] Added entrance animations
+- [x] Added keyboard handling
+- [x] Added @expo/vector-icons for icons
+- [x] Updated all screens to use dark theme
+- [x] TypeScript and ESLint validation passed
 
 ## Known Issues
 
@@ -90,6 +129,34 @@ None at this time.
 | Styling | React Native StyleSheet | Standard styling system, Expo Go compatible |
 | State Management | React useState/useReducer | Simple, no additional dependencies needed |
 | Directory Structure | src/ layout | Separates app routes from source code |
+| Theme | Centralized theme system | Consistent design tokens, easy to maintain |
+| Icons | @expo/vector-icons | Expo Go compatible, no native modules needed |
+| Design Language | Dark + Neon Green | Premium, modern, AI-focused aesthetic |
+
+## Design Tokens
+
+### Colors
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| background | #080908 | App background |
+| surface | #111311 | Card backgrounds |
+| surfaceSecondary | #171917 | Secondary surfaces |
+| border | #292D29 | Borders |
+| primary | #B8FF00 | Neon green accent |
+| primaryBright | #C8FF2C | Bright accent |
+| primaryMuted | rgba(184, 255, 0, 0.15) | Subtle green |
+| text | #F5F5F5 | Primary text |
+| textSecondary | #929792 | Secondary text |
+| textMuted | #5F645F | Muted text |
+
+### Spacing
+
+xs(4), sm(8), md(12), lg(16), xl(20), xxl(24), xxxl(32), xxxxl(40), xxxxxl(48)
+
+### Radius
+
+sm(6), md(10), lg(14), xl(18), xxl(24), full(9999)
 
 ## Dependencies
 
@@ -99,6 +166,7 @@ None at this time.
 |---------|---------|---------|-------------------|
 | expo | ~57.0.16 | Core Expo SDK | Yes |
 | expo-router | ~57.0.16 | File-based navigation | Yes |
+| expo-vector-icons | latest | Icons | Yes |
 | react | 19.2.3 | React library | Yes |
 | react-native | 0.86.2 | React Native framework | Yes |
 | react-native-reanimated | 4.5.1 | Animations | Yes |
@@ -130,8 +198,6 @@ EXPO_PUBLIC_API_URL=
 
 All dependencies in this project are compatible with Expo Go. No custom native modules or development builds are required.
 
-**Removed:** `react-native-worklets` (not required for basic functionality)
-
 ## Commands
 
 ```bash
@@ -151,6 +217,19 @@ npm run typecheck      # Run TypeScript compiler
 
 ## Last Changes
 
+### 2026-08-26
+
+- Created global theme system (colors, spacing, typography, radius)
+- Created reusable UI components (Button, Input, Card, Text, Screen)
+- Built login screen with all required sections
+- Set up navigation with login as initial route
+- Added entrance animations using React Native Animated API
+- Added keyboard handling with KeyboardAvoidingView
+- Added @expo/vector-icons for icons (heart, pulse, mail, lock, eye, etc.)
+- Updated all screens to use dark/neon-green theme
+- Created dashboard and analytics placeholder screens
+- Updated documentation
+
 ### 2026-08-24
 
 - Initial project setup with Expo + TypeScript
@@ -164,7 +243,9 @@ npm run typecheck      # Run TypeScript compiler
 
 ## Next Recommended Steps
 
-1. Build the first feature screen
-2. Add authentication if needed
-3. Set up API services
-4. Add error handling and loading states
+1. Implement real authentication flow
+2. Add registration screen
+3. Add forgot password screen
+4. Build dashboard with real data
+5. Add more analytics features
+6. Add settings/profile screens

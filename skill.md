@@ -25,6 +25,36 @@
 - Keep shared types in `src/types/`
 - Feature-specific types should stay close to their feature
 
+## Design Language Rules
+
+**LifeLens AI uses a dark/neon-green design system.**
+
+### Colors
+
+- Background: `#080908` (almost black)
+- Surface: `#111311` (dark cards)
+- Primary: `#B8FF00` (neon lime-green)
+- Text: `#F5F5F5` (white)
+- Text Secondary: `#929792` (muted gray)
+- Border: `#292D29` (subtle dark gray)
+
+### Design Principles
+
+- Dark backgrounds with high contrast
+- Neon green accent for interactive elements
+- Rounded cards with subtle borders
+- Clean spacing and strong visual hierarchy
+- Premium, modern, minimal appearance
+- AI/data-focused aesthetic
+
+### Theme Usage
+
+- Always import from `@/src/theme/colors` for colors
+- Use centralized theme tokens, never hard-code colors
+- Use `@/src/theme/spacing` for spacing values
+- Use `@/src/theme/radius` for border radius
+- Use `@/src/theme/typography` for text styles
+
 ## React Native Rules
 
 - Use React Native's standard styling system
@@ -62,20 +92,15 @@ If a feature cannot be implemented using Expo Go, STOP and explain the limitatio
 - expo-notifications
 - expo-secure-store
 - expo-file-system
-
-## Navigation Rules
-
-- Use Expo Router for all navigation
-- Use route groups for logical organization
-- Keep navigation simple and flat
-- Document navigation changes in ARCHITECTURE.md
+- @expo/vector-icons
 
 ## Component Rules
 
-- Build reusable components in `src/components/`
+- Build reusable components in `src/components/ui/`
 - Keep components focused on a single responsibility
 - Extract complex UI into smaller components
 - Handle loading, error, and empty states
+- Use the theme system for all colors and spacing
 
 ## State Management Rules
 
@@ -92,6 +117,23 @@ If a feature cannot be implemented using Expo Go, STOP and explain the limitatio
 - Use environment variables for API URLs
 - Never hard-code secrets or tokens
 - Handle errors appropriately
+
+## Accessibility Rules
+
+- Add `accessibilityLabel` to all interactive elements
+- Add `accessibilityRole` to buttons and links
+- Ensure sufficient touch targets (min 44x44)
+- Do not rely only on color to communicate state
+- Support screen readers
+
+## Responsive Layout Rules
+
+- Use `SafeAreaView` for screen boundaries
+- Use `flex` for layouts, not fixed heights
+- Use `padding` instead of hard-coded margins
+- Use `maxWidth` for content constraints
+- Use `ScrollView` or `KeyboardAvoidingView` where appropriate
+- Do not hard-code iPhone-specific dimensions
 
 ## Error Handling
 
