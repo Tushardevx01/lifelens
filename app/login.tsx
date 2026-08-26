@@ -14,7 +14,7 @@ export default function LoginRoute() {
   };
 
   const handleRegister = () => {
-    // TODO: Navigate to registration screen
+    router.push('/signup');
   };
 
   const handleForgotPassword = () => {
