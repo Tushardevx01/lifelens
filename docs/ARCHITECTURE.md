@@ -24,13 +24,32 @@ lifelens/
 │   ├── _layout.tsx             # Root layout (Stack)
 │   ├── login.tsx               # Login screen route
 │   ├── (tabs)/                 # Tab navigation group
-│   │   ├── _layout.tsx         # Tab layout
-│   │   ├── index.tsx           # Dashboard (demo home)
-│   │   └── two.tsx             # Analytics placeholder
+│   │   ├── _layout.tsx         # Tab layout (4 tabs: Home, New Entry, History, Settings)
+│   │   ├── index.tsx           # Dashboard (main screen)
+│   │   ├── new-entry.tsx       # New Entry (placeholder)
+│   │   ├── history.tsx         # History (placeholder)
+│   │   └── settings.tsx        # Settings (placeholder)
 │   ├── modal.tsx               # Modal screen
 │   └── +not-found.tsx          # 404 screen
 ├── src/
 │   ├── components/
+│   │   ├── dashboard/          # Dashboard components
+│   │   │   ├── DashboardHeader.tsx
+│   │   │   ├── DailyInsight.tsx
+│   │   │   ├── LifeScoreRing.tsx
+│   │   │   ├── CategoryBreakdown.tsx
+│   │   │   ├── TrendChart.tsx
+│   │   │   ├── FuturePrediction.tsx
+│   │   │   ├── ActionInsights.tsx
+│   │   │   ├── EmotionalClusters.tsx
+│   │   │   ├── LifeCorrelations.tsx
+│   │   │   ├── GrowthAnomalies.tsx
+│   │   │   ├── InsightCard.tsx
+│   │   │   ├── BarChart.tsx
+│   │   │   ├── index.ts
+│   │   │   └── types.ts
+│   │   ├── navigation/
+│   │   │   └── BottomNavigation.tsx
 │   │   └── ui/                 # Reusable UI components
 │   │       ├── Button.tsx      # Button with variants
 │   │       ├── Card.tsx        # Card container
@@ -39,8 +58,13 @@ lifelens/
 │   │       ├── Text.tsx        # Typography component
 │   │       └── index.ts        # Component exports
 │   ├── features/
-│   │   └── auth/
-│   │       ├── LoginScreen.tsx  # Login screen component
+│   │   ├── auth/
+│   │   │   ├── LoginScreen.tsx  # Login screen component
+│   │   │   └── index.ts         # Feature exports
+│   │   └── dashboard/
+│   │       ├── types.ts         # Dashboard type definitions
+│   │       ├── data.ts          # Mock data and data generation
+│   │       ├── utils.ts         # Score computation and helper functions
 │   │       └── index.ts         # Feature exports
 │   ├── hooks/                  # Custom React hooks
 │   ├── theme/
@@ -106,10 +130,12 @@ import { radius } from '@/src/theme/radius';
 
 | Route | Screen | Description |
 |-------|--------|-------------|
-| `/login` | login.tsx | Login screen (initial) |
-| `/(tabs)/` | index.tsx | Dashboard |
-| `/(tabs)/two` | two.tsx | Analytics |
-| `/modal` | modal.tsx | Modal screen |
+| `/login` | login.tsx | Login screen |
+| `/signup` | signup.tsx | SignUp screen |
+| `/(tabs)/` | index.tsx | Dashboard (main screen) |
+| `/(tabs)/new-entry` | new-entry.tsx | New Entry |
+| `/(tabs)/history` | history.tsx | History |
+| `/(tabs)/settings` | settings.tsx | Settings |
 
 ### Route Groups
 
@@ -151,6 +177,78 @@ Located in `src/features/`:
 Layout is handled by Expo Router:
 - Root layout (`app/_layout.tsx`)
 - Tab layout (`app/(tabs)/_layout.tsx`)
+
+## Dashboard Architecture
+
+### Dashboard Section Order
+
+The main dashboard (`app/(tabs)/index.tsx`) renders sections in this order:
+
+1. **DashboardHeader** - Greeting and motivational quote
+2. **DailyInsight** - AI-generated daily insight text
+3. **LifeScoreRing** - Circular life score with animated ring
+4. **CategoryBreakdown** - Per-category scores with bar charts
+5. **TrendChart** - Historical trend sparkline
+6. **FuturePrediction** - Predicted score vs today
+7. **ActionInsights** - Suggested action cards
+8. **EmotionalClusters** - Detected emotional cluster tags
+9. **LifeCorrelations** - Category correlation pairs
+10. **GrowthAnomalies** - Detected anomaly notifications
+
+### Dashboard Components
+
+All dashboard components live in `src/components/dashboard/`:
+
+- `DashboardHeader.tsx` - Greeting + daily quote
+- `DailyInsight.tsx` - AI insight text card
+- `LifeScoreRing.tsx` - Animated circular score (0-100)
+- `CategoryBreakdown.tsx` - Per-category bar chart (Health, Career, Relationships, Growth, Finance, Joy)
+- `TrendChart.tsx` - Sparkline showing 7-day trend
+- `FuturePrediction.tsx` - Predicted vs current score
+- `ActionInsights.tsx` - Suggested actions list
+- `EmotionalClusters.tsx` - Emotional tag badges
+- `LifeCorrelations.tsx` - Category correlation pairs
+- `GrowthAnomalies.tsx` - Anomaly notifications
+- `InsightCard.tsx` - Reusable card wrapper for insight sections
+- `BarChart.tsx` - View-based bar chart (no external chart library)
+
+### Data Flow
+
+```
+Mock data (src/features/dashboard/data.ts)
+    ↓
+Dashboard Screen (app/(tabs)/index.tsx)
+    ↓
+Individual Dashboard Components
+    ↓
+Computed values via utils (src/features/dashboard/utils.ts)
+```
+
+- `data.ts` generates mock category scores, trends, clusters, correlations, and anomalies
+- `utils.ts` provides `computeLifeScore()` and other helper functions
+- `types.ts` defines all TypeScript interfaces for dashboard data
+
+### Loading / Empty / Error States
+
+| State | Behavior |
+|-------|----------|
+| Loading | Skeleton placeholders or opacity reduction on each section |
+| Empty | "No data yet" message with prompt to create first entry |
+| Error | Toast/snackbar notification with retry option |
+
+### Animations
+
+- **Staggered fade-in**: Dashboard sections animate in sequentially on mount
+- **Spring transitions**: LifeScoreRing uses spring animation for score changes
+- **Easing**: Ease-out curves for bar chart and trend chart animations
+- Animated via `react-native-reanimated` `useSharedValue` and `withTiming`
+
+### Chart Implementation
+
+- `BarChart.tsx` uses React Native `View` elements (colored divs) for bars
+- No external charting library required (Expo Go compatible)
+- Bar width and color driven by score values
+- Animated bar growth via Reanimated `withTiming`
 
 ## Login Screen Architecture
 

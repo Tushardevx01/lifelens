@@ -102,6 +102,17 @@ If a feature cannot be implemented using Expo Go, STOP and explain the limitatio
 - Handle loading, error, and empty states
 - Use the theme system for all colors and spacing
 
+## Dashboard Rules
+
+- Dashboard components go in `src/components/dashboard/`
+- Dashboard feature code goes in `src/features/dashboard/`
+- Keep mock data separate from UI components
+- Use strongly typed mock data (dashboard.types.ts)
+- Dashboard sections: Header, Insight, LifeScore, Breakdown, Trend, Prediction, Insights, Clusters, Correlations, Anomalies
+- Charts must use View-based implementation (no external chart libraries)
+- Use Animated API for progress bars and fade-in animations
+- Dashboard must have loading (skeleton), empty, and error states
+
 ## State Management Rules
 
 - Start with React state (useState, useReducer)

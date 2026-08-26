@@ -1,96 +1,127 @@
-import { StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-
-import { Screen, AppText, Card, Button } from '@/src/components/ui';
+import { useEffect, useRef } from 'react';
+import { ScrollView, StyleSheet, Animated } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/src/theme/colors';
-import { spacing } from '@/src/theme/spacing';
-import { router } from 'expo-router';
+import { mockDashboardData } from '@/src/features/dashboard';
+import {
+  DashboardHeader,
+  InsightCard,
+  LifeScoreCard,
+  ScoreBreakdown,
+  LifeScoreTrend,
+  ProductivityPrediction,
+  InsightsList,
+  BehaviouralClusters,
+  Correlations,
+  AnomalyAlerts,
+} from '@/src/components/dashboard';
+
+const SECTIONS = [
+  DashboardHeader,
+  InsightCard,
+  LifeScoreCard,
+  ScoreBreakdown,
+  LifeScoreTrend,
+  ProductivityPrediction,
+  InsightsList,
+  BehaviouralClusters,
+  Correlations,
+  AnomalyAlerts,
+] as const;
 
 export default function DashboardScreen() {
-  const handleLogout = () => {
-    router.replace('/login');
-  };
+  const fadeAnims = useRef(
+    SECTIONS.map(() => ({
+      opacity: new Animated.Value(0),
+      translateY: new Animated.Value(20),
+    }))
+  ).current;
+
+  useEffect(() => {
+    const animations = fadeAnims.map((anim, index) =>
+      Animated.parallel([
+        Animated.timing(anim.opacity, {
+          toValue: 1,
+          duration: 500,
+          delay: index * 80,
+          useNativeDriver: true,
+        }),
+        Animated.timing(anim.translateY, {
+          toValue: 0,
+          duration: 500,
+          delay: index * 80,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    Animated.stagger(0, animations).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const data = mockDashboardData;
 
   return (
-    <Screen>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <View>
-            <AppText variant="bodySmall">Welcome back,</AppText>
-            <AppText variant="h2">LifeLens AI</AppText>
-          </View>
-          <Button
-            title="Logout"
-            onPress={handleLogout}
-            variant="ghost"
-            size="sm"
-          />
-        </View>
+    <SafeAreaView style={styles.safe} edges={['left', 'right']}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View style={{ opacity: fadeAnims[0].opacity, transform: [{ translateY: fadeAnims[0].translateY }] }}>
+          <DashboardHeader />
+        </Animated.View>
 
-        <Card style={styles.demoCard}>
-          <View style={styles.demoIconContainer}>
-            <Ionicons name="heart" size={48} color={colors.primary} />
-          </View>
-          <AppText variant="h3" style={styles.demoTitle}>
-            Demo Mode Active
-          </AppText>
-          <AppText variant="bodySmall" style={styles.demoSubtitle}>
-            This is a placeholder dashboard. Real features coming soon.
-          </AppText>
-        </Card>
+        <Animated.View style={{ opacity: fadeAnims[1].opacity, transform: [{ translateY: fadeAnims[1].translateY }] }}>
+          <InsightCard title={data.insight.title} summary={data.insight.summary} whyItMatters={data.insight.whyItMatters} actionForToday={data.insight.actionForToday} />
+        </Animated.View>
 
-        <View style={styles.statsRow}>
-          <Card variant="secondary" style={styles.statCard}>
-            <AppText variant="caption">Steps Today</AppText>
-            <AppText variant="h2" color={colors.primary}>8,432</AppText>
-          </Card>
-          <Card variant="secondary" style={styles.statCard}>
-            <AppText variant="caption">Heart Rate</AppText>
-            <AppText variant="h2" color={colors.primary}>72</AppText>
-          </Card>
-        </View>
-      </View>
-    </Screen>
+        <Animated.View style={{ opacity: fadeAnims[2].opacity, transform: [{ translateY: fadeAnims[2].translateY }] }}>
+          <LifeScoreCard score={data.lifeScore.overall} change={data.lifeScore.change} />
+        </Animated.View>
+
+        <Animated.View style={{ opacity: fadeAnims[3].opacity, transform: [{ translateY: fadeAnims[3].translateY }] }}>
+          <ScoreBreakdown categories={data.scoreBreakdown.map(c => ({ name: c.category, score: c.score, color: c.color }))} />
+        </Animated.View>
+
+        <Animated.View style={{ opacity: fadeAnims[4].opacity, transform: [{ translateY: fadeAnims[4].translateY }] }}>
+          <LifeScoreTrend data={data.trendData.map(d => ({ day: d.date, life: d.lifeScore, sleep: d.sleep, productivity: d.productivity }))} />
+        </Animated.View>
+
+        <Animated.View style={{ opacity: fadeAnims[5].opacity, transform: [{ translateY: fadeAnims[5].translateY }] }}>
+          <ProductivityPrediction predictedScore={data.prediction.score} keyDriver={data.prediction.keyDriver} recommendation={data.prediction.recommendation} />
+        </Animated.View>
+
+        <Animated.View style={{ opacity: fadeAnims[6].opacity, transform: [{ translateY: fadeAnims[6].translateY }] }}>
+          <InsightsList insights={data.insights} />
+        </Animated.View>
+
+        <Animated.View style={{ opacity: fadeAnims[7].opacity, transform: [{ translateY: fadeAnims[7].translateY }] }}>
+          <BehaviouralClusters clusters={data.clusters} />
+        </Animated.View>
+
+        <Animated.View style={{ opacity: fadeAnims[8].opacity, transform: [{ translateY: fadeAnims[8].translateY }] }}>
+          <Correlations correlations={data.correlations} />
+        </Animated.View>
+
+        <Animated.View style={{ opacity: fadeAnims[9].opacity, transform: [{ translateY: fadeAnims[9].translateY }] }}>
+          <AnomalyAlerts alerts={data.anomalies.map(a => ({ date: a.date, title: a.title, description: a.description }))} />
+        </Animated.View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safe: {
     flex: 1,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl,
-    gap: spacing.xl,
+    backgroundColor: colors.background,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  demoCard: {
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.xxxxl,
-  },
-  demoIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.primaryMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  demoTitle: {
-    textAlign: 'center',
-  },
-  demoSubtitle: {
-    textAlign: 'center',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  statCard: {
+  scroll: {
     flex: 1,
-    gap: spacing.xs,
+  },
+  content: {
+    paddingHorizontal: 20,
+    gap: 20,
+    paddingBottom: 100,
   },
 });
