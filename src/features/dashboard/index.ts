@@ -12,7 +12,6 @@ export type {
   ScoreCategory,
 } from './dashboard.types';
 
-export { mockDashboardData } from './dashboard.data';
 export {
   getCategoryColor,
   getCategoryLabel,

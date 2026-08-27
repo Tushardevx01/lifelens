@@ -56,12 +56,11 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
     <View
       style={[
         styles.wrapper,
-        { paddingBottom: Math.max(insets.bottom, spacing.lg) },
+        { paddingBottom: Math.max(insets.bottom, spacing.lg), pointerEvents: 'box-none' as any },
       ]}
-      pointerEvents="box-none"
     >
       <View style={styles.pill}>
-        {state.routes.map((route, index) => {
+        {state.routes.map((route: any, index: number) => {
           const isFocused = state.index === index;
           const label     = LABELS[route.name]      ?? route.name;
           const icon      = isFocused
@@ -133,10 +132,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     ...shadows.float,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
+    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.8)',
     elevation: 20,
     gap: spacing.sm,
   },

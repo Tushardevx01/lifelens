@@ -121,10 +121,7 @@ const styles = StyleSheet.create({
   },
   focused: {
     borderColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
+    boxShadow: `0px 0px 8px ${colors.primaryGlow}`,
     elevation: 0,
   },
   focusedLight: {

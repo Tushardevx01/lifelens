@@ -1,0 +1,2251 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "LifeLens AI",
+        "description": "AI-powered personal life analytics API. Collects behavioral data, runs ML models, and generates actionable insights.",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/auth/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register",
+                "description": "Register a new user account and return a JWT token.",
+                "operationId": "register_api_auth_register_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserRegister"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TokenResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login",
+                "description": "Login with email and password using OAuth2 password flow.",
+                "operationId": "login_api_auth_login_post",
+                "requestBody": {
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_login_api_auth_login_post"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TokenResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/me": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get Me",
+                "description": "Get the current authenticated user's profile.",
+                "operationId": "get_me_api_auth_me_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Delete Account",
+                "description": "P1: Permanently delete the authenticated user's account and ALL associated data.\nThis action is irreversible. Cascade deletion removes entries, insights, etc.",
+                "operationId": "delete_account_api_auth_me_delete",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/password": {
+            "patch": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Update Password",
+                "description": "Change the authenticated user's password.\nP7: Also increments token_version so all existing sessions are invalidated.",
+                "operationId": "update_password_api_auth_password_patch",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChangePasswordRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/forgot-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Forgot Password",
+                "description": "Request a password reset token.\nP6: Token is stored in Redis with 15-min TTL (falls back to in-memory if Redis down).\nDev mode: returns the token directly in the response body.\nProduction: would send an email instead.",
+                "operationId": "forgot_password_api_auth_forgot_password_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PasswordResetRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/reset-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Reset Password",
+                "description": "Confirm a password reset using the token from forgot-password.\nP6: Consumes the token from Redis (one-time use, 15-min expiry).\nP7: Also bumps token_version to invalidate all existing sessions.",
+                "operationId": "reset_password_api_auth_reset_password_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PasswordResetConfirm"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/entries/upload-csv": {
+            "post": {
+                "tags": [
+                    "Daily Entries"
+                ],
+                "summary": "Upload Csv",
+                "description": "Batch-import daily entries from a CSV file.\nRequired columns: date, sleep_hours, sleep_quality, screen_time_hours,\n                  steps, deep_work_hours, daily_spend\nOptional columns: social_media_hours, active_minutes, tasks_completed,\n                  mood_score, energy_level, notes, spend_category",
+                "operationId": "upload_csv_api_entries_upload_csv_post",
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_upload_csv_api_entries_upload_csv_post"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CsvUploadResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/entries/": {
+            "post": {
+                "tags": [
+                    "Daily Entries"
+                ],
+                "summary": "Submit Entry",
+                "description": "Submit a new daily entry.\n1. Creates entry in DB.\n2. Synchronously computes features + Life Score (so dashboard renders immediately).\n3. Fires async Celery task for full ML pipeline (clustering, RF, anomaly, insights).",
+                "operationId": "submit_entry_api_entries__post",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DailyEntryCreate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "title": "Response Submit Entry Api Entries  Post"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Daily Entries"
+                ],
+                "summary": "List Entries",
+                "description": "List daily entries with pagination. Defaults to page 1, 30 entries.",
+                "operationId": "list_entries_api_entries__get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "start",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string",
+                                    "format": "date"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Start"
+                        }
+                    },
+                    {
+                        "name": "end",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string",
+                                    "format": "date"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "End"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "description": "Page number (1-indexed)",
+                            "default": 1,
+                            "title": "Page"
+                        },
+                        "description": "Page number (1-indexed)"
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "description": "Entries per page",
+                            "default": 30,
+                            "title": "Page Size"
+                        },
+                        "description": "Entries per page"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/DailyEntryResponse"
+                                    },
+                                    "title": "Response List Entries Api Entries  Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/entries/{entry_date}": {
+            "get": {
+                "tags": [
+                    "Daily Entries"
+                ],
+                "summary": "Get Single Entry",
+                "description": "Get a single daily entry by date (YYYY-MM-DD).",
+                "operationId": "get_single_entry_api_entries__entry_date__get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "entry_date",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "title": "Entry Date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DailyEntryResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Daily Entries"
+                ],
+                "summary": "Update Single Entry",
+                "description": "Update a daily entry. Only provided fields are changed.",
+                "operationId": "update_single_entry_api_entries__entry_date__put",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "entry_date",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "title": "Entry Date"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DailyEntryUpdate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DailyEntryResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Daily Entries"
+                ],
+                "summary": "Delete Single Entry",
+                "description": "Delete a daily entry by date.",
+                "operationId": "delete_single_entry_api_entries__entry_date__delete",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "entry_date",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "title": "Entry Date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/analytics/dashboard": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get Dashboard",
+                "description": "Get the main dashboard data.\nChecks Redis cache first (TTL: 1 hour).",
+                "operationId": "get_dashboard_api_analytics_dashboard_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DashboardResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/analytics/life-score/history": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get Life Score History",
+                "description": "Get life score history for the last N days.",
+                "operationId": "get_life_score_history_api_analytics_life_score_history_get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "days",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 365,
+                            "minimum": 7,
+                            "default": 30,
+                            "title": "Days"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/LifeScoreHistoryPoint"
+                                    },
+                                    "title": "Response Get Life Score History Api Analytics Life Score History Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/analytics/insights": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get Insights",
+                "description": "Get insights, optionally filtered by date and/or severity.",
+                "operationId": "get_insights_api_analytics_insights_get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string",
+                                    "format": "date"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Date"
+                        }
+                    },
+                    {
+                        "name": "severity",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Severity"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/InsightResponse"
+                                    },
+                                    "title": "Response Get Insights Api Analytics Insights Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/analytics/prediction/tomorrow": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get Prediction",
+                "description": "Get tomorrow's productivity prediction.",
+                "operationId": "get_prediction_api_analytics_prediction_tomorrow_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/components/schemas/PredictionResponse"
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ],
+                                    "title": "Response Get Prediction Api Analytics Prediction Tomorrow Get"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/analytics/clusters": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get Clusters",
+                "description": "Get cluster breakdown for the user's data.",
+                "operationId": "get_clusters_api_analytics_clusters_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ClusterBreakdownResponse"
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ],
+                                    "title": "Response Get Clusters Api Analytics Clusters Get"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/analytics/anomalies": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get Anomalies",
+                "description": "Get anomalous days in the last N days.",
+                "operationId": "get_anomalies_api_analytics_anomalies_get",
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "last_n_days",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 90,
+                            "minimum": 1,
+                            "default": 7,
+                            "title": "Last N Days"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/AnomalyResponse"
+                                    },
+                                    "title": "Response Get Anomalies Api Analytics Anomalies Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/analytics/correlations": {
+            "get": {
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get Correlations",
+                "description": "Get significant correlations in user's data (requires 30+ days).",
+                "operationId": "get_correlations_api_analytics_correlations_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/CorrelationResponse"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get Correlations Api Analytics Correlations Get"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Root",
+                "operationId": "root__get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Health Check",
+                "description": "Liveness & Readiness probe: checks database and Redis availability.",
+                "operationId": "health_check_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "AnomalyResponse": {
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "title": "Date"
+                    },
+                    "anomaly_score": {
+                        "type": "number",
+                        "title": "Anomaly Score"
+                    },
+                    "primary_anomaly_feature": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Primary Anomaly Feature"
+                    },
+                    "feature_deviations": {
+                        "type": "object",
+                        "title": "Feature Deviations"
+                    },
+                    "insight_message": {
+                        "type": "string",
+                        "title": "Insight Message"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "date",
+                    "anomaly_score",
+                    "feature_deviations",
+                    "insight_message"
+                ],
+                "title": "AnomalyResponse"
+            },
+            "Body_login_api_auth_login_post": {
+                "properties": {
+                    "grant_type": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "pattern": "password"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Grant Type"
+                    },
+                    "username": {
+                        "type": "string",
+                        "title": "Username"
+                    },
+                    "password": {
+                        "type": "string",
+                        "title": "Password"
+                    },
+                    "scope": {
+                        "type": "string",
+                        "title": "Scope",
+                        "default": ""
+                    },
+                    "client_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Client Id"
+                    },
+                    "client_secret": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Client Secret"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "username",
+                    "password"
+                ],
+                "title": "Body_login_api_auth_login_post"
+            },
+            "Body_upload_csv_api_entries_upload_csv_post": {
+                "properties": {
+                    "file": {
+                        "type": "string",
+                        "format": "binary",
+                        "title": "File"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "file"
+                ],
+                "title": "Body_upload_csv_api_entries_upload_csv_post"
+            },
+            "ChangePasswordRequest": {
+                "properties": {
+                    "current_password": {
+                        "type": "string",
+                        "title": "Current Password"
+                    },
+                    "new_password": {
+                        "type": "string",
+                        "title": "New Password"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "current_password",
+                    "new_password"
+                ],
+                "title": "ChangePasswordRequest"
+            },
+            "ClusterBreakdownResponse": {
+                "properties": {
+                    "clusters": {
+                        "items": {
+                            "type": "object"
+                        },
+                        "type": "array",
+                        "title": "Clusters"
+                    },
+                    "radar_data": {
+                        "items": {
+                            "type": "object"
+                        },
+                        "type": "array",
+                        "title": "Radar Data"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "clusters",
+                    "radar_data"
+                ],
+                "title": "ClusterBreakdownResponse"
+            },
+            "CorrelationResponse": {
+                "properties": {
+                    "feature_a": {
+                        "type": "string",
+                        "title": "Feature A"
+                    },
+                    "feature_b": {
+                        "type": "string",
+                        "title": "Feature B"
+                    },
+                    "name_a": {
+                        "type": "string",
+                        "title": "Name A"
+                    },
+                    "name_b": {
+                        "type": "string",
+                        "title": "Name B"
+                    },
+                    "r": {
+                        "type": "number",
+                        "title": "R"
+                    },
+                    "p_value": {
+                        "type": "number",
+                        "title": "P Value"
+                    },
+                    "insight_message": {
+                        "type": "string",
+                        "title": "Insight Message"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "feature_a",
+                    "feature_b",
+                    "name_a",
+                    "name_b",
+                    "r",
+                    "p_value",
+                    "insight_message"
+                ],
+                "title": "CorrelationResponse"
+            },
+            "CsvUploadResponse": {
+                "properties": {
+                    "imported": {
+                        "type": "integer",
+                        "title": "Imported"
+                    },
+                    "errors": {
+                        "items": {
+                            "type": "object"
+                        },
+                        "type": "array",
+                        "title": "Errors"
+                    },
+                    "total_rows": {
+                        "type": "integer",
+                        "title": "Total Rows"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "imported",
+                    "errors",
+                    "total_rows"
+                ],
+                "title": "CsvUploadResponse",
+                "description": "Response body for CSV upload."
+            },
+            "DailyEntryCreate": {
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Date"
+                    },
+                    "sleep_hours": {
+                        "type": "number",
+                        "maximum": 24.0,
+                        "minimum": 0.0,
+                        "title": "Sleep Hours",
+                        "description": "Hours of sleep"
+                    },
+                    "sleep_quality": {
+                        "type": "integer",
+                        "maximum": 5.0,
+                        "minimum": 1.0,
+                        "title": "Sleep Quality",
+                        "description": "Sleep quality 1-5"
+                    },
+                    "sleep_bedtime": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Sleep Bedtime",
+                        "description": "Bedtime in HH:MM format"
+                    },
+                    "screen_time_hours": {
+                        "type": "number",
+                        "maximum": 24.0,
+                        "minimum": 0.0,
+                        "title": "Screen Time Hours"
+                    },
+                    "social_media_hours": {
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Social Media Hours"
+                    },
+                    "steps": {
+                        "type": "integer",
+                        "minimum": 0.0,
+                        "title": "Steps"
+                    },
+                    "active_minutes": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Active Minutes"
+                    },
+                    "calories_burned": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Calories Burned"
+                    },
+                    "deep_work_hours": {
+                        "type": "number",
+                        "maximum": 24.0,
+                        "minimum": 0.0,
+                        "title": "Deep Work Hours"
+                    },
+                    "tasks_completed": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tasks Completed"
+                    },
+                    "daily_spend": {
+                        "type": "number",
+                        "minimum": 0.0,
+                        "title": "Daily Spend"
+                    },
+                    "spend_category": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 50
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Spend Category"
+                    },
+                    "mood_score": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "maximum": 10.0,
+                                "minimum": 1.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Mood Score"
+                    },
+                    "energy_level": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "maximum": 5.0,
+                                "minimum": 1.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Energy Level"
+                    },
+                    "notes": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 1000
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Notes"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "date",
+                    "sleep_hours",
+                    "sleep_quality",
+                    "screen_time_hours",
+                    "steps",
+                    "deep_work_hours",
+                    "daily_spend"
+                ],
+                "title": "DailyEntryCreate",
+                "description": "Request body for creating a daily entry."
+            },
+            "DailyEntryResponse": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Id"
+                    },
+                    "user_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "User Id"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "Date"
+                    },
+                    "sleep_hours": {
+                        "type": "number",
+                        "title": "Sleep Hours"
+                    },
+                    "sleep_quality": {
+                        "type": "integer",
+                        "title": "Sleep Quality"
+                    },
+                    "sleep_bedtime": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Sleep Bedtime"
+                    },
+                    "screen_time_hours": {
+                        "type": "number",
+                        "title": "Screen Time Hours"
+                    },
+                    "social_media_hours": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Social Media Hours"
+                    },
+                    "steps": {
+                        "type": "integer",
+                        "title": "Steps"
+                    },
+                    "active_minutes": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Active Minutes"
+                    },
+                    "calories_burned": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Calories Burned"
+                    },
+                    "deep_work_hours": {
+                        "type": "number",
+                        "title": "Deep Work Hours"
+                    },
+                    "tasks_completed": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tasks Completed"
+                    },
+                    "daily_spend": {
+                        "type": "number",
+                        "title": "Daily Spend"
+                    },
+                    "spend_category": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Spend Category"
+                    },
+                    "mood_score": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Mood Score"
+                    },
+                    "energy_level": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Energy Level"
+                    },
+                    "notes": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Notes"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "title": "Created At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "user_id",
+                    "date",
+                    "sleep_hours",
+                    "sleep_quality",
+                    "screen_time_hours",
+                    "steps",
+                    "deep_work_hours",
+                    "daily_spend",
+                    "created_at"
+                ],
+                "title": "DailyEntryResponse",
+                "description": "Response body for a daily entry."
+            },
+            "DailyEntryUpdate": {
+                "properties": {
+                    "sleep_hours": {
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "maximum": 24.0,
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Sleep Hours"
+                    },
+                    "sleep_quality": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "maximum": 5.0,
+                                "minimum": 1.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Sleep Quality"
+                    },
+                    "sleep_bedtime": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Sleep Bedtime"
+                    },
+                    "screen_time_hours": {
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "maximum": 24.0,
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Screen Time Hours"
+                    },
+                    "social_media_hours": {
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Social Media Hours"
+                    },
+                    "steps": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Steps"
+                    },
+                    "active_minutes": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Active Minutes"
+                    },
+                    "calories_burned": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Calories Burned"
+                    },
+                    "deep_work_hours": {
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "maximum": 24.0,
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Deep Work Hours"
+                    },
+                    "tasks_completed": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tasks Completed"
+                    },
+                    "daily_spend": {
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Daily Spend"
+                    },
+                    "spend_category": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 50
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Spend Category"
+                    },
+                    "mood_score": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "maximum": 10.0,
+                                "minimum": 1.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Mood Score"
+                    },
+                    "energy_level": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "maximum": 5.0,
+                                "minimum": 1.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Energy Level"
+                    },
+                    "notes": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 1000
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Notes"
+                    }
+                },
+                "type": "object",
+                "title": "DailyEntryUpdate",
+                "description": "Request body for updating a daily entry (all fields optional)."
+            },
+            "DailySummarySchema": {
+                "properties": {
+                    "what": {
+                        "type": "string",
+                        "title": "What"
+                    },
+                    "why": {
+                        "type": "string",
+                        "title": "Why"
+                    },
+                    "action": {
+                        "type": "string",
+                        "title": "Action"
+                    },
+                    "severity": {
+                        "type": "string",
+                        "title": "Severity"
+                    },
+                    "insight_type": {
+                        "type": "string",
+                        "title": "Insight Type"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "what",
+                    "why",
+                    "action",
+                    "severity",
+                    "insight_type",
+                    "title"
+                ],
+                "title": "DailySummarySchema",
+                "description": "Structured What/Why/Action daily insight card."
+            },
+            "DashboardResponse": {
+                "properties": {
+                    "today_date": {
+                        "type": "string",
+                        "title": "Today Date"
+                    },
+                    "life_score": {
+                        "type": "number",
+                        "title": "Life Score"
+                    },
+                    "life_score_components": {
+                        "$ref": "#/components/schemas/LifeScoreComponents"
+                    },
+                    "life_score_change_from_yesterday": {
+                        "type": "number",
+                        "title": "Life Score Change From Yesterday"
+                    },
+                    "cluster_label": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Cluster Label"
+                    },
+                    "top_insights": {
+                        "items": {
+                            "type": "object"
+                        },
+                        "type": "array",
+                        "title": "Top Insights"
+                    },
+                    "trend_data": {
+                        "items": {
+                            "type": "object"
+                        },
+                        "type": "array",
+                        "title": "Trend Data"
+                    },
+                    "days_tracked": {
+                        "type": "integer",
+                        "title": "Days Tracked"
+                    },
+                    "is_data_sufficient_for_ml": {
+                        "type": "boolean",
+                        "title": "Is Data Sufficient For Ml"
+                    },
+                    "daily_summary": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/DailySummarySchema"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "data_maturity": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Data Maturity"
+                    },
+                    "data_maturity_label": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Data Maturity Label"
+                    },
+                    "days_until_next_tier": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Days Until Next Tier"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "today_date",
+                    "life_score",
+                    "life_score_components",
+                    "life_score_change_from_yesterday",
+                    "top_insights",
+                    "trend_data",
+                    "days_tracked",
+                    "is_data_sufficient_for_ml"
+                ],
+                "title": "DashboardResponse"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "InsightResponse": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "date": {
+                        "type": "string",
+                        "title": "Date"
+                    },
+                    "insight_type": {
+                        "type": "string",
+                        "title": "Insight Type"
+                    },
+                    "severity": {
+                        "type": "string",
+                        "title": "Severity"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "data_payload": {
+                        "anyOf": [
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Data Payload"
+                    },
+                    "is_read": {
+                        "type": "boolean",
+                        "title": "Is Read"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "title": "Created At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "date",
+                    "insight_type",
+                    "severity",
+                    "title",
+                    "message",
+                    "is_read",
+                    "created_at"
+                ],
+                "title": "InsightResponse"
+            },
+            "LifeScoreComponents": {
+                "properties": {
+                    "sleep": {
+                        "type": "number",
+                        "title": "Sleep"
+                    },
+                    "productivity": {
+                        "type": "number",
+                        "title": "Productivity"
+                    },
+                    "health": {
+                        "type": "number",
+                        "title": "Health"
+                    },
+                    "finance": {
+                        "type": "number",
+                        "title": "Finance"
+                    },
+                    "mood_adjustment": {
+                        "type": "number",
+                        "title": "Mood Adjustment"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "sleep",
+                    "productivity",
+                    "health",
+                    "finance",
+                    "mood_adjustment"
+                ],
+                "title": "LifeScoreComponents"
+            },
+            "LifeScoreHistoryPoint": {
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "title": "Date"
+                    },
+                    "life_score": {
+                        "type": "number",
+                        "title": "Life Score"
+                    },
+                    "sleep_score": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Sleep Score"
+                    },
+                    "productivity_score": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Productivity Score"
+                    },
+                    "health_score": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Health Score"
+                    },
+                    "finance_score": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Finance Score"
+                    },
+                    "cluster_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Cluster Name"
+                    },
+                    "is_anomaly": {
+                        "type": "boolean",
+                        "title": "Is Anomaly",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "date",
+                    "life_score"
+                ],
+                "title": "LifeScoreHistoryPoint"
+            },
+            "PasswordResetConfirm": {
+                "properties": {
+                    "token": {
+                        "type": "string",
+                        "title": "Token"
+                    },
+                    "new_password": {
+                        "type": "string",
+                        "title": "New Password"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "token",
+                    "new_password"
+                ],
+                "title": "PasswordResetConfirm"
+            },
+            "PasswordResetRequest": {
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "title": "Email"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "email"
+                ],
+                "title": "PasswordResetRequest"
+            },
+            "PredictionResponse": {
+                "properties": {
+                    "predicted_productivity": {
+                        "type": "number",
+                        "title": "Predicted Productivity"
+                    },
+                    "confidence_interval": {
+                        "type": "object",
+                        "title": "Confidence Interval"
+                    },
+                    "key_driver": {
+                        "type": "string",
+                        "title": "Key Driver"
+                    },
+                    "key_driver_importance_pct": {
+                        "type": "number",
+                        "title": "Key Driver Importance Pct"
+                    },
+                    "improvement_tip": {
+                        "type": "string",
+                        "title": "Improvement Tip"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "predicted_productivity",
+                    "confidence_interval",
+                    "key_driver",
+                    "key_driver_importance_pct",
+                    "improvement_tip"
+                ],
+                "title": "PredictionResponse"
+            },
+            "TokenResponse": {
+                "properties": {
+                    "access_token": {
+                        "type": "string",
+                        "title": "Access Token"
+                    },
+                    "token_type": {
+                        "type": "string",
+                        "title": "Token Type",
+                        "default": "bearer"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "access_token"
+                ],
+                "title": "TokenResponse",
+                "description": "Response body for JWT token."
+            },
+            "UserRegister": {
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "title": "Email"
+                    },
+                    "password": {
+                        "type": "string",
+                        "maxLength": 128,
+                        "minLength": 8,
+                        "title": "Password",
+                        "description": "Password (min 8 chars)"
+                    },
+                    "full_name": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 100
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Full Name"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "title": "UserRegister",
+                "description": "Request body for user registration."
+            },
+            "UserResponse": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "title": "Id"
+                    },
+                    "email": {
+                        "type": "string",
+                        "title": "Email"
+                    },
+                    "full_name": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Full Name"
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "title": "Timezone"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "email",
+                    "full_name",
+                    "timezone",
+                    "created_at"
+                ],
+                "title": "UserResponse",
+                "description": "Response body for user data."
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        },
+        "securitySchemes": {
+            "OAuth2PasswordBearer": {
+                "type": "oauth2",
+                "flows": {
+                    "password": {
+                        "scopes": {},
+                        "tokenUrl": "/api/auth/login"
+                    }
+                }
+            }
+        }
+    }
+}

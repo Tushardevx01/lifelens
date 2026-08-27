@@ -5,24 +5,15 @@
  * Use these objects spread into component StyleSheet entries.
  */
 
-import { Platform } from 'react-native';
-
 const shadow = (
   elevation: number,
   opacity: number,
   radius: number,
   offsetY: number,
-) =>
-  Platform.select({
-    ios: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: offsetY },
-      shadowOpacity: opacity,
-      shadowRadius: radius,
-    },
-    android: { elevation },
-    default: {},
-  }) ?? {};
+) => ({
+  boxShadow: `0px ${offsetY}px ${radius}px rgba(0, 0, 0, ${opacity})`,
+  elevation,
+});
 
 export const shadows = {
   none: {},

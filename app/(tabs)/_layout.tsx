@@ -7,7 +7,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
       }}
-      tabBar={(props) => <FloatingTabBar {...props} />}
+      tabBar={(props: any) => <FloatingTabBar {...props} />}
     >
       <Tabs.Screen
         name="index"

@@ -35,7 +35,7 @@ export function SkeletonLine({ width = '100%', height = 14, style }: SkeletonLin
     <Animated.View
       style={[
         {
-          width,
+          width: width as any,
           height,
           backgroundColor: colors.surfaceHigh,
           borderRadius: radius.sm,
