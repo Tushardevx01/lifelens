@@ -10,7 +10,7 @@ export default function TabLayout() {
       tabBar={(props: any) => <FloatingTabBar {...props} />}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: 'Home',
         }}
@@ -25,6 +25,12 @@ export default function TabLayout() {
         name="history"
         options={{
           title: 'History',
+        }}
+      />
+      <Tabs.Screen
+        name="two"
+        options={{
+          title: 'Analytics',
         }}
       />
       <Tabs.Screen

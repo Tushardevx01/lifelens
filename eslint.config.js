@@ -17,9 +17,16 @@ module.exports = [
         },
       },
       globals: {
-        // React Native globals
+        // React Native & standard fetch globals
         __DEV__: 'readonly',
         fetch: 'readonly',
+        Response: 'readonly',
+        Request: 'readonly',
+        Headers: 'readonly',
+        FormData: 'readonly',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
+        AbortController: 'readonly',
         console: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
@@ -40,6 +47,7 @@ module.exports = [
     },
     rules: {
       ...typescript.configs.recommended.rules,
+      'no-undef': 'off',
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-require-imports': 'off',

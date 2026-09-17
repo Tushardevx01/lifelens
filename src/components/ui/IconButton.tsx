@@ -4,6 +4,7 @@
  * Circular / rounded tappable icon container.  Used in headers, cards, etc.
  */
 
+import React from 'react';
 import { Pressable, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 

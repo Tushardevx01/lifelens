@@ -271,6 +271,26 @@ npm run typecheck      # Run TypeScript compiler
 
 ## Last Changes
 
+### 2026-09-17 (Bugfix & Network Resilience)
+
+- Fixed infinite loading spinner caused by unresponsive backend (`https://lifelens-api.onrender.com`)
+- Added request timeout with `AbortController` in `src/services/api.ts`
+- Restored `mockDashboardData` in `src/features/dashboard/dashboard.data.ts` as reliable fallback
+- Fixed React Hook violation in `FloatingTabBar.tsx` by extracting `TabBarButton`
+- Fixed missing React import in `IconButton.tsx`
+- Added standard web/fetch globals and relaxed `no-undef` in `eslint.config.js`
+- Implemented full Insights screen (`app/(tabs)/insights.tsx`) using hardcoded `mockDashboardData`
+- Added Discover Patterns (correlations), Daily Synthesis, Predictive Forecast, Behavioral Clusters, Actionable Takeaways, and Anomaly Alerts
+- Implemented full History & Timeline screen (`app/(tabs)/history.tsx`) with streak metrics, 30-day TrendCard, interactive filters, and chronological daily log entries
+- Implemented full Profile & Settings screen (`app/(tabs)/settings.tsx`) with user identity card, AI switches, wearable integrations, preferences, and logout
+- Implemented full Analytics screen (`app/(tabs)/two.tsx`) with LifeScoreHero, 4-pillar MetricGrid, ScoreBreakdown, LifeScoreTrend, cognitive diagnostics, and biometric telemetry
+- Updated `FloatingTabBar.tsx` and `app/(tabs)/_layout.tsx` to properly map the Analytics tab icon (`stats-chart`) and label
+- Configured root entry routing (`app/index.tsx`) to start at `/login`, with successful authentication or demo flow transitioning into the home dashboard (`/(tabs)/home`)
+- Added GitHub Actions CI/CD GitOps workflow (`.github/workflows/build.yml`) for automated validation, Android APK building, and Web export
+- Configured Android package (`ai.lifelens.app`) in `app.json` and created `eas.json`
+- Validated with `npm run typecheck` and `npm run lint` (0 errors)
+
+
 ### 2026-08-26 (Dashboard)
 
 - Created dashboard feature structure (types, mock data, utils)

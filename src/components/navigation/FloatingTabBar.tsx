@@ -14,7 +14,6 @@ import {
   Animated,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,27 +28,80 @@ import { spacing } from '@/src/theme/spacing';
 type RouteIconMap = Record<string, React.ComponentProps<typeof Ionicons>['name']>;
 
 const ICONS: RouteIconMap = {
-  index:      'home-outline',
+  home:     'home-outline',
+  index:    'home-outline',
   insights: 'sparkles-outline',
-  history:    'time-outline',
-  settings:   'person-outline',
+  history:  'time-outline',
+  two:      'stats-chart-outline',
+  settings: 'person-outline',
 };
 
 const ACTIVE_ICONS: RouteIconMap = {
-  index:      'home',
+  home:     'home',
+  index:    'home',
   insights: 'sparkles',
-  history:    'time',
-  settings:   'person',
+  history:  'time',
+  two:      'stats-chart',
+  settings: 'person',
 };
 
 const LABELS: Record<string, string> = {
-  index:      'Home',
+  home:     'Home',
+  index:    'Home',
   insights: 'Insights',
-  history:    'History',
-  settings:   'Profile',
+  history:  'History',
+  two:      'Analytics',
+  settings: 'Profile',
 };
 
-export default function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+type TabBarButtonProps = {
+  route: any;
+  isFocused: boolean;
+  onPress: () => void;
+};
+
+function TabBarButton({ route, isFocused, onPress }: TabBarButtonProps) {
+  const label = LABELS[route.name] ?? route.name;
+  const icon = isFocused
+    ? (ACTIVE_ICONS[route.name] ?? 'ellipse')
+    : (ICONS[route.name] ?? 'ellipse-outline');
+
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+  const handlePress = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, { toValue: 0.92, duration: 80, useNativeDriver: true }),
+      Animated.timing(scaleAnim, { toValue: 1, duration: 80, useNativeDriver: true }),
+    ]).start();
+    onPress();
+  };
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      accessibilityState={{ selected: isFocused }}
+      style={styles.tabItem}
+    >
+      <Animated.View
+        style={[
+          styles.tabInner,
+          isFocused && styles.activeTabInner,
+          { transform: [{ scale: scaleAnim }] },
+        ]}
+      >
+        <Ionicons
+          name={icon}
+          size={24}
+          color={isFocused ? colors.background : colors.textMuted}
+        />
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+export default function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -62,19 +114,8 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
       <View style={styles.pill}>
         {state.routes.map((route: any, index: number) => {
           const isFocused = state.index === index;
-          const label     = LABELS[route.name]      ?? route.name;
-          const icon      = isFocused
-            ? (ACTIVE_ICONS[route.name] ?? 'ellipse')
-            : (ICONS[route.name]        ?? 'ellipse-outline');
-
-          const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
           const handlePress = () => {
-            Animated.sequence([
-              Animated.timing(scaleAnim, { toValue: 0.92, duration: 80, useNativeDriver: true }),
-              Animated.timing(scaleAnim, { toValue: 1,    duration: 80, useNativeDriver: true }),
-            ]).start();
-
             const event = navigation.emit({
               type: 'tabPress',
               target: route.key,
@@ -86,28 +127,12 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
           };
 
           return (
-            <Pressable
+            <TabBarButton
               key={route.key}
+              route={route}
+              isFocused={isFocused}
               onPress={handlePress}
-              accessibilityLabel={label}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isFocused }}
-              style={styles.tabItem}
-            >
-              <Animated.View
-                style={[
-                  styles.tabInner,
-                  isFocused && styles.activeTabInner,
-                  { transform: [{ scale: scaleAnim }] },
-                ]}
-              >
-                <Ionicons
-                  name={icon}
-                  size={24}
-                  color={isFocused ? colors.background : colors.textMuted}
-                />
-              </Animated.View>
-            </Pressable>
+            />
           );
         })}
       </View>

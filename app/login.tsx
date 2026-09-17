@@ -6,11 +6,11 @@ export default function LoginRoute() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleLogin = (email: string, password: string) => {
     // TODO: Implement real authentication
-    router.replace('/(tabs)');
+    router.replace('/(tabs)/home');
   };
 
   const handleDemo = () => {
-    router.replace('/(tabs)');
+    router.replace('/(tabs)/home');
   };
 
   const handleRegister = () => {
