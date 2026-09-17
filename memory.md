@@ -288,6 +288,7 @@ npm run typecheck      # Run TypeScript compiler
 - Configured root entry routing (`app/index.tsx`) to start at `/login`, with successful authentication or demo flow transitioning into the home dashboard (`/(tabs)/home`)
 - Added GitHub Actions CI/CD GitOps workflow (`.github/workflows/build.yml`) for automated validation, Android APK building, and Web export
 - Configured Android package (`ai.lifelens.app`) in `app.json` and created `eas.json`
+- Fixed CI build pipeline: auto-accept Android SDK licenses via `yes | sdkmanager --licenses`, added `gradle/actions/setup-gradle@v4`, and upgraded runners to Node 22
 - Validated with `npm run typecheck` and `npm run lint` (0 errors)
 
 
