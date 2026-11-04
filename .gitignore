@@ -40,3 +40,17 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/models/*.pkl
+backend/models/*.joblib
+.pytest_cache/
+
+# Local/nested repos
+LifeLens-AI/
+

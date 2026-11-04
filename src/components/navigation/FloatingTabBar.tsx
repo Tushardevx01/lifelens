@@ -28,30 +28,36 @@ import { spacing } from '@/src/theme/spacing';
 type RouteIconMap = Record<string, React.ComponentProps<typeof Ionicons>['name']>;
 
 const ICONS: RouteIconMap = {
-  home:     'home-outline',
-  index:    'home-outline',
-  insights: 'sparkles-outline',
-  history:  'time-outline',
-  two:      'stats-chart-outline',
-  settings: 'person-outline',
+  home:        'home-outline',
+  index:       'home-outline',
+  insights:    'sparkles-outline',
+  'new-entry': 'add',
+  history:     'time-outline',
+  analytics:   'stats-chart-outline',
+  two:         'stats-chart-outline',
+  settings:    'person-outline',
 };
 
 const ACTIVE_ICONS: RouteIconMap = {
-  home:     'home',
-  index:    'home',
-  insights: 'sparkles',
-  history:  'time',
-  two:      'stats-chart',
-  settings: 'person',
+  home:        'home',
+  index:       'home',
+  insights:    'sparkles',
+  'new-entry': 'add',
+  history:     'time',
+  analytics:   'stats-chart',
+  two:         'stats-chart',
+  settings:    'person',
 };
 
 const LABELS: Record<string, string> = {
-  home:     'Home',
-  index:    'Home',
-  insights: 'Insights',
-  history:  'History',
-  two:      'Analytics',
-  settings: 'Profile',
+  home:        'Home',
+  index:       'Home',
+  insights:    'Insights',
+  'new-entry': 'Log Entry',
+  history:     'History',
+  analytics:   'Analytics',
+  two:         'Analytics',
+  settings:    'Profile',
 };
 
 type TabBarButtonProps = {
@@ -61,6 +67,7 @@ type TabBarButtonProps = {
 };
 
 function TabBarButton({ route, isFocused, onPress }: TabBarButtonProps) {
+  const isNewEntry = route.name === 'new-entry';
   const label = LABELS[route.name] ?? route.name;
   const icon = isFocused
     ? (ACTIVE_ICONS[route.name] ?? 'ellipse')
@@ -76,6 +83,11 @@ function TabBarButton({ route, isFocused, onPress }: TabBarButtonProps) {
     onPress();
   };
 
+  const getIconColor = () => {
+    if (isNewEntry) return colors.background;
+    return isFocused ? colors.background : colors.textMuted;
+  };
+
   return (
     <Pressable
       onPress={handlePress}
@@ -87,14 +99,15 @@ function TabBarButton({ route, isFocused, onPress }: TabBarButtonProps) {
       <Animated.View
         style={[
           styles.tabInner,
-          isFocused && styles.activeTabInner,
+          isNewEntry && styles.newEntryInner,
+          isFocused && (isNewEntry ? styles.newEntryActiveInner : styles.activeTabInner),
           { transform: [{ scale: scaleAnim }] },
         ]}
       >
         <Ionicons
           name={icon}
-          size={24}
-          color={isFocused ? colors.background : colors.textMuted}
+          size={isNewEntry ? 26 : 24}
+          color={getIconColor()}
         />
       </Animated.View>
     </Pressable>
@@ -174,5 +187,18 @@ const styles = StyleSheet.create({
   },
   activeTabInner: {
     backgroundColor: colors.surfaceLight, // White circle
+  },
+  newEntryInner: {
+    backgroundColor: colors.primary,
+    borderRadius: 24,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  newEntryActiveInner: {
+    backgroundColor: colors.primary,
+    transform: [{ scale: 1.08 }],
   },
 });

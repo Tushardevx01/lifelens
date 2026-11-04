@@ -18,6 +18,7 @@ interface InsightCardProps {
   summary?:       string;
   whyItMatters?:  string;
   action?:        string;
+  onStartExperiment?: (insightData: { title: string; action: string; summary: string }) => void;
 }
 
 export default function InsightCard({
@@ -25,6 +26,7 @@ export default function InsightCard({
   summary       = "Days with 7+ hours of sleep show 28% higher productivity scores.",
   whyItMatters  = "Consistent sleep is your strongest predictor of daily performance.",
   action        = "Aim for a consistent bedtime within a 30-minute window tonight.",
+  onStartExperiment,
 }: InsightCardProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -76,6 +78,17 @@ export default function InsightCard({
               <Ionicons name="arrow-forward-circle" size={18} color={colors.primary} />
               <Text style={styles.actionText}>{action}</Text>
             </View>
+            {onStartExperiment && (
+              <Pressable
+                style={styles.experimentBtn}
+                onPress={() => onStartExperiment({ title, action, summary })}
+                accessibilityRole="button"
+                accessibilityLabel="Test this in a 7-day experiment"
+              >
+                <Ionicons name="flask-outline" size={15} color={colors.background} />
+                <Text style={styles.experimentBtnText}>Test in a 7-Day Experiment</Text>
+              </Pressable>
+            )}
           </View>
         </View>
       )}
@@ -182,5 +195,21 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     lineHeight: 19,
     flex: 1,
+  },
+  experimentBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    marginTop: spacing.md,
+  },
+  experimentBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.background,
   },
 });

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Screen, Card, Button, Input } from '@/src/components/ui';
+import { Screen, Button, Input } from '@/src/components/ui';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 

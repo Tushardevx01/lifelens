@@ -22,13 +22,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="new-entry"
+        options={{
+          title: 'Log',
+        }}
+      />
+      <Tabs.Screen
         name="history"
         options={{
           title: 'History',
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="analytics"
         options={{
           title: 'Analytics',
         }}
