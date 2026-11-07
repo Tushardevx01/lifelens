@@ -7,7 +7,6 @@
 import { ReactNode } from 'react';
 import { StyleProp, Text as RNText, TextProps, TextStyle } from 'react-native';
 
-import { colors }     from '@/src/theme/colors';
 import { typography } from '@/src/theme/typography';
 
 type TextVariant =

@@ -1,12 +1,18 @@
+import { Alert } from 'react-native';
 import { router } from 'expo-router';
 
 import { SignUpScreen } from '@/src/features/auth/SignUpScreen';
+import { authApi } from '@/src/services/api';
 
 export default function SignUpRoute() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleSignUp = (name: string, email: string, password: string) => {
-    // TODO: Implement real registration
-    router.replace('/(tabs)/home');
+  const handleSignUp = async (name: string, email: string, password: string) => {
+    try {
+      await authApi.register(email, password, name);
+      router.replace('/(tabs)/home');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+      Alert.alert('Sign up failed', message);
+    }
   };
 
   const handleSignIn = () => {

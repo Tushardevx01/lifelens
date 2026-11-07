@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+/* eslint-disable no-console */
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,17 +8,37 @@ import {
   Pressable,
   Switch,
   StatusBar,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
+import { authApi, entriesApi, getDashboardData } from '@/src/services/api';
+import type { User, DailyEntry } from '@/src/types/api.types';
+import { seedDemoDataset } from '@/src/features/dashboard/demoData';
+
+const STORAGE_KEYS = {
+  DAILY_INSIGHTS: '@lifelens_settings_daily_insights',
+  ANOMALY_ALERTS: '@lifelens_settings_anomaly_alerts',
+  FOCUS_TRACKING: '@lifelens_settings_focus_tracking',
+  HAPTICS: '@lifelens_settings_haptics',
+  CLOUD_SYNC: '@lifelens_settings_cloud_sync',
+};
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+
+  // User state
+  const [user, setUser] = useState<User | null>(null);
+  const [entries, setEntries] = useState<DailyEntry[]>([]);
+  const [lifeScore, setLifeScore] = useState<number>(84.5);
+  const [actionLoading, setActionLoading] = useState(false);
 
   // Settings state toggles
   const [dailyInsights, setDailyInsights] = useState(true);
@@ -26,9 +47,155 @@ export default function SettingsScreen() {
   const [haptics, setHaptics] = useState(true);
   const [cloudSync, setCloudSync] = useState(true);
 
-  const handleLogout = () => {
+  // Load persisted toggle settings
+  useEffect(() => {
+    async function loadPreferences() {
+      try {
+        const [di, aa, ft, hp, cs] = await Promise.all([
+          AsyncStorage.getItem(STORAGE_KEYS.DAILY_INSIGHTS),
+          AsyncStorage.getItem(STORAGE_KEYS.ANOMALY_ALERTS),
+          AsyncStorage.getItem(STORAGE_KEYS.FOCUS_TRACKING),
+          AsyncStorage.getItem(STORAGE_KEYS.HAPTICS),
+          AsyncStorage.getItem(STORAGE_KEYS.CLOUD_SYNC),
+        ]);
+        if (di !== null) setDailyInsights(di === 'true');
+        if (aa !== null) setAnomalyAlerts(aa === 'true');
+        if (ft !== null) setFocusTracking(ft === 'true');
+        if (hp !== null) setHaptics(hp === 'true');
+        if (cs !== null) setCloudSync(cs === 'true');
+      } catch (err) {
+        console.warn('[LifeLens] Failed to load preferences:', err);
+      }
+    }
+    loadPreferences();
+  }, []);
+
+  const saveToggle = async (key: string, value: boolean, setter: (v: boolean) => void) => {
+    setter(value);
+    try {
+      await AsyncStorage.setItem(key, String(value));
+    } catch (err) {
+      console.warn('[LifeLens] Failed to save setting:', err);
+    }
+  };
+
+  // Load real profile and data metrics
+  const loadProfileData = useCallback(async () => {
+    try {
+      const [currentUser, userEntries, dash] = await Promise.all([
+        authApi.me().catch(() => null),
+        entriesApi.list().catch(() => [] as DailyEntry[]),
+        getDashboardData().catch(() => null),
+      ]);
+      if (currentUser) setUser(currentUser);
+      if (userEntries) setEntries(userEntries);
+      if (dash?.lifeScore?.overall) setLifeScore(dash.lifeScore.overall);
+    } catch (err) {
+      console.warn('[LifeLens] Failed to load user profile:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProfileData();
+  }, [loadProfileData]);
+
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // Ignored
+    }
     router.replace('/login');
   };
+
+  const handleLoadDemoData = async () => {
+    setActionLoading(true);
+    try {
+      const { success, skipped } = await seedDemoDataset();
+      Alert.alert(
+        'Demo Data Loaded',
+        `Successfully imported ${success} days of habit telemetry (${skipped} already present). Your machine learning models, trends, and correlations are now fully unlocked!`,
+        [
+          {
+            text: 'View Analytics',
+            onPress: () => {
+              loadProfileData();
+              router.push('/(tabs)/analytics');
+            },
+          },
+          { text: 'OK', onPress: () => loadProfileData() },
+        ]
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Demo data import failed.';
+      Alert.alert('Import Failed', msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleClearData = () => {
+    Alert.alert(
+      'Clear All Data',
+      'Are you sure you want to delete all daily logs? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear All Data',
+          style: 'destructive',
+          onPress: async () => {
+            setActionLoading(true);
+            try {
+              const all = await entriesApi.list();
+              for (const e of all) {
+                await entriesApi.delete(e.date);
+              }
+              Alert.alert('Data Cleared', 'All personal habit entries have been removed.');
+              loadProfileData();
+            } catch (err: unknown) {
+              const msg = err instanceof Error ? err.message : 'Failed to clear entries.';
+              Alert.alert('Error', msg);
+            } finally {
+              setActionLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleExportCsv = () => {
+    if (entries.length === 0) {
+      Alert.alert('No Data', 'No entries to export. Log your first day or load demo data!');
+      return;
+    }
+    const headers =
+      'date,sleep_hours,sleep_quality,screen_time_hours,steps,deep_work_hours,daily_spend,mood_score';
+    const rows = entries.map(
+      (e) =>
+        `${e.date},${e.sleep_hours},${e.sleep_quality},${e.screen_time_hours},${e.steps},${e.deep_work_hours},${e.daily_spend},${e.mood_score ?? ''}`
+    );
+    const csvContent = [headers, ...rows].join('\n');
+    Alert.alert(
+      'Export Ready',
+      `Generated CSV with ${entries.length} daily logs.\n\nFirst 200 characters:\n\n${csvContent.slice(0, 200)}...`
+    );
+  };
+
+  // Format member join date
+  const memberSince = user?.created_at
+    ? new Date(user.created_at).toLocaleDateString('en-US', {
+        month: 'long',
+        year: 'numeric',
+      })
+    : 'August 2026';
+
+  const userDisplayName = user?.full_name || (user?.email ? user.email.split('@')[0] : 'LifeLens Explorer');
+  const userInitials = userDisplayName
+    .split(' ')
+    .map((p) => p.charAt(0).toUpperCase())
+    .slice(0, 2)
+    .join('');
 
   return (
     <View style={styles.container}>
@@ -54,40 +221,109 @@ export default function SettingsScreen() {
         <View style={styles.profileCard}>
           <View style={styles.profileTopRow}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>AM</Text>
+              <Text style={styles.avatarText}>{userInitials || 'LL'}</Text>
               <View style={styles.onlineBadge} />
             </View>
 
             <View style={styles.profileInfo}>
               <View style={styles.nameRow}>
-                <Text style={styles.profileName}>Alex Morgan</Text>
+                <Text style={styles.profileName}>{userDisplayName}</Text>
                 <View style={styles.proBadge}>
                   <Text style={styles.proBadgeText}>PRO</Text>
                 </View>
               </View>
-              <Text style={styles.profileEmail}>demo@lifelens.ai</Text>
-              <Text style={styles.profileMeta}>Member since August 2026</Text>
+              <Text style={styles.profileEmail}>{user?.email || 'demo@lifelens.ai'}</Text>
+              <Text style={styles.profileMeta}>Member since {memberSince}</Text>
             </View>
           </View>
 
           {/* Quick Stats Grid */}
           <View style={styles.profileStatsRow}>
             <View style={styles.profileStatItem}>
-              <Text style={styles.profileStatValue}>84.5</Text>
+              <Text style={styles.profileStatValue}>{lifeScore.toFixed(1)}</Text>
               <Text style={styles.profileStatLabel}>Life Score</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.profileStatItem}>
-              <Text style={styles.profileStatValue}>28 Days</Text>
+              <Text style={styles.profileStatValue}>
+                {entries.length > 0 ? `${entries.length} Days` : 'New User'}
+              </Text>
               <Text style={styles.profileStatLabel}>Tracking</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.profileStatItem}>
               <Text style={[styles.profileStatValue, { color: colors.primary }]}>
-                Top 5%
+                {entries.length >= 30 ? 'Top 5%' : entries.length >= 14 ? 'Top 15%' : 'Growing'}
               </Text>
               <Text style={styles.profileStatLabel}>Consistency</Text>
             </View>
+          </View>
+        </View>
+
+        {/* DATA & INTELLIGENCE MANAGEMENT */}
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>DATA MANAGEMENT & TESTING</Text>
+          <View style={styles.card}>
+            <Pressable
+              style={styles.actionRow}
+              onPress={handleLoadDemoData}
+              disabled={actionLoading}
+            >
+              <View style={styles.settingLeft}>
+                <View style={[styles.settingIconWrap, { backgroundColor: 'rgba(184, 255, 61, 0.15)' }]}>
+                  <Ionicons name="sparkles" size={18} color={colors.primary} />
+                </View>
+                <View style={styles.settingTextCol}>
+                  <Text style={styles.settingTitle}>Load 45-Day Demo Data</Text>
+                  <Text style={styles.settingDesc}>
+                    Seed realistic historical telemetry to unlock all ML models
+                  </Text>
+                </View>
+              </View>
+              {actionLoading ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Ionicons name="cloud-download-outline" size={20} color={colors.primary} />
+              )}
+            </Pressable>
+
+            <View style={styles.rowDivider} />
+
+            <Pressable style={styles.actionRow} onPress={handleExportCsv}>
+              <View style={styles.settingLeft}>
+                <View style={[styles.settingIconWrap, { backgroundColor: colors.surfaceElevated }]}>
+                  <Ionicons name="document-text-outline" size={18} color={colors.textPrimary} />
+                </View>
+                <View style={styles.settingTextCol}>
+                  <Text style={styles.settingTitle}>Export Historical CSV</Text>
+                  <Text style={styles.settingDesc}>
+                    {entries.length} daily logs available for export
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="download-outline" size={18} color={colors.textMuted} />
+            </Pressable>
+
+            <View style={styles.rowDivider} />
+
+            <Pressable
+              style={styles.actionRow}
+              onPress={handleClearData}
+              disabled={actionLoading}
+            >
+              <View style={styles.settingLeft}>
+                <View style={[styles.settingIconWrap, { backgroundColor: 'rgba(255, 99, 109, 0.15)' }]}>
+                  <Ionicons name="trash-outline" size={18} color={colors.error} />
+                </View>
+                <View style={styles.settingTextCol}>
+                  <Text style={[styles.settingTitle, { color: colors.error }]}>Clear My Data</Text>
+                  <Text style={styles.settingDesc}>
+                    Remove all tracked entries and reset intelligence
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </Pressable>
           </View>
         </View>
 
@@ -109,7 +345,9 @@ export default function SettingsScreen() {
               </View>
               <Switch
                 value={dailyInsights}
-                onValueChange={setDailyInsights}
+                onValueChange={(val) =>
+                  saveToggle(STORAGE_KEYS.DAILY_INSIGHTS, val, setDailyInsights)
+                }
                 trackColor={{ false: colors.border, true: colors.primary }}
                 thumbColor={colors.white}
               />
@@ -131,7 +369,9 @@ export default function SettingsScreen() {
               </View>
               <Switch
                 value={anomalyAlerts}
-                onValueChange={setAnomalyAlerts}
+                onValueChange={(val) =>
+                  saveToggle(STORAGE_KEYS.ANOMALY_ALERTS, val, setAnomalyAlerts)
+                }
                 trackColor={{ false: colors.border, true: colors.primary }}
                 thumbColor={colors.white}
               />
@@ -153,7 +393,9 @@ export default function SettingsScreen() {
               </View>
               <Switch
                 value={focusTracking}
-                onValueChange={setFocusTracking}
+                onValueChange={(val) =>
+                  saveToggle(STORAGE_KEYS.FOCUS_TRACKING, val, setFocusTracking)
+                }
                 trackColor={{ false: colors.border, true: colors.primary }}
                 thumbColor={colors.white}
               />
@@ -161,9 +403,9 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Data & Connected Integrations */}
+        {/* Preferences */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>DATA & INTEGRATIONS</Text>
+          <Text style={styles.sectionHeader}>PREFERENCES & HARDWARE</Text>
           <View style={styles.card}>
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
@@ -179,7 +421,9 @@ export default function SettingsScreen() {
               </View>
               <Switch
                 value={cloudSync}
-                onValueChange={setCloudSync}
+                onValueChange={(val) =>
+                  saveToggle(STORAGE_KEYS.CLOUD_SYNC, val, setCloudSync)
+                }
                 trackColor={{ false: colors.border, true: colors.primary }}
                 thumbColor={colors.white}
               />
@@ -187,44 +431,6 @@ export default function SettingsScreen() {
 
             <View style={styles.rowDivider} />
 
-            <Pressable style={styles.actionRow}>
-              <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: colors.surfaceElevated }]}>
-                  <Ionicons name="fitness-outline" size={18} color={colors.textPrimary} />
-                </View>
-                <View style={styles.settingTextCol}>
-                  <Text style={styles.settingTitle}>Health & Wearables</Text>
-                  <Text style={styles.settingDesc}>
-                    Connected • 8,900 steps synced today
-                  </Text>
-                </View>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-            </Pressable>
-
-            <View style={styles.rowDivider} />
-
-            <Pressable style={styles.actionRow}>
-              <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: colors.surfaceElevated }]}>
-                  <Ionicons name="document-text-outline" size={18} color={colors.textPrimary} />
-                </View>
-                <View style={styles.settingTextCol}>
-                  <Text style={styles.settingTitle}>Import Historical CSV</Text>
-                  <Text style={styles.settingDesc}>
-                    Bulk import life logs via CSV file
-                  </Text>
-                </View>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Preferences */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>PREFERENCES</Text>
-          <View style={styles.card}>
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIconWrap, { backgroundColor: colors.surfaceElevated }]}>
@@ -239,61 +445,13 @@ export default function SettingsScreen() {
               </View>
               <Switch
                 value={haptics}
-                onValueChange={setHaptics}
+                onValueChange={(val) =>
+                  saveToggle(STORAGE_KEYS.HAPTICS, val, setHaptics)
+                }
                 trackColor={{ false: colors.border, true: colors.primary }}
                 thumbColor={colors.white}
               />
             </View>
-
-            <View style={styles.rowDivider} />
-
-            <View style={styles.actionRow}>
-              <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: colors.surfaceElevated }]}>
-                  <Ionicons name="color-palette-outline" size={18} color={colors.textPrimary} />
-                </View>
-                <View style={styles.settingTextCol}>
-                  <Text style={styles.settingTitle}>Theme Mode</Text>
-                  <Text style={styles.settingDesc}>
-                    Dark Neon (LifeLens Signature)
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.activeThemeBadge}>
-                <Text style={styles.activeThemeText}>Default</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Support & Legal */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>ABOUT & SECURITY</Text>
-          <View style={styles.card}>
-            <Pressable style={styles.actionRow}>
-              <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: colors.surfaceElevated }]}>
-                  <Ionicons name="shield-checkmark-outline" size={18} color={colors.textPrimary} />
-                </View>
-                <Text style={styles.settingTitle}>Privacy & Data Protection</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-            </Pressable>
-
-            <View style={styles.rowDivider} />
-
-            <Pressable style={styles.actionRow}>
-              <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: colors.surfaceElevated }]}>
-                  <Ionicons name="information-circle-outline" size={18} color={colors.textPrimary} />
-                </View>
-                <Text style={styles.settingTitle}>System Health & API Status</Text>
-              </View>
-              <View style={styles.statusPill}>
-                <View style={styles.statusDot} />
-                <Text style={styles.statusText}>Live</Text>
-              </View>
-            </Pressable>
           </View>
         </View>
 
@@ -311,7 +469,7 @@ export default function SettingsScreen() {
         {/* App Version Info */}
         <View style={styles.footer}>
           <Text style={styles.versionText}>LifeLens AI Mobile • Version 1.0.0</Text>
-          <Text style={styles.buildText}>Expo Go Compatible • SDK 57</Text>
+          <Text style={styles.buildText}>Expo SDK 57 • Live API Connected</Text>
         </View>
       </ScrollView>
     </View>
@@ -511,39 +669,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.border,
     marginLeft: 68,
-  },
-  activeThemeBadge: {
-    backgroundColor: colors.surfaceElevated,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  activeThemeText: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(66, 215, 122, 0.15)',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: radius.full,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.green,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.green,
   },
   logoutButton: {
     flexDirection: 'row',

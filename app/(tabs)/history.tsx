@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+/* eslint-disable no-console */
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,158 +7,201 @@ import {
   ScrollView,
   Pressable,
   StatusBar,
+  RefreshControl,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
-import { mockDashboardData } from '@/src/features/dashboard';
+import { entriesApi } from '@/src/services/api';
+import type { DailyEntry } from '@/src/types/api.types';
+import { calculateEstimatedLifeScore } from '@/src/utils/lifeScore';
 import TrendCard from '@/src/components/dashboard/TrendCard';
 
-interface HistoryEntry {
-  id: string;
-  date: string;
-  formattedDate: string;
-  dayOfWeek: string;
-  lifeScore: number;
-  change?: number;
-  highlight: string;
-  summary: string;
-  tags: {
-    label: string;
-    value: string;
-    icon: React.ComponentProps<typeof Ionicons>['name'];
-  }[];
+type TimeRange = '7D' | '30D' | '90D' | 'All';
+type ScoreFilter = 'All' | 'Top Scores (80+)' | 'Active Focus (4h+)';
+
+const TIME_RANGES: TimeRange[] = ['7D', '30D', '90D', 'All'];
+const SCORE_FILTERS: ScoreFilter[] = ['All', 'Top Scores (80+)', 'Active Focus (4h+)'];
+
+function formatDate(dateStr: string): { formattedDate: string; dayOfWeek: string } {
+  try {
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const d = new Date(year, month, day);
+
+      const today = new Date();
+      const isToday =
+        today.getFullYear() === year &&
+        today.getMonth() === month &&
+        today.getDate() === day;
+
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const isYesterday =
+        yesterday.getFullYear() === year &&
+        yesterday.getMonth() === month &&
+        yesterday.getDate() === day;
+
+      let dayOfWeek = d.toLocaleDateString('en-US', { weekday: 'short' });
+      if (isToday) dayOfWeek = 'Today';
+      else if (isYesterday) dayOfWeek = 'Yesterday';
+
+      const formattedDate = d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+      return { formattedDate, dayOfWeek };
+    }
+  } catch {
+    // fallback
+  }
+  return { formattedDate: dateStr, dayOfWeek: '' };
 }
 
-const HISTORY_ENTRIES: HistoryEntry[] = [
-  {
-    id: 'entry-1',
-    date: '2026-08-25',
-    formattedDate: 'Aug 25, 2026',
-    dayOfWeek: 'Today',
-    lifeScore: 84.5,
-    change: 1.5,
-    highlight: 'Peak Focus & Sleep Harmony',
-    summary:
-      'High deep work (5.5 hrs) combined with 8.1 hrs restorative sleep and 8,900 steps. Distraction remained below 45 min.',
-    tags: [
-      { label: 'Sleep', value: '8.1 hrs', icon: 'moon-outline' },
-      { label: 'Deep Work', value: '5.5 hrs', icon: 'briefcase-outline' },
-      { label: 'Steps', value: '8,900', icon: 'footsteps-outline' },
-      { label: 'Mood', value: '9/10', icon: 'happy-outline' },
-    ],
-  },
-  {
-    id: 'entry-2',
-    date: '2026-08-24',
-    formattedDate: 'Aug 24, 2026',
-    dayOfWeek: 'Yesterday',
-    lifeScore: 83.0,
-    change: 2.0,
-    highlight: 'Active Recovery & Consistency',
-    summary:
-      'Met all cardio targets with a 45-minute evening jog. Sleep debt reduced by 1.2 hrs.',
-    tags: [
-      { label: 'Sleep', value: '7.8 hrs', icon: 'moon-outline' },
-      { label: 'Deep Work', value: '4.2 hrs', icon: 'briefcase-outline' },
-      { label: 'Steps', value: '11,200', icon: 'footsteps-outline' },
-      { label: 'Mood', value: '8/10', icon: 'happy-outline' },
-    ],
-  },
-  {
-    id: 'entry-3',
-    date: '2026-08-23',
-    formattedDate: 'Aug 23, 2026',
-    dayOfWeek: 'Sunday',
-    lifeScore: 81.0,
-    change: -1.0,
-    highlight: 'Rest & Cognitive Reset',
-    summary:
-      'Screen time spiked in the afternoon (3.8 hrs) accompanied by a late bedtime, but physical recovery was solid.',
-    tags: [
-      { label: 'Sleep', value: '6.9 hrs', icon: 'moon-outline' },
-      { label: 'Deep Work', value: '2.0 hrs', icon: 'briefcase-outline' },
-      { label: 'Steps', value: '6,400', icon: 'footsteps-outline' },
-      { label: 'Mood', value: '7/10', icon: 'happy-outline' },
-    ],
-  },
-  {
-    id: 'entry-4',
-    date: '2026-08-22',
-    formattedDate: 'Aug 22, 2026',
-    dayOfWeek: 'Saturday',
-    lifeScore: 82.0,
-    change: 6.0,
-    highlight: 'Outdoor Vitality',
-    summary:
-      'Nature hike and social engagement boosted overall emotional valence. Zero alcohol and consistent hydration.',
-    tags: [
-      { label: 'Sleep', value: '8.4 hrs', icon: 'moon-outline' },
-      { label: 'Deep Work', value: '3.0 hrs', icon: 'briefcase-outline' },
-      { label: 'Steps', value: '14,300', icon: 'footsteps-outline' },
-      { label: 'Mood', value: '9/10', icon: 'happy-outline' },
-    ],
-  },
-  {
-    id: 'entry-5',
-    date: '2026-08-21',
-    formattedDate: 'Aug 21, 2026',
-    dayOfWeek: 'Friday',
-    lifeScore: 76.0,
-    change: -4.0,
-    highlight: 'Sprint Deadline & High Stress',
-    summary:
-      'High work output but late coffee intake pushed sleep onset to 1:30 AM. Identified caffeine sensitivity anomaly.',
-    tags: [
-      { label: 'Sleep', value: '5.8 hrs', icon: 'moon-outline' },
-      { label: 'Deep Work', value: '6.8 hrs', icon: 'briefcase-outline' },
-      { label: 'Steps', value: '4,800', icon: 'footsteps-outline' },
-      { label: 'Mood', value: '6/10', icon: 'sad-outline' },
-    ],
-  },
-  {
-    id: 'entry-6',
-    date: '2026-08-20',
-    formattedDate: 'Aug 20, 2026',
-    dayOfWeek: 'Thursday',
-    lifeScore: 80.0,
-    change: 2.0,
-    highlight: 'Balanced Focus Routine',
-    summary:
-      'Productive morning deep-work block followed by 30-min reading routine. Consistent energy throughout the afternoon.',
-    tags: [
-      { label: 'Sleep', value: '7.5 hrs', icon: 'moon-outline' },
-      { label: 'Deep Work', value: '5.0 hrs', icon: 'briefcase-outline' },
-      { label: 'Steps', value: '8,100', icon: 'footsteps-outline' },
-      { label: 'Mood', value: '8/10', icon: 'happy-outline' },
-    ],
-  },
-];
+function calculateStreak(entries: DailyEntry[]): number {
+  if (!entries || entries.length === 0) return 0;
+  const sorted = [...entries].sort((a, b) => b.date.localeCompare(a.date));
+  let streak = 0;
+  const curr = new Date();
+  curr.setHours(0, 0, 0, 0);
 
-const FILTERS = ['All', 'Top Scores (80+)', 'High Focus'] as const;
-type FilterType = (typeof FILTERS)[number];
+  for (const entry of sorted) {
+    const [y, m, d] = entry.date.split('-').map(Number);
+    const entryDate = new Date(y, m - 1, d);
+    entryDate.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.round((curr.getTime() - entryDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0 || diffDays === 1) {
+      streak += 1;
+      curr.setDate(curr.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return Math.max(streak, entries.length > 0 ? 1 : 0);
+}
 
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
-  const [selectedFilter, setSelectedFilter] = useState<FilterType>('All');
+  const [entries, setEntries] = useState<DailyEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [timeRange, setTimeRange] = useState<TimeRange>('30D');
+  const [scoreFilter, setScoreFilter] = useState<ScoreFilter>('All');
 
-  const trendPoints = (mockDashboardData.trendData || []).map((t, index) => ({
-    day: t.date || `D${index + 1}`,
-    value: t.lifeScore,
-  }));
+  const fetchEntries = useCallback(async () => {
+    try {
+      let startStr: string | undefined = undefined;
+      const now = new Date();
 
-  const filteredEntries = HISTORY_ENTRIES.filter((entry) => {
-    if (selectedFilter === 'Top Scores (80+)') return entry.lifeScore >= 80;
-    if (selectedFilter === 'High Focus') {
-      const deepWorkTag = entry.tags.find((t) => t.label === 'Deep Work');
-      const hours = parseFloat(deepWorkTag?.value || '0');
-      return hours >= 5.0;
+      if (timeRange === '7D') {
+        const d = new Date();
+        d.setDate(now.getDate() - 7);
+        startStr = d.toISOString().split('T')[0];
+      } else if (timeRange === '30D') {
+        const d = new Date();
+        d.setDate(now.getDate() - 30);
+        startStr = d.toISOString().split('T')[0];
+      } else if (timeRange === '90D') {
+        const d = new Date();
+        d.setDate(now.getDate() - 90);
+        startStr = d.toISOString().split('T')[0];
+      }
+
+      const list = await entriesApi.list(startStr);
+      setEntries(list || []);
+    } catch (err) {
+      console.warn('[LifeLens] Failed to load history entries:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
+  }, [timeRange]);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchEntries();
+  }, [fetchEntries]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchEntries();
+  };
+
+  const handleDelete = (entryDate: string) => {
+    Alert.alert(
+      'Delete Entry',
+      `Permanently delete daily entry for ${entryDate}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await entriesApi.delete(entryDate);
+              fetchEntries();
+            } catch (err: unknown) {
+              const msg = err instanceof Error ? err.message : 'Could not delete entry.';
+              Alert.alert('Delete failed', msg);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Filtered entries
+  const filteredEntries = entries.filter((entry) => {
+    const score = calculateEstimatedLifeScore({
+      sleep_hours: entry.sleep_hours,
+      sleep_quality: entry.sleep_quality,
+      screen_time_hours: entry.screen_time_hours,
+      steps: entry.steps,
+      active_minutes: entry.active_minutes,
+      deep_work_hours: entry.deep_work_hours,
+      tasks_completed: entry.tasks_completed,
+      daily_spend: entry.daily_spend,
+      mood_score: entry.mood_score,
+    }).life_score;
+
+    if (scoreFilter === 'Top Scores (80+)') return score >= 80;
+    if (scoreFilter === 'Active Focus (4h+)') return entry.deep_work_hours >= 4.0;
     return true;
   });
+
+  const trendPoints = [...entries]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-7)
+    .map((e, index) => {
+      const score = calculateEstimatedLifeScore({
+        sleep_hours: e.sleep_hours,
+        sleep_quality: e.sleep_quality,
+        screen_time_hours: e.screen_time_hours,
+        steps: e.steps,
+        active_minutes: e.active_minutes,
+        deep_work_hours: e.deep_work_hours,
+        tasks_completed: e.tasks_completed,
+        daily_spend: e.daily_spend,
+        mood_score: e.mood_score,
+      }).life_score;
+      return {
+        day: e.date.slice(5) || `D${index + 1}`,
+        value: score,
+      };
+    });
+
+  const streakCount = calculateStreak(entries);
 
   return (
     <View style={styles.container}>
@@ -167,9 +211,17 @@ export default function HistoryScreen() {
         style={styles.scrollView}
         contentContainerStyle={{
           paddingTop: Math.max(insets.top, 20),
-          paddingBottom: 120,
+          paddingBottom: 130,
         }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
       >
         {/* Screen Header */}
         <View style={styles.header}>
@@ -177,164 +229,186 @@ export default function HistoryScreen() {
             <Text style={styles.headerTitle}>History</Text>
             <View style={styles.streakBadge}>
               <Text style={styles.streakIcon}>🔥</Text>
-              <Text style={styles.streakText}>7-Day Streak</Text>
+              <Text style={styles.streakText}>
+                {streakCount > 0 ? `${streakCount}-Day Streak` : 'No Streak'}
+              </Text>
             </View>
           </View>
           <Text style={styles.headerSubtitle}>
-            Continuous life trajectory & chronological archives
+            Review your past logs, spot trends & track daily growth
           </Text>
-        </View>
 
-        {/* 30-Day Trend Chart */}
-        {trendPoints.length > 0 && (
-          <TrendCard
-            data={trendPoints}
-            latestScore={mockDashboardData.lifeScore.overall}
-            monthChange="+3.2%"
-          />
-        )}
-
-        {/* Quick Stats Summary */}
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>28</Text>
-            <Text style={styles.statLabel}>Logs Recorded</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statNumber, { color: colors.primary }]}>
-              81.4
-            </Text>
-            <Text style={styles.statLabel}>Avg Life Score</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statNumber, { color: colors.green }]}>
-              84.5
-            </Text>
-            <Text style={styles.statLabel}>Peak Score</Text>
-          </View>
-        </View>
-
-        {/* Timeline Header & Filter Pills */}
-        <View style={styles.timelineSectionHeader}>
-          <View>
-            <Text style={styles.sectionTitle}>Your Timeline</Text>
-            <Text style={styles.sectionSubtitle}>
-              Daily breakdowns, metrics & personal notes
-            </Text>
-          </View>
-
-          <View style={styles.filterRow}>
-            {FILTERS.map((f) => (
+          {/* Time Range Pills */}
+          <View style={styles.rangeRow}>
+            {TIME_RANGES.map((r) => (
               <Pressable
-                key={f}
-                style={[
-                  styles.filterPill,
-                  selectedFilter === f && styles.filterPillActive,
-                ]}
-                onPress={() => setSelectedFilter(f)}
+                key={r}
+                onPress={() => setTimeRange(r)}
+                style={[styles.rangePill, timeRange === r && styles.rangePillActive]}
               >
                 <Text
                   style={[
-                    styles.filterText,
-                    selectedFilter === f && styles.filterTextActive,
+                    styles.rangePillText,
+                    timeRange === r && styles.rangePillTextActive,
                   ]}
                 >
-                  {f}
+                  {r}
                 </Text>
               </Pressable>
             ))}
           </View>
         </View>
 
-        {/* Timeline Items */}
-        <View style={styles.timelineList}>
-          {filteredEntries.map((item, index) => {
-            const isLast = index === filteredEntries.length - 1;
-            const scoreColor =
-              item.lifeScore >= 80 ? colors.primary : colors.orange;
+        {/* 7-Day Trend Chart */}
+        {trendPoints.length > 0 && (
+          <View style={styles.trendSection}>
+            <TrendCard
+              data={trendPoints}
+              latestScore={trendPoints[trendPoints.length - 1]?.value}
+            />
+          </View>
+        )}
 
-            return (
-              <View key={item.id} style={styles.timelineItem}>
-                {/* Timeline track line + node */}
-                <View style={styles.trackCol}>
-                  <View
-                    style={[
-                      styles.node,
-                      { borderColor: scoreColor, backgroundColor: colors.surfaceElevated },
-                    ]}
-                  >
-                    <View
-                      style={[styles.nodeDot, { backgroundColor: scoreColor }]}
-                    />
-                  </View>
-                  {!isLast && <View style={styles.trackLine} />}
-                </View>
-
-                {/* Entry Card */}
-                <View style={styles.entryCard}>
-                  {/* Entry Header */}
-                  <View style={styles.entryHeader}>
-                    <View>
-                      <View style={styles.dateRow}>
-                        <Text style={styles.dayOfWeekText}>
-                          {item.dayOfWeek}
-                        </Text>
-                        <Text style={styles.dateDot}>•</Text>
-                        <Text style={styles.formattedDateText}>
-                          {item.formattedDate}
-                        </Text>
-                      </View>
-                      <Text style={styles.highlightText}>{item.highlight}</Text>
-                    </View>
-
-                    {/* Score badge */}
-                    <View
-                      style={[
-                        styles.scoreBadge,
-                        { borderColor: `${scoreColor}40` },
-                      ]}
-                    >
-                      <Text style={[styles.scoreValue, { color: scoreColor }]}>
-                        {item.lifeScore.toFixed(1)}
-                      </Text>
-                      {item.change !== undefined && (
-                        <Text
-                          style={[
-                            styles.changeText,
-                            {
-                              color:
-                                item.change >= 0 ? colors.green : colors.red,
-                            },
-                          ]}
-                        >
-                          {item.change >= 0 ? `+${item.change}` : item.change}
-                        </Text>
-                      )}
-                    </View>
-                  </View>
-
-                  {/* Summary note */}
-                  <Text style={styles.summaryText}>{item.summary}</Text>
-
-                  {/* Metric Tags */}
-                  <View style={styles.tagsContainer}>
-                    {item.tags.map((tag) => (
-                      <View key={tag.label} style={styles.tagPill}>
-                        <Ionicons
-                          name={tag.icon}
-                          size={12}
-                          color={colors.textSecondary}
-                        />
-                        <Text style={styles.tagLabel}>{tag.label}:</Text>
-                        <Text style={styles.tagValue}>{tag.value}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              </View>
-            );
-          })}
+        {/* Filter Pills */}
+        <View style={styles.filterSection}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterTrack}
+          >
+            {SCORE_FILTERS.map((sf) => (
+              <Pressable
+                key={sf}
+                onPress={() => setScoreFilter(sf)}
+                style={[
+                  styles.filterPill,
+                  scoreFilter === sf && styles.filterPillActive,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.filterText,
+                    scoreFilter === sf && styles.filterTextActive,
+                  ]}
+                >
+                  {sf}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
         </View>
+
+        {/* Entries List or Loading / Empty States */}
+        {loading && !refreshing ? (
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Loading history logs...</Text>
+          </View>
+        ) : filteredEntries.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconWrap}>
+              <Ionicons name="calendar-outline" size={40} color={colors.textMuted} />
+            </View>
+            <Text style={styles.emptyTitle}>No Entries Recorded</Text>
+            <Text style={styles.emptySubtitle}>
+              {entries.length === 0
+                ? "You haven't logged any daily entries yet. Start tracking to unlock your Life Score!"
+                : 'No entries matched your active filters.'}
+            </Text>
+            <Pressable
+              style={styles.logButton}
+              onPress={() => router.push('/(tabs)/new-entry')}
+            >
+              <Ionicons name="add" size={18} color={colors.background} />
+              <Text style={styles.logButtonText}>Log Your Day</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <View style={styles.entriesList}>
+            {filteredEntries.map((entry) => {
+              const { formattedDate, dayOfWeek } = formatDate(entry.date);
+              const { life_score, band } = calculateEstimatedLifeScore({
+                sleep_hours: entry.sleep_hours,
+                sleep_quality: entry.sleep_quality,
+                screen_time_hours: entry.screen_time_hours,
+                steps: entry.steps,
+                active_minutes: entry.active_minutes,
+                deep_work_hours: entry.deep_work_hours,
+                tasks_completed: entry.tasks_completed,
+                daily_spend: entry.daily_spend,
+                mood_score: entry.mood_score,
+              });
+
+              return (
+                <View key={entry.id || entry.date} style={styles.entryCard}>
+                  {/* Card Top Row */}
+                  <View style={styles.entryTopRow}>
+                    <View style={styles.dateInfo}>
+                      <Text style={styles.entryDay}>{dayOfWeek}</Text>
+                      <Text style={styles.entryDate}>{formattedDate}</Text>
+                    </View>
+
+                    <View style={styles.scoreContainer}>
+                      <Text style={[styles.scoreNumber, { color: band.color }]}>
+                        {life_score.toFixed(1)}
+                      </Text>
+                      <View style={[styles.bandBadge, { backgroundColor: `${band.color}20` }]}>
+                        <Text style={[styles.bandLabel, { color: band.color }]}>
+                          {band.label}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Highlight or Notes */}
+                  {entry.notes ? (
+                    <Text style={styles.entryNotes} numberOfLines={2}>
+                      "{entry.notes}"
+                    </Text>
+                  ) : null}
+
+                  {/* Metrics Tags Grid */}
+                  <View style={styles.tagsGrid}>
+                    <View style={styles.tagItem}>
+                      <Ionicons name="moon-outline" size={13} color="#00D4AA" />
+                      <Text style={styles.tagLabel}>Sleep: {entry.sleep_hours}h</Text>
+                    </View>
+                    <View style={styles.tagItem}>
+                      <Ionicons name="briefcase-outline" size={13} color="#4A9EFF" />
+                      <Text style={styles.tagLabel}>Focus: {entry.deep_work_hours}h</Text>
+                    </View>
+                    <View style={styles.tagItem}>
+                      <Ionicons name="footsteps-outline" size={13} color="#B8FF00" />
+                      <Text style={styles.tagLabel}>{entry.steps.toLocaleString()} steps</Text>
+                    </View>
+                    <View style={styles.tagItem}>
+                      <Ionicons name="wallet-outline" size={13} color="#FF9F43" />
+                      <Text style={styles.tagLabel}>${entry.daily_spend.toFixed(0)}</Text>
+                    </View>
+                    {entry.mood_score ? (
+                      <View style={styles.tagItem}>
+                        <Ionicons name="happy-outline" size={13} color="#FF69B4" />
+                        <Text style={styles.tagLabel}>Mood: {entry.mood_score}/10</Text>
+                      </View>
+                    ) : null}
+                  </View>
+
+                  {/* Actions Row */}
+                  <View style={styles.cardActionsRow}>
+                    <Pressable
+                      style={styles.deleteButton}
+                      onPress={() => handleDelete(entry.date)}
+                      hitSlop={8}
+                    >
+                      <Ionicons name="trash-outline" size={15} color={colors.textMuted} />
+                      <Text style={styles.deleteText}>Delete</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -351,18 +425,24 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingBottom: spacing.sm,
   },
   headerTop: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.xs,
+    alignItems: 'center',
+    marginBottom: 4,
   },
   headerTitle: {
     fontSize: 32,
     fontWeight: '800',
     color: colors.textPrimary,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: spacing.md,
   },
   streakBadge: {
     flexDirection: 'row',
@@ -370,210 +450,221 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: colors.surfaceElevated,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingVertical: 6,
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255, 159, 67, 0.3)',
   },
   streakIcon: {
     fontSize: 14,
   },
   streakText: {
-    color: colors.textPrimary,
     fontSize: 12,
     fontWeight: '700',
+    color: '#FF9F43',
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 20,
-  },
-  statsRow: {
+  rangeRow: {
     flexDirection: 'row',
     gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    marginVertical: spacing.md,
   },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.sm,
-    alignItems: 'center',
+  rangePill: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: radius.full,
+    backgroundColor: colors.surfaceElevated,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  statNumber: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: colors.textPrimary,
-    marginBottom: 2,
+  rangePillActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
-  statLabel: {
-    fontSize: 11,
-    color: colors.textMuted,
-    fontWeight: '500',
-  },
-  timelineSectionHeader: {
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  sectionSubtitle: {
+  rangePillText: {
     fontSize: 12,
-    color: colors.textMuted,
-    marginTop: 2,
-    marginBottom: spacing.md,
+    fontWeight: '700',
+    color: colors.textSecondary,
   },
-  filterRow: {
-    flexDirection: 'row',
-    gap: spacing.xs,
+  rangePillTextActive: {
+    color: colors.background,
+  },
+  trendSection: {
+    marginVertical: spacing.xs,
+  },
+  filterSection: {
+    marginVertical: spacing.sm,
+  },
+  filterTrack: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
   },
   filterPill: {
     paddingHorizontal: spacing.md,
     paddingVertical: 6,
     borderRadius: radius.full,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceElevated,
     borderWidth: 1,
     borderColor: colors.border,
   },
   filterPillActive: {
-    backgroundColor: colors.primaryMuted,
-    borderColor: colors.primary,
+    backgroundColor: colors.surfaceLight,
+    borderColor: colors.surfaceLight,
   },
   filterText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: colors.textMuted,
   },
   filterTextActive: {
-    color: colors.primary,
+    color: colors.background,
     fontWeight: '700',
   },
-  timelineList: {
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.sm,
-  },
-  timelineItem: {
-    flexDirection: 'row',
-    marginBottom: spacing.lg,
-  },
-  trackCol: {
-    width: 24,
+  centerContainer: {
     alignItems: 'center',
-    marginRight: spacing.sm,
-  },
-  node: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
     justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 4,
+    paddingVertical: 60,
+    gap: spacing.md,
   },
-  nodeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  loadingText: {
+    fontSize: 14,
+    color: colors.textMuted,
   },
-  trackLine: {
-    width: 2,
-    flex: 1,
-    backgroundColor: colors.border,
-    marginTop: 4,
-  },
-  entryCard: {
-    flex: 1,
+  emptyContainer: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.md,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.border,
+    gap: spacing.sm,
   },
-  entryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: spacing.sm,
+  emptyIconWrap: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.surfaceElevated,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
   },
-  dateRow: {
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: spacing.md,
+  },
+  logButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 2,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: radius.full,
+    marginTop: spacing.md,
   },
-  dayOfWeekText: {
-    fontSize: 13,
+  logButtonText: {
+    fontSize: 14,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.background,
   },
-  dateDot: {
-    color: colors.textMuted,
-    fontSize: 10,
+  entriesList: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.md,
+    marginTop: spacing.sm,
   },
-  formattedDateText: {
-    fontSize: 12,
-    color: colors.textMuted,
+  entryCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.sm,
   },
-  highlightText: {
+  entryTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateInfo: {
+    gap: 2,
+  },
+  entryDay: {
     fontSize: 15,
     fontWeight: '700',
     color: colors.textPrimary,
-    marginTop: 2,
   },
-  scoreBadge: {
+  entryDate: {
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  scoreContainer: {
     alignItems: 'flex-end',
-    backgroundColor: colors.surfaceElevated,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: radius.md,
-    borderWidth: 1,
+    gap: 2,
   },
-  scoreValue: {
-    fontSize: 16,
+  scoreNumber: {
+    fontSize: 22,
     fontWeight: '800',
   },
-  changeText: {
+  bandBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: radius.full,
+  },
+  bandLabel: {
     fontSize: 10,
     fontWeight: '700',
-    marginTop: 1,
   },
-  summaryText: {
+  entryNotes: {
     fontSize: 13,
     color: colors.textSecondary,
+    fontStyle: 'italic',
     lineHeight: 18,
-    marginBottom: spacing.md,
   },
-  tagsContainer: {
+  tagsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.xs,
+    gap: 8,
+    marginTop: 4,
   },
-  tagPill: {
+  tagItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: colors.surfaceElevated,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   tagLabel: {
     fontSize: 11,
-    color: colors.textMuted,
+    color: colors.textSecondary,
+    fontWeight: '500',
   },
-  tagValue: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.textPrimary,
+  cardActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 4,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceElevated,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+  },
+  deleteText: {
+    fontSize: 12,
+    color: colors.textMuted,
   },
 });

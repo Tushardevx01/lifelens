@@ -1,15 +1,27 @@
+import { Alert } from 'react-native';
 import { router } from 'expo-router';
 
 import { LoginScreen } from '@/src/features/auth/LoginScreen';
+import { authApi } from '@/src/services/api';
 
 export default function LoginRoute() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleLogin = (email: string, password: string) => {
-    // TODO: Implement real authentication
-    router.replace('/(tabs)/home');
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      await authApi.login(email, password);
+      router.replace('/(tabs)/home');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Login failed. Please try again.';
+      Alert.alert('Login failed', message);
+    }
   };
 
-  const handleDemo = () => {
+  const handleDemo = async () => {
+    // Demo login uses seeded credentials from the backend
+    try {
+      await authApi.login('demo@lifelens.ai', 'Demo123456!');
+    } catch {
+      // If backend is offline the app falls back to mock data automatically
+    }
     router.replace('/(tabs)/home');
   };
 
@@ -17,8 +29,14 @@ export default function LoginRoute() {
     router.push('/signup');
   };
 
-  const handleForgotPassword = () => {
-    // TODO: Navigate to forgot password screen
+  const handleForgotPassword = async (email?: string) => {
+    if (!email) return;
+    try {
+      await authApi.forgotPassword(email);
+      Alert.alert('Check your email', 'If that account exists, a reset link has been sent.');
+    } catch {
+      Alert.alert('Error', 'Could not send reset email. Please try again.');
+    }
   };
 
   return (

@@ -16,8 +16,64 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate:
-    name: Lint & Typecheck
+  backend-ci:
+    name: Backend Test & Lint
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: lifelens_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt pytest-cov
+
+      - name: Run Ruff Lint
+        run: ruff check backend/
+
+      - name: Run Pytest Suite with Coverage
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:postgrespassword@localhost:5432/lifelens_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test_secret_key_ci_environment_minimum_32_characters_long
+          ENVIRONMENT: testing
+        run: |
+          pytest backend/tests/ -v --cov=backend/app --cov-report=term-missing
+
+  frontend-ci:
+    name: Frontend Lint, Typecheck & Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -38,10 +94,41 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      - name: Run Unit & Integration Tests
+        run: npm test
+
+  build-web:
+    name: Build Web Bundle
+    needs: frontend-ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Export Web Application
+        run: npx expo export --platform web
+
+      - name: Upload Web Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lifelens-web-build
+          path: dist
+          retention-days: 14
+
   build-android:
     name: Build Android APK
-    needs: validate
+    needs: [frontend-ci, backend-ci]
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -85,31 +172,4 @@ jobs:
         with:
           name: lifelens-android-apk
           path: android/app/build/outputs/apk/release/app-release.apk
-          retention-days: 14
-
-  build-web:
-    name: Build Web Bundle
-    needs: validate
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Export Web Application
-        run: npx expo export --platform web
-
-      - name: Upload Web Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: lifelens-web-build
-          path: dist
           retention-days: 14
