@@ -1,3 +1,5 @@
+import type { DailyMorningBriefing, CompositeRiskForecastResponse } from '@/src/types/api.types';
+
 export type ScoreCategory = 'sleep' | 'productivity' | 'health' | 'finance';
 
 export type LifeScore = {
@@ -78,4 +80,6 @@ export type DashboardData = {
   clusters: BehaviouralCluster[];
   correlations: Correlation[];
   anomalies: AnomalyAlert[];
+  morningBriefing?: DailyMorningBriefing;
+  riskForecast?: CompositeRiskForecastResponse;
 };

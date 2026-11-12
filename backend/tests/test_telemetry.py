@@ -4,7 +4,6 @@ Tests Financial Transactions, App Usage Sessions, Focus Study Sessions,
 and Habits with streak computations and validation boundaries.
 """
 
-import uuid
 from datetime import date, datetime, timedelta, timezone
 import pytest
 from httpx import AsyncClient

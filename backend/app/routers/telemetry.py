@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.utils.db_route import CommitRoute
 from app.utils.security import get_current_user
 from app.cache.redis_client import invalidate_user_cache
 from app.schemas.telemetry import (
@@ -25,10 +26,17 @@ from app.schemas.telemetry import (
     HabitLogCreate,
     HabitLogResponse,
     HabitWithStreakResponse,
+    SleepIntervalCreate,
+    SleepIntervalBatchCreate,
+    SleepIntervalResponse,
+    SleepSummaryResponse,
+    WorkoutSessionCreate,
+    WorkoutSessionResponse,
+    WorkoutConsistencyResponse,
 )
 from app.services import telemetry_service
 
-router = APIRouter()
+router = APIRouter(route_class=CommitRoute)
 
 
 # ============================================================================
@@ -343,3 +351,121 @@ async def list_habit_logs_endpoint(
 ):
     return await telemetry_service.list_habit_logs(db, user_id, habit_id, start_date, end_date)
 
+
+# ============================================================================
+# 5. Sleep Intervals & Stages Endpoints
+# ============================================================================
+
+@router.post(
+    "/sleep-intervals",
+    response_model=SleepIntervalResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Log a single granular sleep stage interval",
+)
+async def create_sleep_interval_endpoint(
+    data: SleepIntervalCreate,
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    interval = await telemetry_service.create_sleep_interval(db, user_id, data)
+    invalidate_user_cache(user_id)
+    return interval
+
+
+@router.post(
+    "/sleep-intervals/batch",
+    response_model=list[SleepIntervalResponse],
+    status_code=status.HTTP_201_CREATED,
+    summary="Batch log sleep stage intervals and resting heart rate",
+)
+async def create_sleep_intervals_batch_endpoint(
+    data: SleepIntervalBatchCreate,
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    intervals = await telemetry_service.create_sleep_intervals_batch(db, user_id, data)
+    invalidate_user_cache(user_id)
+    return intervals
+
+
+@router.get(
+    "/sleep-intervals",
+    response_model=list[SleepIntervalResponse],
+    summary="List granular sleep stage intervals",
+)
+async def list_sleep_intervals_endpoint(
+    date: Optional[date] = Query(None, description="Specific sleep date"),
+    start_date: Optional[date] = Query(None, description="Start date filter"),
+    end_date: Optional[date] = Query(None, description="End date filter"),
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await telemetry_service.list_sleep_intervals(
+        db, user_id, target_date=date, start_date=start_date, end_date=end_date
+    )
+
+
+@router.get(
+    "/sleep-summary",
+    response_model=SleepSummaryResponse,
+    summary="Aggregated sleep duration, stages architecture, and resting heart rate",
+)
+async def get_sleep_summary_endpoint(
+    date: Optional[date] = Query(None, description="Date for sleep summary (defaults to today)"),
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    from datetime import date as dt_date
+    target_d = date or dt_date.today()
+    return await telemetry_service.get_sleep_summary(db, user_id, target_d)
+
+
+# ============================================================================
+# 6. Physical Health & Workouts Endpoints
+# ============================================================================
+
+@router.post(
+    "/workouts",
+    response_model=WorkoutSessionResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Log a completed workout or physical activity",
+)
+async def create_workout_endpoint(
+    data: WorkoutSessionCreate,
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    workout = await telemetry_service.create_workout_session(db, user_id, data)
+    invalidate_user_cache(user_id)
+    return workout
+
+
+@router.get(
+    "/workouts",
+    response_model=list[WorkoutSessionResponse],
+    summary="List workout sessions with filtering",
+)
+async def list_workouts_endpoint(
+    start_date: Optional[date] = Query(None, description="Start date filter"),
+    end_date: Optional[date] = Query(None, description="End date filter"),
+    activity_type: Optional[str] = Query(None, description="Filter by activity type"),
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(30, ge=1, le=100, description="Page size"),
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await telemetry_service.list_workout_sessions(
+        db, user_id, start_date, end_date, activity_type, page, page_size
+    )
+
+
+@router.get(
+    "/workouts/consistency",
+    response_model=WorkoutConsistencyResponse,
+    summary="Workout streaks, rest-day adherence, and exercise skip vulnerability",
+)
+async def get_workout_consistency_endpoint(
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await telemetry_service.get_workout_consistency(db, user_id)

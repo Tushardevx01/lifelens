@@ -49,7 +49,16 @@ __pycache__/
 .Python
 backend/models/*.pkl
 backend/models/*.joblib
+backend/models/*.json
+!backend/models/.gitkeep
 .pytest_cache/
+
+# Databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
 
 # Local/nested repos
 LifeLens-AI/

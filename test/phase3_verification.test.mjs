@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { DEMO_DATASET } from '../src/features/dashboard/demoData.ts';
-import asyncStorageMock from '@react-native-async-storage/async-storage/jest';
+import asyncStorageMock from './helpers/asyncStorageMock.mjs';
 
 test('Phase 3 Verification: Demo Dataset and Data Management', async (t) => {
   await t.test('Demo dataset contains 45 valid DailyEntryCreate records', () => {

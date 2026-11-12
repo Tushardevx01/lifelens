@@ -36,11 +36,10 @@ async def main():
     from app.database import AsyncSessionLocal, create_db_tables
     from app.models.user import User
     from app.models.daily_entry import DailyEntry
-    from app.services.auth_service import register_user, get_user_by_id
+    from app.services.auth_service import register_user
     from app.services.analytics_service import compute_and_store_features
     from app.schemas.auth import UserRegister
     from sqlalchemy import select, delete
-    import uuid
 
     print("🌱 LifeLens AI — Seed Script")
     print(f"   Demo account : {DEMO_EMAIL}")
@@ -63,7 +62,7 @@ async def main():
 
         if not user:
             print("   👤 Creating demo user…")
-            token_resp = await register_user(db, UserRegister(
+            await register_user(db, UserRegister(
                 email=DEMO_EMAIL, password=DEMO_PASSWORD, full_name=DEMO_NAME,
             ))
             await db.commit()
@@ -192,8 +191,8 @@ async def main():
     print()
     print("🎉 Seed complete!")
     print(f"   Login with:  {DEMO_EMAIL} / {DEMO_PASSWORD}")
-    print(f"   Frontend:    http://localhost:5173")
-    print(f"   API Docs:    http://localhost:8000/docs")
+    print("   Frontend:    http://localhost:5173")
+    print("   API Docs:    http://localhost:8000/docs")
 
 
 if __name__ == "__main__":

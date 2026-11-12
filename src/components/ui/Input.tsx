@@ -7,6 +7,7 @@
 
 import { ReactNode, useState } from 'react';
 import {
+  Platform,
   StyleProp,
   StyleSheet,
   Text,
@@ -141,6 +142,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: 16,
     backgroundColor: 'transparent',
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
   },
   inputLight: {
     color: colors.textDark,

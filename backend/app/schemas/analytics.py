@@ -104,3 +104,109 @@ class LifeScoreHistoryPoint(BaseModel):
     finance_score: Optional[float] = None
     cluster_name: Optional[str] = None
     is_anomaly: bool = False
+
+
+# --- Phase 6 Schemas: Risk Forecasting & Briefing Synthesizer ---
+
+class WorkoutSkipForecastSchema(BaseModel):
+    probability: float
+    risk_level: str
+    confidence: float
+    primary_driver: str
+    contributing_factors: list[str]
+    mitigation_strategy: str
+    target_recommendation: str
+
+
+class BudgetOverrunForecastSchema(BaseModel):
+    monthly_budget: float
+    current_spend: float
+    current_discretionary_spend: float
+    discretionary_ratio_pct: float
+    days_elapsed: int
+    days_remaining: int
+    current_daily_velocity: float
+    projected_eom_spend: float
+    projected_overrun: float
+    overrun_probability: float
+    risk_status: str
+    recommended_daily_cap: float
+    top_discretionary_categories: list[dict]
+    actionable_advice: str
+
+
+class CircadianDriftForecastSchema(BaseModel):
+    status: str
+    alert_level: str
+    bedtime_variance_minutes: float
+    max_shift_minutes: float
+    consecutive_drift_days: int
+    average_bedtime: str
+    average_wake_time: str
+    social_jetlag_minutes: float
+    resynchronization_protocol: str
+
+
+class CompositeRiskForecastResponse(BaseModel):
+    date: str
+    workout_skip: WorkoutSkipForecastSchema
+    budget_overrun: BudgetOverrunForecastSchema
+    circadian_drift: CircadianDriftForecastSchema
+    overall_risk_score: float
+    key_vulnerability_summary: str
+
+
+class DailyMorningBriefingResponse(BaseModel):
+    id: str
+    date: str
+    title: str
+    greeting: str
+    recovery_score: float
+    recovery_tier: str
+    optimal_focus_window: str
+    secondary_focus_window: str
+    executive_summary: str
+    sleep_summary: str
+    risk_alerts: list[dict]
+    experiment_callout: Optional[dict] = None
+    micro_action: str
+    full_markdown: str
+    is_read: bool = False
+    created_at: str
+
+
+class WeeklyReviewStoryResponse(BaseModel):
+    id: str
+    week_start: str
+    week_end: str
+    title: str
+    avg_life_score: float
+    life_score_trend_delta: float
+    best_day: dict
+    recovery_day: dict
+    top_wins: list[str]
+    bottlenecks_identified: list[str]
+    experiments_evaluated: list[dict]
+    next_week_recommendation: dict
+    full_narrative_markdown: str
+    html_export_card: str
+    is_read: bool = False
+    created_at: str
+
+
+class DynamicCorrelationResponse(BaseModel):
+    feature_a: str
+    feature_b: str
+    name_a: str
+    name_b: str
+    lag: int
+    r: float
+    p_value: float
+    sample_size: int
+    is_statistically_significant: bool
+    strength: str
+    direction: str
+    ci_lower: float
+    ci_upper: float
+    insight_narrative: str
+    epistemic_qualifier: str

@@ -5,14 +5,13 @@ Uses SQLite in-memory via aiosqlite for fast, isolated, dependency-free tests.
 Each test function gets a fresh database (function scope).
 """
 
-import asyncio
 import uuid
-import pytest
 import pytest_asyncio
 from datetime import date, timedelta
 from typing import AsyncGenerator
 
 from httpx import AsyncClient, ASGITransport
+from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -52,7 +51,9 @@ async def db() -> AsyncGenerator[AsyncSession, None]:
 @pytest_asyncio.fixture
 async def client(db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     """Async HTTP test client wired to the test DB."""
-    async def _override_db():
+    async def _override_db(request: Request):
+        # Mirror production get_db so CommitRoute can commit before responding.
+        request.state.db = db
         yield db
 
     app.dependency_overrides[get_db] = _override_db

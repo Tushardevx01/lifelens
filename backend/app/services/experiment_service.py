@@ -1,7 +1,7 @@
 import uuid
-from datetime import date, timedelta, datetime
-from typing import Optional, List, Dict, Any
-from sqlalchemy import select, func, and_, or_, delete
+from datetime import date, timedelta
+from typing import Optional, List, Dict, Any, Tuple
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 

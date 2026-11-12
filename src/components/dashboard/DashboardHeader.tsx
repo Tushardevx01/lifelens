@@ -1,10 +1,8 @@
 /**
  * DashboardHeader – LifeLens Dashboard Component
  *
- * Premium minimal header:
- *   [Avatar]   Good evening, Tushar      [🔔]
- *
- * Keeps breathing room at top; no large traditional nav bar.
+ * Minimal header:
+ *   [Avatar -> Profile]   Good morning, {name}      [🔔 Alerts]
  */
 
 import React from 'react';
@@ -25,11 +23,15 @@ function getGreeting(): string {
 interface DashboardHeaderProps {
   name?: string;
   onBellPress?: () => void;
+  onAvatarPress?: () => void;
+  hasUnreadAlerts?: boolean;
 }
 
 export default function DashboardHeader({
   name = 'Tushar',
   onBellPress,
+  onAvatarPress,
+  hasUnreadAlerts = true,
 }: DashboardHeaderProps) {
   const today = new Date();
   const dateLabel = today.toLocaleDateString('en-US', {
@@ -40,26 +42,35 @@ export default function DashboardHeader({
 
   return (
     <View style={styles.container}>
-      {/* Avatar */}
-      <View style={styles.avatar} accessibilityLabel={`${name}'s avatar`}>
-        <Text style={styles.avatarInitial}>{name.charAt(0).toUpperCase()}</Text>
-      </View>
-
-      {/* Greeting */}
-      <View style={styles.textBlock}>
-        <Text style={styles.greeting}>{getGreeting()}, {name}</Text>
-        <Text style={styles.date}>{dateLabel}</Text>
-      </View>
-
-      {/* Bell */}
+      {/* Clickable Avatar -> navigates to Profile / Settings */}
       <Pressable
-        style={({ pressed }) => [styles.bell, pressed && styles.bellPressed]}
-        onPress={onBellPress}
-        accessibilityLabel="Notifications"
+        style={({ pressed }) => [styles.avatar, pressed && styles.avatarPressed]}
+        onPress={onAvatarPress}
+        accessibilityLabel={`${name}'s avatar, tap to view profile`}
         accessibilityRole="button"
         hitSlop={8}
       >
-        <Ionicons name="notifications-outline" size={20} color={colors.textSecondary} />
+        <Text style={styles.avatarInitial}>{name.charAt(0).toUpperCase()}</Text>
+      </Pressable>
+
+      {/* Greeting & Date */}
+      <View style={styles.textBlock}>
+        <Text style={styles.greeting} numberOfLines={1}>
+          {getGreeting()}, {name}
+        </Text>
+        <Text style={styles.date}>{dateLabel}</Text>
+      </View>
+
+      {/* Interactive Bell / Alerts button */}
+      <Pressable
+        style={({ pressed }) => [styles.bell, pressed && styles.bellPressed]}
+        onPress={onBellPress}
+        accessibilityLabel="Notifications and lifestyle alerts"
+        accessibilityRole="button"
+        hitSlop={8}
+      >
+        <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
+        {hasUnreadAlerts && <View style={styles.badgeDot} />}
       </Pressable>
     </View>
   );
@@ -70,23 +81,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
     gap: spacing.md,
   },
   avatar: {
-    width: 40,
-    height: 40,
+    width: 42,
+    height: 42,
     borderRadius: radius.full,
-    backgroundColor: colors.primaryMuted,
+    backgroundColor: 'rgba(184, 255, 61, 0.12)',
     borderWidth: 1.5,
     borderColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  avatarPressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.95 }],
+  },
   avatarInitial: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     color: colors.primary,
   },
   textBlock: {
@@ -94,28 +109,40 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   greeting: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
     color: colors.textPrimary,
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
   date: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: colors.textMuted,
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '500',
   },
   bell: {
     width: 40,
     height: 40,
-    borderRadius: radius.lg,
+    borderRadius: radius.full,
     backgroundColor: colors.surfaceElevated,
     borderWidth: 1,
     borderColor: colors.border,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   },
   bellPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.95 }],
+    opacity: 0.75,
+    transform: [{ scale: 0.94 }],
+  },
+  badgeDot: {
+    position: 'absolute',
+    top: 9,
+    right: 9,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+    borderWidth: 1.5,
+    borderColor: colors.surfaceElevated,
   },
 });

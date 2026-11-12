@@ -7,18 +7,14 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
       }}
-      tabBar={(props: any) => <FloatingTabBar {...props} />}
+      tabBar={(props) => (
+        <FloatingTabBar {...props} />
+      )}
     >
       <Tabs.Screen
         name="home"
         options={{
           title: 'Home',
-        }}
-      />
-      <Tabs.Screen
-        name="insights"
-        options={{
-          title: 'Insights',
         }}
       />
       <Tabs.Screen
@@ -28,21 +24,27 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="history"
+        name="insights"
         options={{
-          title: 'History',
-        }}
-      />
-      <Tabs.Screen
-        name="analytics"
-        options={{
-          title: 'Analytics',
+          title: 'Insights',
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Profile',
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="analytics"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

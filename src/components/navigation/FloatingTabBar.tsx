@@ -18,12 +18,18 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import type { Tabs } from 'expo-router';
 
 import { colors }  from '@/src/theme/colors';
 import { radius }  from '@/src/theme/radius';
 import { shadows } from '@/src/theme/shadows';
 import { spacing } from '@/src/theme/spacing';
+
+export type FloatingTabBarProps = Parameters<
+  NonNullable<React.ComponentProps<typeof Tabs>['tabBar']>
+>[0];
+
+export type TabRoute = FloatingTabBarProps['state']['routes'][number];
 
 type RouteIconMap = Record<string, React.ComponentProps<typeof Ionicons>['name']>;
 
@@ -61,7 +67,7 @@ const LABELS: Record<string, string> = {
 };
 
 type TabBarButtonProps = {
-  route: any;
+  route: TabRoute;
   isFocused: boolean;
   onPress: () => void;
 };
@@ -85,7 +91,7 @@ function TabBarButton({ route, isFocused, onPress }: TabBarButtonProps) {
 
   const getIconColor = () => {
     if (isNewEntry) return colors.background;
-    return isFocused ? colors.background : colors.textMuted;
+    return isFocused ? colors.primary : colors.textMuted;
   };
 
   return (
@@ -100,13 +106,14 @@ function TabBarButton({ route, isFocused, onPress }: TabBarButtonProps) {
         style={[
           styles.tabInner,
           isNewEntry && styles.newEntryInner,
-          isFocused && (isNewEntry ? styles.newEntryActiveInner : styles.activeTabInner),
+          isFocused && !isNewEntry && styles.activeTabInner,
+          isFocused && isNewEntry && styles.newEntryActiveInner,
           { transform: [{ scale: scaleAnim }] },
         ]}
       >
         <Ionicons
           name={icon}
-          size={isNewEntry ? 26 : 24}
+          size={isNewEntry ? 26 : 22}
           color={getIconColor()}
         />
       </Animated.View>
@@ -114,19 +121,33 @@ function TabBarButton({ route, isFocused, onPress }: TabBarButtonProps) {
   );
 }
 
-export default function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
+export default function FloatingTabBar({ state, descriptors, navigation }: FloatingTabBarProps) {
   const insets = useSafeAreaInsets();
+
+  const visibleRoutes = state.routes.filter((route) => {
+    const options = descriptors?.[route.key]?.options as (Record<string, unknown> | undefined);
+    if (!options) return true;
+    if (options.href === null) return false;
+    if (
+      typeof options.tabBarItemStyle === 'object' &&
+      options.tabBarItemStyle !== null &&
+      (options.tabBarItemStyle as Record<string, unknown>).display === 'none'
+    ) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <View
       style={[
         styles.wrapper,
-        { paddingBottom: Math.max(insets.bottom, spacing.lg), pointerEvents: 'box-none' as any },
+        { pointerEvents: 'box-none', paddingBottom: Math.max(insets.bottom, spacing.md) },
       ]}
     >
       <View style={styles.pill}>
-        {state.routes.map((route: any, index: number) => {
-          const isFocused = state.index === index;
+        {visibleRoutes.map((route: TabRoute) => {
+          const isFocused = state.routes[state.index]?.key === route.key;
 
           const handlePress = () => {
             const event = navigation.emit({
@@ -160,45 +181,51 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.md,
+    zIndex: 50,
   },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1C1C1E', // Very dark grey, almost black
+    justifyContent: 'space-around',
+    backgroundColor: '#181A1D',
     borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
     ...shadows.float,
-    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.8)',
+    boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.75)',
     elevation: 20,
-    gap: spacing.sm,
+    gap: spacing.xs,
+    maxWidth: 370,
+    width: '100%',
   },
   tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
+    flex: 1,
   },
   tabInner: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 48,
-    height: 48,
-    borderRadius: 24, // Perfect circle
+    width: 44,
+    height: 44,
+    borderRadius: 22,
   },
   activeTabInner: {
-    backgroundColor: colors.surfaceLight, // White circle
+    backgroundColor: 'rgba(184, 255, 61, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(184, 255, 61, 0.35)',
   },
   newEntryInner: {
     backgroundColor: colors.primary,
-    borderRadius: 24,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 6,
+    borderRadius: 22,
+    boxShadow: '0px 2px 8px rgba(184, 255, 61, 0.45)',
+    elevation: 8,
   },
   newEntryActiveInner: {
     backgroundColor: colors.primary,
-    transform: [{ scale: 1.08 }],
+    transform: [{ scale: 1.06 }],
   },
 });

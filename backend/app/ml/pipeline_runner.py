@@ -31,7 +31,7 @@ from app.ml.anomaly import (
 from app.ml.trend import run_all_trend_forecasts
 from app.ml.correlation import analyse_correlations
 from app.ml.insight_engine import run_insight_engine
-from app.ml.feature_engineering import validate_min_data, get_data_maturity, DataMaturity
+from app.ml.feature_engineering import get_data_maturity, DataMaturity
 
 logger = logging.getLogger(__name__)
 
@@ -200,6 +200,7 @@ def run_pipeline(
             'deep_work_hours':       float(row.get('deep_work_hours', 0)),
             'productivity_score':    float(row.get('productivity_score', 0)),
             'productivity_7d_avg':   float(row.get('productivity_7d_avg', 50)),
+            'productivity_score_lag1': row.get('productivity_score_lag1'),
             'spend_ratio':           float(row.get('spend_ratio', 1.0)),
             'daily_spend':           float(row.get('daily_spend', 0)),
             'mood_score':            row.get('mood_score'),

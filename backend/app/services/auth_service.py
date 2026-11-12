@@ -1,11 +1,13 @@
 import uuid
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 
 from app.models.user import User
 from app.schemas.auth import UserRegister, TokenResponse
 from app.utils.security import hash_password, verify_password, create_access_token
+from app.cache.redis_client import invalidate_user_cache, redis_client, REDIS_AVAILABLE
 
 
 async def register_user(db: AsyncSession, data: UserRegister) -> TokenResponse:
@@ -28,11 +30,20 @@ async def register_user(db: AsyncSession, data: UserRegister) -> TokenResponse:
         full_name=data.full_name,
     )
     db.add(user)
-    await db.flush()  # Get the generated ID
+    try:
+        await db.commit()  # Persist user immediately
+    except IntegrityError:
+        # Another request created this email between the check and the insert.
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this email already exists."
+        )
+    await db.refresh(user)
 
     # Generate token with version=0
     token = create_access_token(str(user.id), token_version=user.token_version)
-    return TokenResponse(access_token=token)
+    return TokenResponse(access_token=token, user_id=user.id)
 
 
 async def authenticate_user(db: AsyncSession, email: str, password: str) -> TokenResponse:
@@ -50,7 +61,7 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> Toke
 
     # Embed current token_version so the JWT can be invalidated on password change (P7)
     token = create_access_token(str(user.id), token_version=user.token_version)
-    return TokenResponse(access_token=token)
+    return TokenResponse(access_token=token, user_id=user.id)
 
 
 async def get_user_by_id(db: AsyncSession, user_id: str) -> User:
@@ -95,13 +106,25 @@ async def change_password(
     user.password_hash = hash_password(new_password)
     # P7: Increment version to invalidate all existing sessions
     user.token_version = (user.token_version or 0) + 1
+    if REDIS_AVAILABLE and redis_client:
+        try:
+            redis_client.delete(f"user_sess:{user_id}")
+        except Exception:
+            pass
+    invalidate_user_cache(user_id)
 
 
 async def delete_user(db: AsyncSession, user_id: str) -> None:
     """
     Permanently delete a user account and all associated data (P1).
-    Cascade deletion handles: daily_entries, insights.
+    Cascade deletion handles: daily_entries, insights, telemetry, and experiments.
     """
     user = await get_user_by_id(db, user_id)
     await db.delete(user)
     await db.flush()
+    if REDIS_AVAILABLE and redis_client:
+        try:
+            redis_client.delete(f"user_sess:{user_id}")
+        except Exception:
+            pass
+    invalidate_user_cache(user_id)

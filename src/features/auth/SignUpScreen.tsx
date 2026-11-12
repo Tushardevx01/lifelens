@@ -7,10 +7,12 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Screen, Button, Input } from '@/src/components/ui';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
+import { radius } from '@/src/theme/radius';
 
 type SignUpScreenProps = {
   onSignUp?: (name: string, email: string, password: string) => void;
@@ -21,6 +23,7 @@ export function SignUpScreen({
   onSignUp,
   onSignIn,
 }: SignUpScreenProps) {
+  const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,36 +37,32 @@ export function SignUpScreen({
   const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const slideAnim = useRef(new Animated.Value(24)).current;
   const cardFadeAnim = useRef(new Animated.Value(0)).current;
   const cardSlideAnim = useRef(new Animated.Value(20)).current;
 
-  // Animated values are stable refs - dependencies don't change
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 600,
+        duration: 500,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 600,
+        duration: 500,
         useNativeDriver: true,
       }),
-    ]).start();
-
-    Animated.parallel([
       Animated.timing(cardFadeAnim, {
         toValue: 1,
         duration: 500,
-        delay: 200,
+        delay: 150,
         useNativeDriver: true,
       }),
       Animated.timing(cardSlideAnim, {
         toValue: 0,
         duration: 500,
-        delay: 200,
+        delay: 150,
         useNativeDriver: true,
       }),
     ]).start();
@@ -79,13 +78,18 @@ export function SignUpScreen({
   };
 
   const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
-  const isFormValid = name.trim() && email.trim() && password.trim() && confirmPassword.trim() && password === confirmPassword;
+  const isFormValid =
+    name.trim() &&
+    email.trim() &&
+    password.trim().length >= 6 &&
+    confirmPassword.trim() &&
+    password === confirmPassword;
 
   return (
-    <Screen keyboardAvoid scroll={false} style={{ backgroundColor: colors.background }}>
-      <View style={styles.container}>
+    <Screen keyboardAvoid scroll={true} style={{ backgroundColor: colors.background }}>
+      <View style={[styles.container, { paddingTop: Math.max(insets.top, spacing.xl) }]}>
         
-        {/* Branding */}
+        {/* Branding (Top Section) */}
         <Animated.View
           style={[
             styles.brandingContainer,
@@ -97,51 +101,50 @@ export function SignUpScreen({
         >
           <View style={styles.branding}>
             <View style={styles.logoContainer}>
-              <Ionicons name="heart" size={40} color={colors.primary} />
-              <Ionicons
-                name="pulse"
-                size={24}
-                color={colors.primary}
-                style={styles.pulseIcon}
-              />
+              <View style={styles.iconCircle}>
+                <Ionicons name="sparkles" size={26} color={colors.primary} />
+              </View>
             </View>
             <View style={styles.titleRow}>
               <Text style={styles.titleWhite}>Life</Text>
               <Text style={styles.titleGreen}>Lens</Text>
+              <View style={styles.aiBadge}>
+                <Text style={styles.aiBadgeText}>AI</Text>
+              </View>
             </View>
-            <Text style={styles.aiText}>AI</Text>
-            <Text style={styles.subtitle}>AI-powered personal life analytics</Text>
+            <Text style={styles.subtitle}>Begin your personalized telemetry journey</Text>
           </View>
         </Animated.View>
 
-        {/* Sign Up Form (White Bottom Sheet) */}
+        {/* SignUp Form Sheet */}
         <Animated.View
           style={[
-            styles.signUpSheet,
+            styles.sheet,
             {
               opacity: cardFadeAnim,
               transform: [{ translateY: cardSlideAnim }],
+              paddingBottom: Math.max(insets.bottom, spacing.xxl) + spacing.lg,
             }
           ]}
         >
-          {/* Welcome Section */}
+          {/* Header */}
           <View style={styles.welcomeSection}>
             <Text style={styles.welcomeTitle}>Create Account</Text>
-            <Text style={styles.welcomeSubtitle}>Start your analytics journey</Text>
+            <Text style={styles.welcomeSubtitle}>Unlock automated correlation discovery & behavioral insights</Text>
           </View>
 
-          {/* Full Name Input */}
+          {/* Full Name */}
           <Input
             label="Full Name"
-            variant="light"
+            variant="dark"
             icon={
               <Ionicons
                 name="person-outline"
                 size={20}
-                color={nameFocused ? colors.primary : colors.textDarkSecondary}
+                color={nameFocused ? colors.primary : colors.textSecondary}
               />
             }
-            placeholder="John Doe"
+            placeholder="e.g. Priya Sharma"
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
@@ -151,15 +154,15 @@ export function SignUpScreen({
             onBlur={() => setNameFocused(false)}
           />
 
-          {/* Email Input */}
+          {/* Email */}
           <Input
-            label="Email"
-            variant="light"
+            label="Email Address"
+            variant="dark"
             icon={
               <Ionicons
                 name="mail-outline"
                 size={20}
-                color={emailFocused ? colors.primary : colors.textDarkSecondary}
+                color={emailFocused ? colors.primary : colors.textSecondary}
               />
             }
             placeholder="you@example.com"
@@ -173,15 +176,15 @@ export function SignUpScreen({
             onBlur={() => setEmailFocused(false)}
           />
 
-          {/* Password Input */}
+          {/* Password */}
           <Input
             label="Password"
-            variant="light"
+            variant="dark"
             icon={
               <Ionicons
                 name="lock-closed-outline"
                 size={20}
-                color={passwordFocused ? colors.primary : colors.textDarkSecondary}
+                color={passwordFocused ? colors.primary : colors.textSecondary}
               />
             }
             rightIcon={
@@ -189,15 +192,16 @@ export function SignUpScreen({
                 onPress={() => setShowPassword(!showPassword)}
                 accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
                 accessibilityRole="button"
+                hitSlop={8}
               >
                 <Ionicons
                   name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                   size={20}
-                  color={colors.textDarkSecondary}
+                  color={colors.textSecondary}
                 />
               </Pressable>
             }
-            placeholder="••••••••"
+            placeholder="At least 6 characters"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
@@ -206,15 +210,16 @@ export function SignUpScreen({
             onBlur={() => setPasswordFocused(false)}
           />
 
-          {/* Confirm Password Input */}
+          {/* Confirm Password */}
           <Input
             label="Confirm Password"
-            variant="light"
+            variant="dark"
+            error={passwordMismatch ? 'Passwords do not match' : undefined}
             icon={
               <Ionicons
-                name="lock-closed-outline"
+                name="shield-checkmark-outline"
                 size={20}
-                color={confirmPasswordFocused ? colors.primary : colors.textDarkSecondary}
+                color={confirmPasswordFocused ? colors.primary : colors.textSecondary}
               />
             }
             rightIcon={
@@ -222,41 +227,34 @@ export function SignUpScreen({
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 accessibilityLabel={showConfirmPassword ? 'Hide password' : 'Show password'}
                 accessibilityRole="button"
+                hitSlop={8}
               >
                 <Ionicons
                   name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
                   size={20}
-                  color={colors.textDarkSecondary}
+                  color={colors.textSecondary}
                 />
               </Pressable>
             }
-            placeholder="••••••••"
+            placeholder="Re-enter password"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry={!showConfirmPassword}
-            accessibilityLabel="Confirm password"
+            accessibilityLabel="Confirm Password"
             onFocus={() => setConfirmPasswordFocused(true)}
             onBlur={() => setConfirmPasswordFocused(false)}
-            error={passwordMismatch ? 'Passwords do not match' : undefined}
           />
 
-          {/* Terms */}
-          <Text style={styles.termsText}>
-            By signing up, you agree to our{' '}
-            <Text style={styles.termsLink}>Terms of Service</Text>
-            {' '}and{' '}
-            <Text style={styles.termsLink}>Privacy Policy</Text>
-          </Text>
-
-          {/* Sign Up Button */}
+          {/* Create Account Button */}
           <Button
-            title="Sign Up"
+            title="Create Account"
             onPress={handleSignUp}
             variant="primary"
             size="lg"
             loading={loading}
             disabled={!isFormValid}
-            accessibilityLabel="Create your account"
+            accessibilityLabel="Create your LifeLens account"
+            fullWidth
           />
 
           {/* Sign In Link */}
@@ -264,8 +262,9 @@ export function SignUpScreen({
             <Text style={styles.signInText}>Already have an account? </Text>
             <Pressable
               onPress={onSignIn}
-              accessibilityLabel="Sign in to your account"
+              accessibilityLabel="Sign in to existing account"
               accessibilityRole="button"
+              hitSlop={8}
             >
               <Text style={styles.signInLink}>Sign In</Text>
             </Pressable>
@@ -281,95 +280,103 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    justifyContent: 'space-between',
   },
   brandingContainer: {
-    flex: 1,
-    justifyContent: 'center',
     paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xl,
+    alignItems: 'center',
   },
   branding: {
     alignItems: 'center',
     gap: spacing.xs,
   },
   logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
-  pulseIcon: {
-    marginLeft: -spacing.sm,
-    marginTop: -spacing.sm,
+  iconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(184, 255, 61, 0.12)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(184, 255, 61, 0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   titleRow: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
+    gap: 2,
   },
   titleWhite: {
-    fontSize: 42,
+    fontSize: 32,
     fontWeight: '800',
-    color: colors.text,
-    letterSpacing: -0.5,
+    color: colors.textPrimary,
+    letterSpacing: -0.8,
   },
   titleGreen: {
-    fontSize: 42,
+    fontSize: 32,
     fontWeight: '800',
     color: colors.primary,
-    letterSpacing: -0.5,
+    letterSpacing: -0.8,
   },
-  aiText: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    letterSpacing: 4,
-    marginTop: -spacing.xs,
+  aiBadge: {
+    marginLeft: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radius.sm,
+    backgroundColor: 'rgba(184, 255, 61, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(184, 255, 61, 0.35)',
+  },
+  aiBadgeText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.primary,
+    letterSpacing: 0.5,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: colors.textSecondary,
-    marginTop: spacing.md,
+    marginTop: spacing.xs,
+    textAlign: 'center',
   },
-  signUpSheet: {
-    backgroundColor: colors.surfaceLight,
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    paddingHorizontal: 24,
-    paddingTop: 40,
-    paddingBottom: 40,
+  sheet: {
+    backgroundColor: '#181A1D',
+    borderTopLeftRadius: radius.hero,
+    borderTopRightRadius: radius.hero,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xxl,
     gap: spacing.lg,
   },
   welcomeSection: {
-    gap: spacing.xs,
-    marginBottom: spacing.sm,
+    gap: 4,
+    marginBottom: spacing.xs,
   },
   welcomeTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '800',
-    color: colors.textDark,
-    letterSpacing: -0.3,
+    color: colors.textPrimary,
+    letterSpacing: -0.4,
   },
   welcomeSubtitle: {
-    fontSize: 16,
-    color: colors.textDarkSecondary,
-  },
-  termsText: {
-    fontSize: 12,
-    color: colors.textDarkSecondary,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  termsLink: {
-    color: colors.primary,
-    fontWeight: '600',
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
   },
   signInSection: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: spacing.md,
+    marginTop: spacing.xs,
   },
   signInText: {
     fontSize: 14,
-    color: colors.textDarkSecondary,
+    color: colors.textSecondary,
   },
   signInLink: {
     fontSize: 14,

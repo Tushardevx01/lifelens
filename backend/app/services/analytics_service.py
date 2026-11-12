@@ -3,7 +3,7 @@ Analytics service — business logic for dashboard and ML result assembly.
 """
 
 import uuid
-from datetime import date, timedelta
+from datetime import date
 from typing import Optional
 
 import pandas as pd
@@ -44,7 +44,7 @@ async def compute_and_store_features(
         'sleep_hours':       [float(e.sleep_hours) for e in entries],
         'sleep_quality':     [e.sleep_quality for e in entries],
         'screen_time_hours': [float(e.screen_time_hours) for e in entries],
-        'social_media_hours':[float(e.social_media_hours) if e.social_media_hours else None for e in entries],
+        'social_media_hours':[float(e.social_media_hours) if e.social_media_hours is not None else None for e in entries],
         'steps':             [e.steps for e in entries],
         'active_minutes':    [e.active_minutes for e in entries],
         'calories_burned':   [e.calories_burned for e in entries],

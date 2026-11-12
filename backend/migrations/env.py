@@ -1,14 +1,21 @@
+import sys
+from pathlib import Path
 from logging.config import fileConfig
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 import asyncio
 
+# Ensure backend root is on sys.path
+backend_dir = str(Path(__file__).resolve().parents[1])
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
 # Import all models so Alembic sees them
-from app.database import Base
+from app.database import Base  # noqa: E402
 from app.models import *  # noqa
 
-from app.config import get_settings
+from app.config import get_settings  # noqa: E402
 
 config = context.config
 if config.config_file_name is not None:

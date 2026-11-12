@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, UploadFile, File, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.utils.db_route import CommitRoute
 from app.schemas.entry import (
     DailyEntryCreate, DailyEntryUpdate, DailyEntryResponse, CsvUploadResponse
 )
@@ -19,7 +20,7 @@ from app.cache.redis_client import invalidate_user_cache, get_redis_client
 import logging
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(route_class=CommitRoute)
 
 
 # ── IMPORTANT: static string routes MUST come before parameterised routes.
@@ -46,12 +47,6 @@ async def upload_csv(
             detail="File must be a .csv file."
         )
     result = await import_csv(db, user_id, file)
-
-    # Trigger feature computation for newly imported data
-    try:
-        await compute_and_store_features(db, user_id, date.today())
-    except Exception as e:
-        logger.warning(f"Feature computation after CSV upload failed: {e}")
 
     invalidate_user_cache(user_id)
     return result
@@ -154,10 +149,12 @@ def _entry_to_response(entry) -> DailyEntryResponse:
         sleep_quality=entry.sleep_quality,
         sleep_bedtime=entry.sleep_bedtime.strftime("%H:%M") if entry.sleep_bedtime else None,
         screen_time_hours=float(entry.screen_time_hours),
-        social_media_hours=float(entry.social_media_hours) if entry.social_media_hours else None,
+        social_media_hours=float(entry.social_media_hours) if entry.social_media_hours is not None else None,
+        unlock_count=entry.unlock_count,
         steps=entry.steps,
         active_minutes=entry.active_minutes,
         calories_burned=entry.calories_burned,
+        resting_heart_rate=entry.resting_heart_rate,
         deep_work_hours=float(entry.deep_work_hours),
         tasks_completed=entry.tasks_completed,
         daily_spend=float(entry.daily_spend),

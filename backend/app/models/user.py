@@ -52,6 +52,11 @@ class User(Base):
     habit_logs = relationship("HabitLog", back_populates="user", cascade="all, delete-orphan")
     experiments = relationship("Experiment", back_populates="user", cascade="all, delete-orphan")
     experiment_checkins = relationship("ExperimentCheckin", back_populates="user", cascade="all, delete-orphan")
+    chat_sessions = relationship("ChatSession", back_populates="user", cascade="all, delete-orphan")
+    data_connectors = relationship("DataConnector", back_populates="user", cascade="all, delete-orphan")
+    connector_sync_logs = relationship("ConnectorSyncLog", back_populates="user", cascade="all, delete-orphan")
+    sleep_intervals = relationship("SleepInterval", back_populates="user", cascade="all, delete-orphan")
+    workout_sessions = relationship("WorkoutSession", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<User {self.email}>"

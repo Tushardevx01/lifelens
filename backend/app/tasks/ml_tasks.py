@@ -30,29 +30,32 @@ from app.ml.life_score import compute_life_score
 from app.ml.base import MODELS_DIR
 from app.ml.clustering import (
     train_clustering_pipeline, predict_cluster,
-    model_exists as cluster_model_exists, CLUSTERING_FEATURES,
+    model_exists as cluster_model_exists,
 )
 from app.ml.regression import (
     train_regression_pipeline, predict_tomorrow,
-    model_exists as rf_model_exists, REGRESSION_FEATURES,
+    model_exists as rf_model_exists,
 )
 from app.ml.anomaly import (
     train_anomaly_detector, detect_anomaly,
-    model_exists as anomaly_model_exists, ANOMALY_FEATURES,
+    model_exists as anomaly_model_exists,
 )
-from app.ml.trend import run_all_trend_forecasts
-from app.ml.correlation import analyse_correlations
 from app.ml.insight_engine import run_insight_engine, Severity, InsightType
 from app.cache.redis_client import invalidate_user_cache
 
 
 def run_async(coro):
-    """Helper to run async code from sync Celery tasks."""
+    """Helper to run async code from sync Celery tasks with clean engine connection teardown."""
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
         return loop.run_until_complete(coro)
     finally:
+        try:
+            from app.database import engine
+            loop.run_until_complete(engine.dispose())
+        except Exception:
+            pass
         loop.close()
 
 
@@ -174,6 +177,7 @@ async def _async_full_pipeline(user_id: str, entry_date_str: str):
             'deep_work_hours':       float(row.get('deep_work_hours', 0)),
             'productivity_score':    float(row.get('productivity_score', 0)),
             'productivity_7d_avg':   float(row.get('productivity_7d_avg', 50)),
+            'productivity_score_lag1': row.get('productivity_score_lag1'),
             'spend_ratio':           float(row.get('spend_ratio', 1.0)),
             'daily_spend':           float(row.get('daily_spend', 0)),
             'mood_score':            row.get('mood_score'),
@@ -255,7 +259,7 @@ def _entry_to_dict(e: DailyEntry) -> dict:
         'sleep_hours':       float(e.sleep_hours),
         'sleep_quality':     e.sleep_quality,
         'screen_time_hours': float(e.screen_time_hours),
-        'social_media_hours': float(e.social_media_hours) if e.social_media_hours else None,
+        'social_media_hours': float(e.social_media_hours) if e.social_media_hours is not None else None,
         'steps':             e.steps,
         'active_minutes':    e.active_minutes,
         'deep_work_hours':   float(e.deep_work_hours),
@@ -295,7 +299,7 @@ def _should_retrain(user_id: str, model_type: str) -> bool:
     Time-gate retrain: only retrain if model file doesn't exist OR older than 7 days.
     Prevents retraining on EVERY entry submission (catastrophic for performance).
     """
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timezone
 
     model_file_map = {
         'kmeans':           MODELS_DIR / f'kmeans_{user_id}.joblib',
@@ -318,7 +322,7 @@ async def _save_model_metadata(db, uid, model_type: str, n_samples: int, metrics
         .where(and_(
             MLModelMetadata.user_id    == uid,
             MLModelMetadata.model_type == model_type,
-            MLModelMetadata.is_active  == True,
+            MLModelMetadata.is_active.is_(True),
         ))
     )
     result = await db.execute(stmt)
@@ -356,3 +360,51 @@ async def _refresh_all_users():
     today = date.today().isoformat()
     for uid in user_ids:
         run_full_pipeline.delay(uid, today)
+
+
+# ---------------------------------------------------------------------------
+# Phase 7: Background AI Briefing Pre-Generation Tasks
+# ---------------------------------------------------------------------------
+
+@celery_app.task(name="app.tasks.ml_tasks.pregenerate_morning_briefings_all_users")
+def pregenerate_morning_briefings_all_users():
+    """Pre-generates morning briefings for all users so cold-start latency is 0ms."""
+    run_async(_pregenerate_briefings_async())
+
+
+async def _pregenerate_briefings_async():
+    from app.models.user import User
+    from app.services.briefing_service import BriefingService
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(User.id))
+        user_ids = [row[0] for row in result.fetchall()]
+
+        today = date.today()
+        for uid in user_ids:
+            try:
+                await BriefingService.get_or_create_morning_briefing(db=db, user_id=uid, target_date=today)
+            except Exception:
+                await db.rollback()
+                continue
+
+
+@celery_app.task(name="app.tasks.ml_tasks.pregenerate_weekly_reviews_all_users")
+def pregenerate_weekly_reviews_all_users():
+    """Pre-generates Sunday evening review stories for all users."""
+    run_async(_pregenerate_weekly_reviews_async())
+
+
+async def _pregenerate_weekly_reviews_async():
+    from app.models.user import User
+    from app.services.briefing_service import BriefingService
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(User.id))
+        user_ids = [row[0] for row in result.fetchall()]
+
+        today = date.today()
+        for uid in user_ids:
+            try:
+                await BriefingService.get_or_create_weekly_review(db=db, user_id=uid, target_date=today)
+            except Exception:
+                await db.rollback()
+                continue

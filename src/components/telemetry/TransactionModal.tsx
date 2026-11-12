@@ -12,10 +12,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
+import { IconButton } from '@/src/components/ui';
 import { telemetryApi } from '@/src/services/api';
 
 interface TransactionModalProps {
@@ -25,21 +25,28 @@ interface TransactionModalProps {
 }
 
 const CATEGORIES = [
-  'Food Delivery',
+  'Food & Dining',
   'Groceries',
   'Transport',
-  'Dining',
-  'Subscriptions',
   'Shopping',
+  'Entertainment',
+  'Health',
   'Utilities',
-  'Healthcare',
+  'Work & Tools',
   'Other',
+];
+
+const SOURCES = [
+  { id: 'MANUAL', label: 'Manual Entry' },
+  { id: 'SMS', label: 'On-Device SMS Alert' },
+  { id: 'STATEMENT_CSV', label: 'Bank Statement CSV' },
 ];
 
 export function TransactionModal({ visible, onClose, onSuccess }: TransactionModalProps) {
   const [amount, setAmount] = useState('');
   const [merchant, setMerchant] = useState('');
-  const [category, setCategory] = useState('Food Delivery');
+  const [category, setCategory] = useState('Food & Dining');
+  const [source, setSource] = useState('MANUAL');
   const [isDiscretionary, setIsDiscretionary] = useState(true);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -47,7 +54,8 @@ export function TransactionModal({ visible, onClose, onSuccess }: TransactionMod
   const resetForm = () => {
     setAmount('');
     setMerchant('');
-    setCategory('Food Delivery');
+    setCategory('Food & Dining');
+    setSource('MANUAL');
     setIsDiscretionary(true);
     setNotes('');
   };
@@ -71,6 +79,7 @@ export function TransactionModal({ visible, onClose, onSuccess }: TransactionMod
         category,
         timestamp: new Date().toISOString(),
         is_discretionary: isDiscretionary,
+        source,
         notes: notes.trim() || null,
       });
 
@@ -103,9 +112,12 @@ export function TransactionModal({ visible, onClose, onSuccess }: TransactionMod
               <Text style={styles.title}>Log Transaction</Text>
               <Text style={styles.subtitle}>Track granular spending & discretionary ratios</Text>
             </View>
-            <Pressable onPress={onClose} hitSlop={12} style={styles.closeBtn}>
-              <Ionicons name="close" size={22} color={colors.textSecondary} />
-            </Pressable>
+            <IconButton
+              icon="close"
+              size={20}
+              onPress={onClose}
+              accessibilityLabel="Close transaction modal"
+            />
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>
@@ -152,6 +164,27 @@ export function TransactionModal({ visible, onClose, onSuccess }: TransactionMod
                     >
                       <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
                         {cat}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* Source Selector */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Transaction Source</Text>
+              <View style={styles.pillsContainer}>
+                {SOURCES.map((s) => {
+                  const isSelected = source === s.id;
+                  return (
+                    <Pressable
+                      key={s.id}
+                      style={[styles.pill, isSelected && styles.pillSelected]}
+                      onPress={() => setSource(s.id)}
+                    >
+                      <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
+                        {s.label}
                       </Text>
                     </Pressable>
                   );
@@ -284,6 +317,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textPrimary,
     paddingVertical: spacing.sm,
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
   },
   textInput: {
     backgroundColor: colors.surfaceElevated,
@@ -294,6 +328,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     fontSize: 14,
     color: colors.textPrimary,
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
   },
   notesInput: {
     height: 70,

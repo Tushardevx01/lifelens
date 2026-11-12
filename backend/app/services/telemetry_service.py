@@ -10,7 +10,11 @@ from app.models.telemetry import (
     FocusStudySession,
     Habit,
     HabitLog,
+    SleepInterval,
+    WorkoutSession,
 )
+from app.models.daily_entry import DailyEntry
+from app.utils.date_utils import ensure_utc, utc_date
 from app.schemas.telemetry import (
     TransactionCreate,
     TransactionSummaryResponse,
@@ -22,11 +26,70 @@ from app.schemas.telemetry import (
     HabitUpdate,
     HabitLogCreate,
     HabitWithStreakResponse,
+    SleepIntervalCreate,
+    SleepIntervalBatchCreate,
+    SleepSummaryResponse,
+    WorkoutSessionCreate,
+    WorkoutConsistencyResponse,
 )
 
 
 def _to_uuid(val: str | uuid.UUID) -> uuid.UUID:
     return val if isinstance(val, uuid.UUID) else uuid.UUID(val)
+
+
+async def _rollup_daily_spend(db: AsyncSession, uid: uuid.UUID, target_date: date):
+    start_dt = datetime.combine(target_date, datetime.min.time(), tzinfo=timezone.utc)
+    end_dt = datetime.combine(target_date, datetime.max.time(), tzinfo=timezone.utc)
+    sum_stmt = select(func.sum(FinancialTransaction.amount)).where(
+        and_(
+            FinancialTransaction.user_id == uid,
+            FinancialTransaction.timestamp >= start_dt,
+            FinancialTransaction.timestamp <= end_dt,
+        )
+    )
+    sum_res = await db.execute(sum_stmt)
+    total_day_spend = float(sum_res.scalar() or 0.0)
+
+    cat_stmt = (
+        select(FinancialTransaction.category, func.sum(FinancialTransaction.amount))
+        .where(
+            and_(
+                FinancialTransaction.user_id == uid,
+                FinancialTransaction.timestamp >= start_dt,
+                FinancialTransaction.timestamp <= end_dt,
+            )
+        )
+        .group_by(FinancialTransaction.category)
+        .order_by(desc(func.sum(FinancialTransaction.amount)))
+    )
+    cat_res = await db.execute(cat_stmt)
+    top_cat = cat_res.first()
+    primary_cat = top_cat[0] if top_cat else "Other"
+
+    de_stmt = select(DailyEntry).where(
+        and_(DailyEntry.user_id == uid, DailyEntry.date == target_date)
+    )
+    de_res = await db.execute(de_stmt)
+    entry = de_res.scalar_one_or_none()
+    if entry:
+        entry.daily_spend = round(total_day_spend, 2)
+        if primary_cat:
+            entry.spend_category = primary_cat
+    else:
+        entry = DailyEntry(
+            id=uuid.uuid4(),
+            user_id=uid,
+            date=target_date,
+            sleep_hours=0.0,
+            sleep_quality=3,
+            steps=0,
+            screen_time_hours=0.0,
+            deep_work_hours=0.0,
+            daily_spend=round(total_day_spend, 2),
+            spend_category=primary_cat,
+        )
+        db.add(entry)
 
 
 # ============================================================================
@@ -43,11 +106,14 @@ async def create_transaction(
         amount=round(data.amount, 2),
         category=data.category.strip(),
         merchant=data.merchant.strip(),
-        timestamp=data.timestamp,
+        timestamp=ensure_utc(data.timestamp),
         is_discretionary=data.is_discretionary,
+        source=(data.source or "MANUAL").strip(),
         notes=data.notes.strip() if data.notes else None,
     )
     db.add(tx)
+    await db.flush()
+    await _rollup_daily_spend(db, uid, utc_date(data.timestamp))
     await db.commit()
     await db.refresh(tx)
     return tx
@@ -64,13 +130,18 @@ async def create_transactions_batch(
             amount=round(item.amount, 2),
             category=item.category.strip(),
             merchant=item.merchant.strip(),
-            timestamp=item.timestamp,
+            timestamp=ensure_utc(item.timestamp),
             is_discretionary=item.is_discretionary,
+            source=(item.source or "MANUAL").strip(),
             notes=item.notes.strip() if item.notes else None,
         )
         for item in items
     ]
     db.add_all(records)
+    await db.flush()
+    affected_dates = {utc_date(item.timestamp) for item in items}
+    for d in affected_dates:
+        await _rollup_daily_spend(db, uid, d)
     await db.commit()
     for r in records:
         await db.refresh(r)
@@ -162,6 +233,28 @@ async def get_transaction_summary(
         merchant_map.values(), key=lambda x: x["total_spend"], reverse=True
     )[:10]
 
+    import calendar
+    today = date.today()
+    ref_start = start_date or today.replace(day=1)
+    ref_end = end_date or today
+    days_elapsed = max(1, (ref_end - ref_start).days + 1)
+    daily_burn_rate = round(total_spend / days_elapsed, 2)
+
+    _, total_days_in_month = calendar.monthrange(ref_end.year, ref_end.month)
+    projected_eom_spend = round(daily_burn_rate * total_days_in_month, 2)
+
+    monthly_budget = 35000.0
+    budget_remaining = round(max(0.0, monthly_budget - total_spend), 2)
+
+    if total_spend > monthly_budget:
+        budget_status = "DEFICIT_EXCEEDED"
+    elif projected_eom_spend > monthly_budget:
+        budget_status = "OVERRUN_IMMINENT"
+    elif projected_eom_spend > monthly_budget * 0.9:
+        budget_status = "PACING_AHEAD"
+    else:
+        budget_status = "ON_TRACK"
+
     return TransactionSummaryResponse(
         total_spend=total_spend,
         discretionary_spend=discretionary_spend,
@@ -170,6 +263,11 @@ async def get_transaction_summary(
         transaction_count=len(items),
         category_breakdown=category_map,
         top_merchants=top_merchants,
+        daily_burn_rate=daily_burn_rate,
+        projected_eom_spend=projected_eom_spend,
+        monthly_budget=monthly_budget,
+        budget_remaining=budget_remaining,
+        budget_run_rate_status=budget_status,
     )
 
 
@@ -187,7 +285,10 @@ async def delete_transaction(
     tx = result.scalar_one_or_none()
     if not tx:
         return False
+    target_date = utc_date(tx.timestamp)
     await db.delete(tx)
+    await db.flush()
+    await _rollup_daily_spend(db, uid, target_date)
     await db.commit()
     return True
 
@@ -197,8 +298,53 @@ async def delete_transaction(
 # ============================================================================
 
 def _is_late_night(st: datetime) -> bool:
-    # 22:00 to 06:00 is considered late night / sleep disruption hours
+    # 22:00 to 05:59 is considered late night / sleep disruption hours
     return st.hour >= 22 or st.hour < 6
+
+
+async def _rollup_app_usage(db: AsyncSession, uid: uuid.UUID, target_date: date):
+    start_dt = datetime.combine(target_date, datetime.min.time(), tzinfo=timezone.utc)
+    end_dt = datetime.combine(target_date, datetime.max.time(), tzinfo=timezone.utc)
+    stmt = select(AppUsageSession).where(
+        and_(
+            AppUsageSession.user_id == uid,
+            AppUsageSession.start_time >= start_dt,
+            AppUsageSession.start_time <= end_dt,
+        )
+    )
+    res = await db.execute(stmt)
+    sessions = list(res.scalars().all())
+    total_mins = sum(s.duration_minutes for s in sessions)
+    social_mins = sum(
+        s.duration_minutes
+        for s in sessions
+        if s.app_category.lower() in ("social media", "social", "networking")
+    )
+    screen_hrs = round(total_mins / 60.0, 2)
+    social_hrs = round(social_mins / 60.0, 2)
+
+    de_stmt = select(DailyEntry).where(
+        and_(DailyEntry.user_id == uid, DailyEntry.date == target_date)
+    )
+    de_res = await db.execute(de_stmt)
+    entry = de_res.scalar_one_or_none()
+    if entry:
+        entry.screen_time_hours = screen_hrs
+        entry.social_media_hours = social_hrs
+    else:
+        entry = DailyEntry(
+            id=uuid.uuid4(),
+            user_id=uid,
+            date=target_date,
+            sleep_hours=0.0,
+            sleep_quality=3,
+            steps=0,
+            screen_time_hours=screen_hrs,
+            social_media_hours=social_hrs,
+            deep_work_hours=0.0,
+            daily_spend=0.0,
+        )
+        db.add(entry)
 
 
 async def create_app_usage(
@@ -216,6 +362,8 @@ async def create_app_usage(
         is_late_night=late_night,
     )
     db.add(session)
+    await db.flush()
+    await _rollup_app_usage(db, uid, data.start_time.date())
     await db.commit()
     await db.refresh(session)
     return session
@@ -238,6 +386,10 @@ async def create_app_usage_batch(
         for item in items
     ]
     db.add_all(records)
+    await db.flush()
+    affected_dates = {item.start_time.date() for item in items}
+    for d in affected_dates:
+        await _rollup_app_usage(db, uid, d)
     await db.commit()
     for r in records:
         await db.refresh(r)
@@ -302,6 +454,12 @@ async def get_app_usage_summary(
     category_map: dict[str, int] = {}
     app_map: dict[str, dict[str, Any]] = {}
 
+    distracting_cats = {"social media", "entertainment", "gaming", "social", "games", "video"}
+    productive_cats = {"productivity", "utilities", "communication", "work", "development", "education", "tools"}
+
+    distracting_mins = 0
+    productive_mins = 0
+
     for s in items:
         total_mins += s.duration_minutes
         if s.is_late_night:
@@ -315,10 +473,19 @@ async def get_app_usage_summary(
             app_map[app] = {"app_name": app, "category": cat, "total_minutes": 0}
         app_map[app]["total_minutes"] += s.duration_minutes
 
+        cat_lower = cat.lower()
+        if cat_lower in distracting_cats:
+            distracting_mins += s.duration_minutes
+        elif cat_lower in productive_cats:
+            productive_mins += s.duration_minutes
+
     for a in app_map.values():
         a["percentage"] = round((a["total_minutes"] / total_mins * 100), 1) if total_mins > 0 else 0.0
 
     top_apps = sorted(app_map.values(), key=lambda x: x["total_minutes"], reverse=True)[:10]
+
+    # Distraction Index: Ratio of distracting apps to productive focus
+    distraction_index = round(distracting_mins / max(1, productive_mins), 2)
 
     return AppUsageSummaryResponse(
         total_minutes=total_mins,
@@ -326,12 +493,55 @@ async def get_app_usage_summary(
         late_night_minutes=late_night_mins,
         category_breakdown=category_map,
         top_apps=top_apps,
+        distraction_index=distraction_index,
+        distracting_minutes=distracting_mins,
+        productive_minutes=productive_mins,
     )
 
 
 # ============================================================================
 # 3. Focus & Study Sessions Service
 # ============================================================================
+
+async def _rollup_focus_sessions(db: AsyncSession, uid: uuid.UUID, target_date: date, task_completed: bool = False):
+    start_dt = datetime.combine(target_date, datetime.min.time(), tzinfo=timezone.utc)
+    end_dt = datetime.combine(target_date, datetime.max.time(), tzinfo=timezone.utc)
+    stmt = select(FocusStudySession).where(
+        and_(
+            FocusStudySession.user_id == uid,
+            FocusStudySession.start_time >= start_dt,
+            FocusStudySession.start_time <= end_dt,
+        )
+    )
+    res = await db.execute(stmt)
+    sessions = list(res.scalars().all())
+    total_focus_mins = sum(s.duration_minutes for s in sessions)
+    deep_work_hrs = round(total_focus_mins / 60.0, 2)
+
+    de_stmt = select(DailyEntry).where(
+        and_(DailyEntry.user_id == uid, DailyEntry.date == target_date)
+    )
+    de_res = await db.execute(de_stmt)
+    entry = de_res.scalar_one_or_none()
+    if entry:
+        entry.deep_work_hours = deep_work_hrs
+        if task_completed:
+            entry.tasks_completed = (entry.tasks_completed or 0) + 1
+    else:
+        entry = DailyEntry(
+            id=uuid.uuid4(),
+            user_id=uid,
+            date=target_date,
+            sleep_hours=0.0,
+            sleep_quality=3,
+            steps=0,
+            screen_time_hours=0.0,
+            deep_work_hours=deep_work_hrs,
+            daily_spend=0.0,
+            tasks_completed=1 if task_completed else None,
+        )
+        db.add(entry)
+
 
 async def create_focus_session(
     db: AsyncSession, user_id: str, data: FocusSessionCreate
@@ -349,6 +559,8 @@ async def create_focus_session(
         notes=data.notes.strip() if data.notes else None,
     )
     db.add(session)
+    await db.flush()
+    await _rollup_focus_sessions(db, uid, data.start_time.date(), task_completed=bool(data.task_completed))
     await db.commit()
     await db.refresh(session)
     return session
@@ -539,7 +751,7 @@ async def list_habits_with_streaks(
 
     stmt = (
         select(Habit)
-        .where(and_(Habit.user_id == uid, Habit.is_active == True))
+        .where(and_(Habit.user_id == uid, Habit.is_active.is_(True)))
         .order_by(Habit.created_at.asc())
     )
     result = await db.execute(stmt)
@@ -557,7 +769,7 @@ async def list_habits_with_streaks(
         log_res = await db.execute(log_stmt)
         logs = list(log_res.scalars().all())
 
-        completed_dates = {l.date for l in logs if l.completed}
+        completed_dates = {log.date for log in logs if log.completed}
         curr_streak, best_streak = _compute_habit_streaks(completed_dates, today)
         completed_today = today in completed_dates
 
@@ -665,3 +877,512 @@ async def list_habit_logs(
     result = await db.execute(stmt)
     return list(result.scalars().all())
 
+
+# ============================================================================
+# 5. Sleep Intervals & Stages Service
+# ============================================================================
+
+async def _rollup_sleep_intervals(
+    db: AsyncSession, uid: uuid.UUID, target_date: date, resting_hr: Optional[int] = None
+):
+    stmt = select(SleepInterval).where(
+        and_(
+            SleepInterval.user_id == uid,
+            SleepInterval.date == target_date,
+        )
+    )
+    res = await db.execute(stmt)
+    intervals = list(res.scalars().all())
+    if not intervals:
+        return
+
+    asleep_stages = {"CORE", "DEEP", "REM"}
+    asleep_mins = sum(i.duration_minutes for i in intervals if i.stage.upper() in asleep_stages)
+    deep_mins = sum(i.duration_minutes for i in intervals if i.stage.upper() == "DEEP")
+    rem_mins = sum(i.duration_minutes for i in intervals if i.stage.upper() == "REM")
+    awake_count = sum(1 for i in intervals if i.stage.upper() == "AWAKE")
+
+    total_sleep_hrs = round(asleep_mins / 60.0, 2)
+    deep_ratio = deep_mins / max(1, asleep_mins)
+    rem_ratio = rem_mins / max(1, asleep_mins)
+
+    # Bedtime derivation
+    asleep_intervals = [i for i in intervals if i.stage.upper() in asleep_stages]
+    earliest_start = min((i.start_time for i in asleep_intervals), default=None)
+    bedtime_time = earliest_start.time() if earliest_start else None
+
+    # Quality score (1-5)
+    quality = 3
+    if total_sleep_hrs >= 7.0 and deep_ratio >= 0.15 and rem_ratio >= 0.18 and awake_count <= 2:
+        quality = 5
+    elif total_sleep_hrs >= 6.5 and (deep_ratio >= 0.12 or rem_ratio >= 0.15) and awake_count <= 3:
+        quality = 4
+    elif total_sleep_hrs < 5.0 or awake_count > 5:
+        quality = 1
+    elif total_sleep_hrs < 6.0 or deep_ratio < 0.08:
+        quality = 2
+
+    de_stmt = select(DailyEntry).where(
+        and_(DailyEntry.user_id == uid, DailyEntry.date == target_date)
+    )
+    de_res = await db.execute(de_stmt)
+    entry = de_res.scalar_one_or_none()
+    if entry:
+        entry.sleep_hours = total_sleep_hrs
+        entry.sleep_quality = quality
+        if bedtime_time:
+            entry.sleep_bedtime = bedtime_time
+        if resting_hr is not None:
+            entry.resting_heart_rate = resting_hr
+    else:
+        entry = DailyEntry(
+            id=uuid.uuid4(),
+            user_id=uid,
+            date=target_date,
+            sleep_hours=total_sleep_hrs,
+            sleep_quality=quality,
+            sleep_bedtime=bedtime_time,
+            resting_heart_rate=resting_hr,
+            steps=0,
+            screen_time_hours=0.0,
+            deep_work_hours=0.0,
+            daily_spend=0.0,
+        )
+        db.add(entry)
+
+
+async def create_sleep_interval(
+    db: AsyncSession, user_id: str, data: SleepIntervalCreate
+) -> SleepInterval:
+    uid = _to_uuid(user_id)
+    interval_date = data.date or data.start_time.date()
+    stage = data.stage.upper()
+    start_utc = ensure_utc(data.start_time)
+    end_utc = ensure_utc(data.end_time)
+
+    dup_stmt = (
+        select(SleepInterval)
+        .where(
+            and_(
+                SleepInterval.user_id == uid,
+                SleepInterval.stage == stage,
+                SleepInterval.start_time == start_utc,
+                SleepInterval.end_time == end_utc,
+            )
+        )
+        .limit(1)
+    )
+    dup_res = await db.execute(dup_stmt)
+    existing = dup_res.scalar_one_or_none()
+    if existing:
+        return existing
+
+    interval = SleepInterval(
+        id=uuid.uuid4(),
+        user_id=uid,
+        date=interval_date,
+        stage=stage,
+        start_time=start_utc,
+        end_time=end_utc,
+        duration_minutes=data.duration_minutes,
+    )
+    db.add(interval)
+    await db.flush()
+    await _rollup_sleep_intervals(db, uid, interval_date)
+    await db.commit()
+    await db.refresh(interval)
+    return interval
+
+
+async def create_sleep_intervals_batch(
+    db: AsyncSession, user_id: str, data: SleepIntervalBatchCreate
+) -> list[SleepInterval]:
+    uid = _to_uuid(user_id)
+    records: list[SleepInterval] = []
+    affected_dates: set[date] = set()
+    candidates: list[tuple[SleepIntervalCreate, date, str, tuple]] = []
+
+    for item in data.intervals:
+        interval_date = item.date or item.start_time.date()
+        stage = item.stage.upper()
+        key = (interval_date, ensure_utc(item.start_time), ensure_utc(item.end_time), stage)
+        candidates.append((item, interval_date, stage, key))
+
+    candidate_dates = {c[1] for c in candidates}
+    existing_keys: set[tuple] = set()
+    if candidate_dates:
+        existing_res = await db.execute(
+            select(SleepInterval).where(
+                and_(
+                    SleepInterval.user_id == uid,
+                    SleepInterval.date.in_(candidate_dates),
+                )
+            )
+        )
+        existing_keys = {
+            (i.date, ensure_utc(i.start_time), ensure_utc(i.end_time), i.stage.upper())
+            for i in existing_res.scalars().all()
+        }
+
+    for item, interval_date, stage, key in candidates:
+        if key in existing_keys:
+            continue
+        existing_keys.add(key)
+        rec = SleepInterval(
+            id=uuid.uuid4(),
+            user_id=uid,
+            date=interval_date,
+            stage=stage,
+            start_time=ensure_utc(item.start_time),
+            end_time=ensure_utc(item.end_time),
+            duration_minutes=item.duration_minutes,
+        )
+        records.append(rec)
+        affected_dates.add(interval_date)
+
+    if records:
+        db.add_all(records)
+        await db.flush()
+
+        if data.auto_merge_daily_entry:
+            for d in affected_dates:
+                await _rollup_sleep_intervals(db, uid, d, resting_hr=data.resting_heart_rate)
+
+        await db.commit()
+        for r in records:
+            await db.refresh(r)
+    return records
+
+
+async def list_sleep_intervals(
+    db: AsyncSession,
+    user_id: str,
+    target_date: Optional[date] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+) -> list[SleepInterval]:
+    uid = _to_uuid(user_id)
+    filters = [SleepInterval.user_id == uid]
+
+    if target_date:
+        filters.append(SleepInterval.date == target_date)
+    if start_date:
+        filters.append(SleepInterval.date >= start_date)
+    if end_date:
+        filters.append(SleepInterval.date <= end_date)
+
+    stmt = select(SleepInterval).where(and_(*filters)).order_by(SleepInterval.start_time.asc())
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def get_sleep_summary(
+    db: AsyncSession,
+    user_id: str,
+    target_date: date,
+) -> SleepSummaryResponse:
+    uid = _to_uuid(user_id)
+    intervals = await list_sleep_intervals(db, user_id, target_date=target_date)
+
+    stage_breakdown: dict[str, int] = {}
+    deep_m = 0
+    rem_m = 0
+    core_m = 0
+    awake_m = 0
+    in_bed_m = 0
+    asleep_m = 0
+
+    for i in intervals:
+        st = i.stage.upper()
+        stage_breakdown[st] = stage_breakdown.get(st, 0) + i.duration_minutes
+        if st == "DEEP":
+            deep_m += i.duration_minutes
+            asleep_m += i.duration_minutes
+        elif st == "REM":
+            rem_m += i.duration_minutes
+            asleep_m += i.duration_minutes
+        elif st in ("CORE", "LIGHT"):
+            core_m += i.duration_minutes
+            asleep_m += i.duration_minutes
+        elif st == "AWAKE":
+            awake_m += i.duration_minutes
+        elif st in ("IN_BED", "INBED"):
+            in_bed_m += i.duration_minutes
+
+    total_sleep_hours = round(asleep_m / 60.0, 2)
+    total_in_bed_hours = round((asleep_m + in_bed_m + awake_m) / 60.0, 2)
+    asleep_intervals = [i for i in intervals if i.stage.upper() in {"CORE", "DEEP", "REM", "LIGHT"}]
+    earliest_asleep = min((i.start_time for i in asleep_intervals), default=None)
+    latest_asleep = max((i.end_time for i in asleep_intervals), default=None)
+    bedtime_str = earliest_asleep.strftime("%H:%M") if earliest_asleep else None
+    wake_str = latest_asleep.strftime("%H:%M") if latest_asleep else None
+
+    # Get resting heart rate from DailyEntry if available
+    de_stmt = select(DailyEntry).where(
+        and_(DailyEntry.user_id == uid, DailyEntry.date == target_date)
+    )
+    de_res = await db.execute(de_stmt)
+    entry = de_res.scalar_one_or_none()
+    quality = entry.sleep_quality if entry else 3
+    r_hr = entry.resting_heart_rate if entry else None
+
+    # Query recent DailyEntry records to compute circadian drift & social jetlag
+    recent_stmt = (
+        select(DailyEntry)
+        .where(
+            and_(
+                DailyEntry.user_id == uid,
+                DailyEntry.date <= target_date,
+                DailyEntry.date >= target_date - timedelta(days=14),
+            )
+        )
+        .order_by(DailyEntry.date.asc())
+    )
+    recent_res = await db.execute(recent_stmt)
+    recent_entries = list(recent_res.scalars().all())
+
+    from app.ml.risk_forecaster import detect_circadian_drift, CircadianStatus
+    bedtimes = [e.sleep_bedtime for e in recent_entries if e.sleep_bedtime]
+    entry_dates = [e.date for e in recent_entries if e.sleep_bedtime]
+    wake_times = [wake_str] if wake_str else []
+
+    drift_f = detect_circadian_drift(bedtimes, wake_times=wake_times, entry_dates=entry_dates)
+    phase_shift_val = "aligned"
+    if drift_f.status == CircadianStatus.PHASE_DELAY:
+        phase_shift_val = "delay"
+    elif drift_f.max_shift_minutes < -15:
+        phase_shift_val = "advance"
+
+    # Physiological Sleep Score (0-100)
+    score_components = (
+        min(35.0, (total_sleep_hours / 8.0) * 35.0) +
+        (quality * 7.0) +
+        min(20.0, ((deep_m + rem_m) / max(1, asleep_m)) * 50.0) +
+        max(0.0, 10.0 - awake_m)
+    )
+    sleep_score = int(min(100, max(15, round(score_components))))
+
+    return SleepSummaryResponse(
+        date=target_date,
+        total_sleep_hours=total_sleep_hours,
+        total_in_bed_hours=total_in_bed_hours,
+        sleep_quality=quality,
+        bedtime=bedtime_str,
+        wake_time=wake_str,
+        deep_minutes=deep_m,
+        rem_minutes=rem_m,
+        core_minutes=core_m,
+        awake_minutes=awake_m,
+        in_bed_minutes=in_bed_m,
+        resting_heart_rate=r_hr,
+        stage_breakdown=stage_breakdown,
+        circadian_drift_minutes=drift_f.max_shift_minutes,
+        bedtime_variance_minutes=drift_f.bedtime_variance_minutes,
+        phase_shift=phase_shift_val,
+        social_jetlag_minutes=drift_f.social_jetlag_minutes,
+        sleep_score=sleep_score,
+    )
+
+
+# ============================================================================
+# 6. Physical Health & Workouts Service
+# ============================================================================
+
+async def _rollup_workouts(db: AsyncSession, uid: uuid.UUID, target_date: date):
+    start_dt = datetime.combine(target_date, datetime.min.time(), tzinfo=timezone.utc)
+    end_dt = datetime.combine(target_date, datetime.max.time(), tzinfo=timezone.utc)
+    stmt = select(WorkoutSession).where(
+        and_(
+            WorkoutSession.user_id == uid,
+            WorkoutSession.start_time >= start_dt,
+            WorkoutSession.start_time <= end_dt,
+        )
+    )
+    res = await db.execute(stmt)
+    workouts = list(res.scalars().all())
+    total_active_mins = sum(w.duration_minutes for w in workouts)
+    total_cals = sum(w.calories_burned or 0 for w in workouts)
+    total_steps = sum(w.steps or 0 for w in workouts)
+
+    de_stmt = select(DailyEntry).where(
+        and_(DailyEntry.user_id == uid, DailyEntry.date == target_date)
+    )
+    de_res = await db.execute(de_stmt)
+    entry = de_res.scalar_one_or_none()
+    if entry:
+        entry.active_minutes = total_active_mins
+        entry.calories_burned = total_cals if total_cals > 0 else entry.calories_burned
+        entry.steps = max(entry.steps or 0, total_steps)
+    else:
+        entry = DailyEntry(
+            id=uuid.uuid4(),
+            user_id=uid,
+            date=target_date,
+            sleep_hours=0.0,
+            sleep_quality=3,
+            steps=total_steps,
+            active_minutes=total_active_mins,
+            calories_burned=total_cals if total_cals > 0 else None,
+            screen_time_hours=0.0,
+            deep_work_hours=0.0,
+            daily_spend=0.0,
+        )
+        db.add(entry)
+
+
+async def create_workout_session(
+    db: AsyncSession, user_id: str, data: WorkoutSessionCreate
+) -> WorkoutSession:
+    uid = _to_uuid(user_id)
+    workout = WorkoutSession(
+        id=uuid.uuid4(),
+        user_id=uid,
+        activity_type=data.activity_type.strip(),
+        start_time=data.start_time,
+        end_time=data.end_time,
+        duration_minutes=data.duration_minutes,
+        calories_burned=data.calories_burned,
+        steps=data.steps,
+        intensity=(data.intensity or "MODERATE").upper(),
+        notes=data.notes.strip() if data.notes else None,
+    )
+    db.add(workout)
+    await db.flush()
+    await _rollup_workouts(db, uid, data.start_time.date())
+    await db.commit()
+    await db.refresh(workout)
+    return workout
+
+
+async def list_workout_sessions(
+    db: AsyncSession,
+    user_id: str,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    activity_type: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 30,
+) -> list[WorkoutSession]:
+    uid = _to_uuid(user_id)
+    filters = [WorkoutSession.user_id == uid]
+
+    if start_date:
+        start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
+        filters.append(WorkoutSession.start_time >= start_dt)
+    if end_date:
+        end_dt = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
+        filters.append(WorkoutSession.start_time <= end_dt)
+    if activity_type:
+        filters.append(WorkoutSession.activity_type.ilike(f"%{activity_type.strip()}%"))
+
+    offset_val = (max(1, page) - 1) * page_size
+    stmt = (
+        select(WorkoutSession)
+        .where(and_(*filters))
+        .order_by(desc(WorkoutSession.start_time))
+        .offset(offset_val)
+        .limit(page_size)
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def get_workout_consistency(
+    db: AsyncSession,
+    user_id: str,
+) -> WorkoutConsistencyResponse:
+    uid = _to_uuid(user_id)
+    today = date.today()
+    start_7d = today - timedelta(days=6)
+    start_30d = today - timedelta(days=29)
+
+    stmt = (
+        select(DailyEntry)
+        .where(and_(DailyEntry.user_id == uid, DailyEntry.date >= start_30d))
+        .order_by(DailyEntry.date.desc())
+    )
+    res = await db.execute(stmt)
+    entries = list(res.scalars().all())
+    entry_map = {e.date: e for e in entries}
+
+    w_stmt = select(WorkoutSession).where(
+        and_(
+            WorkoutSession.user_id == uid,
+            WorkoutSession.start_time >= datetime.combine(start_30d, datetime.min.time(), tzinfo=timezone.utc),
+        )
+    )
+    w_res = await db.execute(w_stmt)
+    workouts = list(w_res.scalars().all())
+
+    w_7d = [w for w in workouts if w.start_time.date() >= start_7d]
+    total_workouts_7d = len(w_7d)
+    total_active_mins_7d = sum(w.duration_minutes for w in w_7d)
+
+    # Streak calculation
+    current_streak = 0
+    best_streak = 0
+    running_streak = 0
+
+    today_active = (entry_map.get(today) and (entry_map[today].active_minutes or 0) >= 20) or any(w.start_time.date() == today for w in workouts)
+    check_date = today if today_active else (today - timedelta(days=1))
+
+    for i in range(30):
+        d = check_date - timedelta(days=i)
+        had_workout = (entry_map.get(d) and (entry_map[d].active_minutes or 0) >= 20) or any(w.start_time.date() == d for w in workouts)
+        if had_workout:
+            current_streak += 1
+        else:
+            break
+
+    all_dates = [start_30d + timedelta(days=i) for i in range(30)]
+    for d in all_dates:
+        had_workout = (entry_map.get(d) and (entry_map[d].active_minutes or 0) >= 20) or any(w.start_time.date() == d for w in workouts)
+        if had_workout:
+            running_streak += 1
+            if running_streak > best_streak:
+                best_streak = running_streak
+        else:
+            running_streak = 0
+
+    best_streak = max(best_streak, current_streak)
+
+    workout_days_7d = len({w.start_time.date() for w in w_7d} | {e.date for e in entries if e.date >= start_7d and (e.active_minutes or 0) >= 20})
+    if 3 <= workout_days_7d <= 6:
+        rest_day_adherence = 100.0
+    elif workout_days_7d == 7:
+        rest_day_adherence = 75.0
+    elif workout_days_7d == 2:
+        rest_day_adherence = 60.0
+    elif workout_days_7d == 1:
+        rest_day_adherence = 40.0
+    else:
+        rest_day_adherence = 20.0
+
+    latest_entry = entry_map.get(today) or (entries[0] if entries else None)
+    sleep_hrs = float(latest_entry.sleep_hours) if latest_entry else 7.0
+    sleep_qual = int(latest_entry.sleep_quality) if latest_entry else 3
+    energy = int(latest_entry.energy_level or 3) if latest_entry else 3
+
+    from app.ml.risk_forecaster import calculate_workout_skip_risk
+    inactive_days = 0 if current_streak > 0 else 1
+    skip_forecast = calculate_workout_skip_risk(
+        sleep_hours=sleep_hrs,
+        sleep_quality=sleep_qual,
+        energy_level=energy * 2 if energy <= 5 else energy,
+        consecutive_inactive_days=inactive_days,
+    )
+
+    return WorkoutConsistencyResponse(
+        current_streak=current_streak,
+        streak_days=current_streak,
+        best_streak=best_streak,
+        total_workouts_7d=total_workouts_7d,
+        total_active_minutes_7d=total_active_mins_7d,
+        total_minutes_7d=total_active_mins_7d,
+        rest_day_adherence_pct=rest_day_adherence,
+        rest_days_adherence=round(rest_day_adherence / 100.0, 2),
+        workout_skip_vulnerability=skip_forecast.probability,
+        skip_vulnerability=skip_forecast.probability,
+        skip_risk_level=skip_forecast.risk_level.value,
+        recommendation=skip_forecast.target_recommendation,
+    )

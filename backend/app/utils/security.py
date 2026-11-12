@@ -40,40 +40,21 @@ def create_access_token(user_id: str, token_version: int = 0) -> str:
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
-) -> str:
-    """
-    FastAPI dependency: extract and validate user_id from JWT token.
-    Returns user_id string. Use get_current_user_verified for version-checked access.
-    """
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        user_id: str | None = payload.get("sub")
-        if user_id is None:
-            raise credentials_exception
-        return user_id
-    except JWTError:
-        raise credentials_exception
-
-
-async def get_current_user_verified(
-    token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> str:
     """
-    Full token validation including token_version check (P7).
-    Raises 401 if the token's version doesn't match the DB — meaning the password was changed.
+    FastAPI dependency: extract, authenticate and fully validate user session.
+    Verifies signature, expiration, user existence, active status, and token_version
+    to ensure password resets, revocations, and account deletions immediately
+    invalidate all previous sessions.
     """
     from app.models.user import User
+    from app.cache.redis_client import redis_client, REDIS_AVAILABLE
     import uuid
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Session expired. Please log in again.",
+        detail="Could not validate credentials or session expired.",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
@@ -85,11 +66,51 @@ async def get_current_user_verified(
     except JWTError:
         raise credentials_exception
 
-    # Validate version against DB
-    stmt = select(User.token_version).where(User.id == uuid.UUID(user_id))
-    result = await db.execute(stmt)
-    db_ver = result.scalar_one_or_none()
-    if db_ver is None or db_ver != token_ver:
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
         raise credentials_exception
 
+    # Fast-path: Check Redis session cache if available
+    cache_key = f"user_sess:{user_id}"
+    if REDIS_AVAILABLE and redis_client:
+        try:
+            cached_val = redis_client.get(cache_key)
+            if cached_val is not None:
+                parts = cached_val.split(":")
+                if len(parts) == 2:
+                    cached_ver = int(parts[0])
+                    cached_active = parts[1] == "1"
+                    if cached_active and cached_ver == token_ver:
+                        return user_id
+                    raise credentials_exception
+        except Exception:
+            pass
+
+    # Database validation of active user and token_version
+    stmt = select(User.token_version, User.is_active).where(User.id == user_uuid)
+    result = await db.execute(stmt)
+    user_row = result.one_or_none()
+    if not user_row or not user_row[1]:  # User missing or inactive
+        raise credentials_exception
+
+    db_ver = user_row[0]
+    if db_ver != token_ver:
+        raise credentials_exception
+
+    # Populate cache (5 minute TTL)
+    if REDIS_AVAILABLE and redis_client:
+        try:
+            redis_client.setex(cache_key, 300, f"{db_ver}:1")
+        except Exception:
+            pass
+
     return user_id
+
+
+async def get_current_user_verified(
+    token: str = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> str:
+    """Backwards-compatible alias for get_current_user."""
+    return await get_current_user(token=token, db=db)

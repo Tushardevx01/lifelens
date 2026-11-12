@@ -5,8 +5,9 @@ from sqlalchemy import (
     String, Text, Date, Boolean, DateTime,
     ForeignKey, Index, func, JSON
 )
-# Use SQLAlchemy's Enum with native_enum=False so it works on both
-# PostgreSQL (as a real ENUM type) and SQLite (as VARCHAR in tests)
+# Migration 001 creates native PostgreSQL enums for these two columns
+# (insighttypeenum/severityenum), so the ORM must use native_enum=True to bind
+# enum values correctly. SQLite still stores them as VARCHAR in tests.
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -39,13 +40,13 @@ class Insight(Base):
     )
     date: Mapped[date] = mapped_column(Date, nullable=False)
 
-    # native_enum=False → stored as VARCHAR; works on both PG and SQLite (tests)
+    # Native PG enums (see migration 001); SQLite falls back to VARCHAR.
     insight_type: Mapped[InsightTypeEnum] = mapped_column(
-        SAEnum(InsightTypeEnum, name="insighttypeenum", native_enum=False),
+        SAEnum(InsightTypeEnum, name="insighttypeenum"),
         nullable=False,
     )
     severity: Mapped[SeverityEnum] = mapped_column(
-        SAEnum(SeverityEnum, name="severityenum", native_enum=False),
+        SAEnum(SeverityEnum, name="severityenum"),
         nullable=False,
         default=SeverityEnum.INFO,
     )

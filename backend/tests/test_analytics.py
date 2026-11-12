@@ -6,13 +6,11 @@ Covers: dashboard, life-score history, insights, prediction, anomalies, correlat
 """
 
 import pytest
-import pytest_asyncio
 from datetime import date, timedelta
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
-from app.models.daily_entry import DailyEntry
 from app.models.engineered_features import EngineeredFeatures
 from app.models.insight import Insight, InsightTypeEnum, SeverityEnum
 

@@ -1,0 +1,701 @@
+{
+  "audit": {
+    "project": "LifeLens AI",
+    "date": "2026-11-07T11:09:00Z",
+    "mode": "read-only",
+    "status": "completed_with_limitations",
+    "scope": [
+      "src/services/offlineSyncService.ts",
+      "src/services/api.ts",
+      "src/services/connectorManager.ts",
+      "src/services/smsParserService.ts",
+      "src/services/statementParserService.ts",
+      "src/services/voiceService.ts",
+      "src/components/assistant/",
+      "src/components/predictions/",
+      "src/components/connectors/",
+      "src/components/briefings/",
+      "backend/app/ml/risk_forecaster.py",
+      "backend/app/ml/dynamic_correlation.py",
+      "backend/app/ml/insight_synthesizer.py",
+      "backend/app/ai/agent.py",
+      "backend/app/ai/guardrails.py",
+      "backend/app/ai/voice_utils.py",
+      "backend/app/routers/assistant.py",
+      "backend/app/routers/ingestion.py",
+      "backend/app/routers/analytics.py",
+      "backend/app/services/assistant_service.py",
+      "backend/app/services/briefing_service.py",
+      "backend/app/services/ingestion_service.py",
+      "backend/app/services/voice_service.py",
+      "backend/app/models/briefing.py",
+      "backend/app/models/chat.py",
+      "backend/app/models/connector.py",
+      "backend/app/models/telemetry.py",
+      "backend/migrations/versions/"
+    ],
+    "limitations": [
+      "Host system Python 3.14 lacks pip, pytest, pandas, scipy in system environment for running legacy test_analytics.py and test_ml_pipeline.py directly.",
+      "PostgreSQL and Redis live instances were offline during local audit; isolated static and mock execution harnesses were used for database driver behavior verification."
+    ]
+  },
+  "summary": {
+    "confirmed": 16,
+    "unverified": 0,
+    "critical": 1,
+    "high": 6,
+    "medium": 6,
+    "low": 3,
+    "informational": 4
+  },
+  "findings": [
+    {
+      "id": "BUG-001",
+      "title": "SyntaxError in briefingsApi.exportMarkdown() due to parsing PlainText/HTML response as JSON",
+      "severity": "CRITICAL",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "functional",
+      "affected_files": [
+        "src/services/api.ts",
+        "backend/app/routers/analytics.py"
+      ],
+      "affected_components": [
+        "briefingsApi.exportMarkdown",
+        "export_briefing endpoint (/api/analytics/briefing/export)",
+        "Weekly review and morning briefing user self-reflection export"
+      ],
+      "root_cause": "The frontend helper apiGet unconditionally calls res.json(). However, the backend endpoint /api/analytics/briefing/export returns PlainTextResponse or HTMLResponse. Calling res.json() on raw Markdown or HTML throws a fatal SyntaxError.",
+      "expected_behavior": "exportMarkdown should fetch and return the raw text or markdown content as a string without passing it to JSON.parse.",
+      "actual_behavior": "Throws 'SyntaxError: Unexpected token '#', \"# Morning \"... is not valid JSON' and crashes the calling UI.",
+      "trigger_conditions": [
+        "Calling briefingsApi.exportMarkdown('DAILY_MORNING') or briefingsApi.exportMarkdown('WEEKLY_REVIEW')"
+      ],
+      "reproduction_steps": [
+        "1. Start the backend or mock the export endpoint returning Markdown text starting with '# Morning Briefing'.",
+        "2. Call briefingsApi.exportMarkdown() in api.ts.",
+        "3. Observe uncaught SyntaxError in res.json()."
+      ],
+      "evidence": [
+        "backend/app/routers/analytics.py line 663: return PlainTextResponse(content=content)",
+        "src/services/api.ts line 170: return res.json() as Promise<T>",
+        "Verified with Node.js scratch runner: JSON.parse('# Morning Briefing') throws SyntaxError."
+      ],
+      "impact": "Users are completely unable to export their weekly review stories or morning briefings as Markdown; unhandled promise rejection in client.",
+      "recommended_fix": "Add apiGetText(path: string): Promise<string> in src/services/api.ts that returns res.text() rather than res.json(), and point briefingsApi.exportMarkdown to apiGetText.",
+      "regression_tests": [
+        "Unit test verifying briefingsApi.exportMarkdown parses markdown response as a raw string and does not invoke JSON.parse."
+      ],
+      "verification_criteria": [
+        "briefingsApi.exportMarkdown returns valid markdown string starting with '# ' without throwing."
+      ]
+    },
+    {
+      "id": "BUG-002",
+      "title": "Stored Cross-Site Scripting (XSS) in HTML Export Card Generation",
+      "severity": "HIGH",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "security",
+      "affected_files": [
+        "backend/app/ml/insight_synthesizer.py",
+        "backend/app/routers/analytics.py"
+      ],
+      "affected_components": [
+        "generate_weekly_review_story (html_export_card)",
+        "export_briefing endpoint (/api/analytics/briefing/export)"
+      ],
+      "root_cause": "Raw f-strings are used to construct HTML templates without applying html.escape() to user-controlled variables (user_name, wins, next_rec title and rule).",
+      "expected_behavior": "All dynamic text injected into HTML documents must be safely HTML-escaped using html.escape() or a secure templating engine.",
+      "actual_behavior": "Raw strings containing '<script>' or 'onerror=' are rendered unescaped into HTML output.",
+      "trigger_conditions": [
+        "User name, habit title, or experiment challenge containing HTML special characters or tags."
+      ],
+      "reproduction_steps": [
+        "1. Set user_name to '<script>alert(1)</script>' or create an experiment titled '<img src=x onerror=alert(1)>'.",
+        "2. Request GET /api/analytics/briefing/export?export_format=html.",
+        "3. Inspect the returned HTML to observe unescaped executable script tags."
+      ],
+      "evidence": [
+        "backend/app/ml/insight_synthesizer.py lines 564, 592, 595, 596: user_name and wins concatenated directly into html_card f-string without html.escape.",
+        "backend/app/routers/analytics.py line 661: f'<html>...<pre>{content}</pre>...'"
+      ],
+      "impact": "Arbitrary JavaScript execution in the context of the user's session or browser when opening exported HTML self-reflection cards.",
+      "recommended_fix": "Import html and wrap all interpolated dynamic variables in html.escape() before inserting into HTML templates.",
+      "regression_tests": [
+        "Security unit test asserting that input '<script>alert(1)</script>' is escaped to '&lt;script&gt;alert(1)&lt;/script&gt;' in html_card output."
+      ],
+      "verification_criteria": [
+        "No raw unescaped HTML tags present in generated HTML card from dynamic variables."
+      ]
+    },
+    {
+      "id": "BUG-003",
+      "title": "Mutation Outbox Double Retry Increment & Concurrency Race Condition",
+      "severity": "HIGH",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "concurrency",
+      "affected_files": [
+        "src/services/offlineSyncService.ts"
+      ],
+      "affected_components": [
+        "OfflineSyncEngine.updateMutationStatus",
+        "OfflineSyncEngine.reconcilePendingMutations"
+      ],
+      "root_cause": "updateMutationStatus unconditionally increments retry_count by 1 regardless of whether the status is transitioning to IN_PROGRESS, COMPLETED, or FAILED. Reconcile updates to IN_PROGRESS and then to FAILED/COMPLETED, causing 2 increments per attempt. Furthermore, lack of an isReconciling lock allows parallel calls to drain and execute identical mutations simultaneously.",
+      "expected_behavior": "retry_count should only increment on failed attempts (status === 'FAILED'). An active reconciliation lock must prevent concurrent execution passes.",
+      "actual_behavior": "A single failed attempt increases retryCount by 2. Parallel reconciliation passes duplicate requests to the server.",
+      "trigger_conditions": [
+        "Offline mutation reconciliation failure or rapid network status flapping triggering reconcile twice."
+      ],
+      "reproduction_steps": [
+        "1. Enqueue mutation with initial retryCount 0.",
+        "2. Run reconcilePendingMutations with a failing sender once.",
+        "3. Inspect pending mutation: retryCount is 2 instead of 1."
+      ],
+      "evidence": [
+        "src/services/offlineSyncService.ts lines 197-200, 212: retryCount += 1 unconditionally in updateMutationStatus.",
+        "Reproduced in scratch harness: single failure yielded retryCount = 2."
+      ],
+      "impact": "Premature expiration of retry thresholds; duplicate mutation execution causing duplicate financial transactions or habit logs.",
+      "recommended_fix": "Only increment retryCount when status is 'FAILED'. Add private isReconciling = false flag at the top of reconcilePendingMutations.",
+      "regression_tests": [
+        "Test that 1 failed attempt yields retryCount === 1, and successful attempt does not increase retryCount."
+      ],
+      "verification_criteria": [
+        "Mutation retryCount strictly equals number of failed attempts; parallel reconcile invocations bail out cleanly."
+      ]
+    },
+    {
+      "id": "BUG-004",
+      "title": "PostgreSQL UUID Datatype Mismatch in Chat Session Queries",
+      "severity": "HIGH",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "database",
+      "affected_files": [
+        "backend/app/services/assistant_service.py"
+      ],
+      "affected_components": [
+        "get_or_create_session",
+        "get_user_sessions",
+        "get_session_details",
+        "delete_session",
+        "clear_all_history"
+      ],
+      "root_cause": "ChatSession.user_id is mapped as UUID(as_uuid=True). In multiple queries, it is compared directly with string user_id (ChatSession.user_id == user_id). In PostgreSQL with asyncpg, comparing UUID and varchar raises an operator does not exist exception.",
+      "expected_behavior": "user_id should be converted to uuid.UUID(str(user_id)) before building SQLAlchemy query filter expressions.",
+      "actual_behavior": "Raises asyncpg.exceptions.DatatypeMismatchError: operator does not exist: uuid = character varying on PostgreSQL.",
+      "trigger_conditions": [
+        "Accessing chat history, deleting sessions, or creating conversations on PostgreSQL."
+      ],
+      "reproduction_steps": [
+        "1. Connect backend to PostgreSQL.",
+        "2. Send GET /api/assistant/sessions with valid auth token.",
+        "3. Observe SQL execution error comparing UUID column with varchar."
+      ],
+      "evidence": [
+        "backend/app/services/assistant_service.py lines 123, 155, 212, 261, 280: ChatSession.user_id == user_id where user_id is type str.",
+        "Line 135 correctly converts user_id=uuid.UUID(str(user_id)), proving the model requires UUID."
+      ],
+      "impact": "Complete failure of assistant conversation loading, deletion, and retrieval in PostgreSQL production environments.",
+      "recommended_fix": "Normalize user_id at the start of every function: uid = uuid.UUID(str(user_id)) and use ChatSession.user_id == uid.",
+      "regression_tests": [
+        "Integration test running against PostgreSQL instance executing get_user_sessions with UUID comparison."
+      ],
+      "verification_criteria": [
+        "All chat session queries execute cleanly without type mismatch errors on PostgreSQL."
+      ]
+    },
+    {
+      "id": "BUG-005",
+      "title": "Institutional Webhooks Inoperable due to User Authentication Requirement",
+      "severity": "HIGH",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "integration",
+      "affected_files": [
+        "backend/app/routers/ingestion.py",
+        "backend/app/services/ingestion_service.py"
+      ],
+      "affected_components": [
+        "ingest_webhook (/api/ingestion/financial/webhook)",
+        "Plaid & Finvu AA webhook handlers"
+      ],
+      "root_cause": "The webhook endpoint specifies user_id: str = Depends(get_current_user). External webhook providers (Plaid, Finvu) send server-to-server POST requests signed with HMAC headers, not user JWT Bearer tokens.",
+      "expected_behavior": "Webhook endpoints should authenticate via HMAC signature (x-webhook-signature), and map the institutional account/item ID in the payload to the respective user.",
+      "actual_behavior": "All external webhook deliveries fail immediately with 401 Unauthorized because external servers lack user Bearer tokens.",
+      "trigger_conditions": [
+        "External webhook dispatch from Plaid or Finvu Account Aggregator."
+      ],
+      "reproduction_steps": [
+        "1. Dispatch a valid HMAC-signed webhook POST to /api/ingestion/financial/webhook without an Authorization Bearer header.",
+        "2. Observe immediate 401 Unauthorized rejection."
+      ],
+      "evidence": [
+        "backend/app/routers/ingestion.py lines 166-172: user_id: str = Depends(get_current_user) on public webhook route."
+      ],
+      "impact": "Zero institutional transactions can be ingested via webhooks; automated account aggregator sync is completely inoperable.",
+      "recommended_fix": "Remove Depends(get_current_user) from the webhook route; verify authenticity exclusively via verify_webhook_signature(raw_body, x_webhook_signature) and resolve user via item/account ID.",
+      "regression_tests": [
+        "Test webhook invocation with valid HMAC header and no Authorization header succeeding with 200 OK."
+      ],
+      "verification_criteria": [
+        "Webhook requests with valid HMAC signatures authenticate and process without requiring Bearer tokens."
+      ]
+    },
+    {
+      "id": "BUG-006",
+      "title": "Inconsistent Transaction Deduplication Hashes between Client (Polynomial) and Backend (SHA-256)",
+      "severity": "HIGH",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "database",
+      "affected_files": [
+        "src/services/smsParserService.ts",
+        "backend/app/utils/ingestion_utils.py"
+      ],
+      "affected_components": [
+        "generateDeterministicHash (smsParserService.ts)",
+        "compute_deterministic_transaction_hash (ingestion_utils.py)",
+        "Financial deduplication pipeline"
+      ],
+      "root_cause": "Frontend smsParserService generates hashes using a custom 32-bit polynomial Math.imul hash with date sliced to 'YYYY-MM-DD'. Backend uses Python hashlib.sha256 with full ISO datetime strings. The two algorithms never match for the same physical transaction.",
+      "expected_behavior": "Frontend and backend must use the exact same canonical normalization format and standard SHA-256 hashing algorithm.",
+      "actual_behavior": "Transactions parsed on-device via SMS produce different hashes from backend CSV statement and webhook imports, leading to duplicate records.",
+      "trigger_conditions": [
+        "A user logs a transaction via SMS and subsequently uploads a bank statement or receives a bank webhook for the same transaction."
+      ],
+      "reproduction_steps": [
+        "1. Parse SMS 'Spent Rs 450 at Swiggy on 07-Nov-2026' -> produces custom polynomial hash '2e...'.",
+        "2. Ingest statement CSV with the same Swiggy transaction -> produces SHA-256 hash 'a7...'.",
+        "3. Observe both transactions inserted into database without deduplication."
+      ],
+      "evidence": [
+        "src/services/smsParserService.ts lines 245-272 vs backend/app/utils/ingestion_utils.py lines 60-68.",
+        "Reproduced in scratch test: algorithms produce completely distinct hash values."
+      ],
+      "impact": "Financial double-counting: discretionary spending ratios and monthly budget overruns are falsely inflated.",
+      "recommended_fix": "Standardize on SHA-256 (using Web Crypto API or crypto-js on frontend) and canonicalize the input string format identically across platforms.",
+      "regression_tests": [
+        "Cross-platform test asserting that frontend and backend hash functions generate the identical 32-character string for identical transaction parameters."
+      ],
+      "verification_criteria": [
+        "Given identical amount, merchant, date, and reference number, frontend and backend yield identical hashes."
+      ]
+    },
+    {
+      "id": "BUG-007",
+      "title": "Date Parsing Month/Day Inversion in Indian Bank Statement CSV Parser",
+      "severity": "HIGH",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "functional",
+      "affected_files": [
+        "src/services/statementParserService.ts"
+      ],
+      "affected_components": [
+        "parseCsvStatementText",
+        "parseDateString",
+        "Bank statement CSV ingestion"
+      ],
+      "root_cause": "parseDateString executes new Date(trimmed) as the primary parser. In JavaScript, date strings like '05/11/2026' are parsed as MM/DD/YYYY (May 11th). Indian bank statements format dates as DD/MM/YYYY (Nov 5th). Because new Date returns a valid date for days 1-12, the DD/MM fallback never executes.",
+      "expected_behavior": "DD/MM/YYYY date formats from Indian banks must be parsed with day first (day = 5, month = 11).",
+      "actual_behavior": "Days 1 through 12 of every month have their month and day swapped, writing historical transactions to incorrect months.",
+      "trigger_conditions": [
+        "Importing statement CSV from HDFC, SBI, ICICI, or Axis with dates between the 1st and 12th of any month."
+      ],
+      "reproduction_steps": [
+        "1. Pass '05/11/2026' to parseCsvStatementText.",
+        "2. Inspect the resulting transaction timestamp: month is 05 (May) instead of 11 (November)."
+      ],
+      "evidence": [
+        "src/services/statementParserService.ts lines 128-140.",
+        "Scratch runner output: '05/11/2026' -> parsed as May 11th, month=5."
+      ],
+      "impact": "Severe historical data corruption: spending metrics and monthly analytics are shifted by months.",
+      "recommended_fix": "Explicitly parse DD/MM/YYYY patterns with regex prior to calling generic new Date(), prioritizing DD/MM for Indian statements.",
+      "regression_tests": [
+        "Unit test verifying '05/11/2026' parses as November 5, 2026, and '01/02/2026' parses as February 1, 2026."
+      ],
+      "verification_criteria": [
+        "DD/MM/YYYY strings correctly extract day as first token and month as second token."
+      ]
+    },
+    {
+      "id": "BUG-008",
+      "title": "Unhandled JSON Parse Exception in SQLite Native Entity Cache",
+      "severity": "MEDIUM",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "backend",
+      "affected_files": [
+        "src/services/offlineSyncService.ts"
+      ],
+      "affected_components": [
+        "OfflineSyncEngine.getCachedEntity"
+      ],
+      "root_cause": "In the native expo-sqlite branch of getCachedEntity, JSON.parse(String(rows[0].data_json)) is called without a try/catch block. In contrast, the AsyncStorage fallback branch wraps JSON.parse in try/catch.",
+      "expected_behavior": "Corrupted or partial JSON in the database cache should be caught gracefully and return null.",
+      "actual_behavior": "Throws an unhandled SyntaxError and crashes calling components on native devices.",
+      "trigger_conditions": [
+        "Corrupted data_json column in offline_cache SQLite table."
+      ],
+      "reproduction_steps": [
+        "1. Insert invalid JSON string into offline_cache table.",
+        "2. Call getCachedEntity('test', 'key').",
+        "3. Observe uncaught SyntaxError in SQLite execution branch."
+      ],
+      "evidence": [
+        "src/services/offlineSyncService.ts lines 356-358: return JSON.parse(String(rows[0].data_json)) without try/catch."
+      ],
+      "impact": "Native mobile crash when loading corrupted offline cache data on app launch.",
+      "recommended_fix": "Wrap JSON.parse in a try/catch block in the SQLite branch, returning null on parse failure.",
+      "regression_tests": [
+        "Unit test verifying getCachedEntity returns null when database contains corrupted JSON."
+      ],
+      "verification_criteria": [
+        "Malformed cached entity JSON safely returns null without throwing."
+      ]
+    },
+    {
+      "id": "BUG-009",
+      "title": "Financial Safety Boundary Bypassed for Tool Execution and Card Rendering",
+      "severity": "MEDIUM",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "security",
+      "affected_files": [
+        "backend/app/ai/agent.py"
+      ],
+      "affected_components": [
+        "run_conversational_agent",
+        "check_financial_boundary"
+      ],
+      "root_cause": "check_crisis_boundary and check_medical_boundary are intercepted before tool execution in run_conversational_agent. check_financial_boundary was omitted from early interception. It runs tools (such as get_spending_breakdown), and although the content text is replaced by the guardrail filter, the executed tools and UI cards are returned and rendered.",
+      "expected_behavior": "Financial speculation queries must intercept early, executing zero tools and returning zero cards, identical to crisis and medical queries.",
+      "actual_behavior": "Tool execution occurs and private spending cards are returned alongside the deflection message.",
+      "trigger_conditions": [
+        "User asks a speculative financial query that contains keywords matching tool intents (e.g. 'Which stock should I buy for my spending?')."
+      ],
+      "reproduction_steps": [
+        "1. Send user message 'Where should I invest my money from my spend?'.",
+        "2. Observe get_spending_breakdown tool executes and cards are returned in response payload."
+      ],
+      "evidence": [
+        "backend/app/ai/agent.py lines 25, 260-279 vs 302.",
+        "Scratch script confirmed tool execution count = 1 on speculative financial prompt."
+      ],
+      "impact": "Violation of AI guardrail contract; private financial data cards leaked on restricted queries.",
+      "recommended_fix": "Add financial_resp = check_financial_boundary(user_message) to early boundary interception in agent.py.",
+      "regression_tests": [
+        "Adversarial test asserting speculative financial queries return tools_to_run === [] and cards === []."
+      ],
+      "verification_criteria": [
+        "Speculative investment inquiries return zero tool calls and zero cards."
+      ]
+    },
+    {
+      "id": "BUG-010",
+      "title": "MediaRecorder Audio Blob Truncation on Web Platform",
+      "severity": "MEDIUM",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "frontend",
+      "affected_files": [
+        "src/services/voiceService.ts"
+      ],
+      "affected_components": [
+        "VoiceService.stopWebRecording"
+      ],
+      "root_cause": "stopWebRecording invokes this.webMediaRecorder.stop() and immediately reads this.webAudioChunks on the subsequent synchronous line without awaiting the asynchronous dataavailable and stop events.",
+      "expected_behavior": "stopWebRecording must await a Promise resolving on the MediaRecorder 'stop' event to ensure all audio buffers have flushed.",
+      "actual_behavior": "Final audio buffers are not included in webAudioChunks, creating truncated or empty 0-byte audio blobs.",
+      "trigger_conditions": [
+        "Voice recording on web browsers."
+      ],
+      "reproduction_steps": [
+        "1. Start web recording in browser.",
+        "2. Speak for 2 seconds and tap stop.",
+        "3. Inspect returned blob: webAudioChunks is empty and falls back to dummy 1024-byte sine wave."
+      ],
+      "evidence": [
+        "src/services/voiceService.ts lines 272-289: synchronous read of webAudioChunks after recorder.stop()."
+      ],
+      "impact": "Speech recognition failures on Web platform; voice assistant transcribes noise or empty inputs.",
+      "recommended_fix": "Wrap recorder.stop() in an await new Promise(resolve => recorder.addEventListener('stop', resolve, { once: true })).",
+      "regression_tests": [
+        "Web test asserting stopWebRecording waits for recorder stop event before creating Blob."
+      ],
+      "verification_criteria": [
+        "Recorded audio blob on web retains full duration and all data chunks."
+      ]
+    },
+    {
+      "id": "BUG-011",
+      "title": "Circadian Streak Persistence and Lag-1 Correlation Across Missing Data Gaps",
+      "severity": "MEDIUM",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "functional",
+      "affected_files": [
+        "backend/app/ml/risk_forecaster.py",
+        "backend/app/ml/dynamic_correlation.py"
+      ],
+      "affected_components": [
+        "detect_circadian_drift",
+        "find_dynamic_correlations"
+      ],
+      "root_cause": "In detect_circadian_drift, consecutive_delay_count is only reset in the else branch of 'diff >= 60'. If days are non-contiguous, the loop skips without resetting the counter. In dynamic_correlation, lag-1 loop pairs entries[i-1] and entries[i] by array index without verifying date difference equals 1 day.",
+      "expected_behavior": "Missing days between entries must break consecutive streaks, and lag-1 correlations must only pair records that are exactly 1 calendar day apart.",
+      "actual_behavior": "Phase delay streaks carry over multi-day tracking gaps, and lag-1 correlations falsely associate events separated by weeks.",
+      "trigger_conditions": [
+        "User skips tracking for several days after an initial late night, then logs another late night."
+      ],
+      "reproduction_steps": [
+        "1. Provide bedtimes on Day 0 and Day 1 (+75m shift).",
+        "2. Leave Days 2-5 unlogged.",
+        "3. Provide bedtime on Day 6 (+75m shift from Day 5).",
+        "4. Observe consecutive_drift_days evaluates to 2 instead of 1."
+      ],
+      "evidence": [
+        "backend/app/ml/risk_forecaster.py lines 453-460.",
+        "Reproduced in Python scratch script: consecutive_drift_days = 2 despite multi-day gap."
+      ],
+      "impact": "False-positive circadian phase delay alerts and flawed behavioral correlation insights.",
+      "recommended_fix": "Reset consecutive_delay_count = 0 when curr_idx != prev_idx + 1; verify date(curr) - date(prev) == timedelta(days=1) in lag-1 correlation.",
+      "regression_tests": [
+        "Unit test verifying non-contiguous entries reset the consecutive delay streak to 0."
+      ],
+      "verification_criteria": [
+        "Streaks and lag-1 correlations strictly enforce calendar day adjacency."
+      ]
+    },
+    {
+      "id": "BUG-012",
+      "title": "Hardcoded User Spending/Name and Month-To-Date Date Window Truncation",
+      "severity": "MEDIUM",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "backend",
+      "affected_files": [
+        "backend/app/services/briefing_service.py"
+      ],
+      "affected_components": [
+        "BriefingService.get_or_create_morning_briefing",
+        "BriefingService.get_composite_risk_forecasts",
+        "BriefingService.get_or_create_weekly_review"
+      ],
+      "root_cause": "get_or_create_morning_briefing hardcodes current_spend=12400.0, monthly_budget=35000.0, and user_name='Priya'. get_composite_risk_forecasts queries entries with date >= ref_date - 14 days, truncating MTD spending for days 1 to 17 on the second half of every month.",
+      "expected_behavior": "Briefings should query the user's actual name and financial transactions/entries from the first day of the current month.",
+      "actual_behavior": "All users receive hardcoded financial values and 'Priya' in generated briefings; MTD spending is truncated after mid-month.",
+      "trigger_conditions": [
+        "Generating morning briefing or weekly review on any date past the 14th of the month."
+      ],
+      "reproduction_steps": [
+        "1. Create user with name 'Alex' and transactions totaling ₹25,000 across November 1–25.",
+        "2. Call get_morning_briefing on Nov 25.",
+        "3. Observe greeting uses 'Priya' and spend uses hardcoded ₹12,400."
+      ],
+      "evidence": [
+        "backend/app/services/briefing_service.py lines 179-181, 197, 340, 408, 433."
+      ],
+      "impact": "Users see fabricated spend and incorrect names in AI briefings, destroying user trust in analytics.",
+      "recommended_fix": "Query User table for full_name; query FinancialTransaction / DailyEntry starting from date(ref_date.year, ref_date.month, 1).",
+      "regression_tests": [
+        "Test verifying user with custom name and transactions on Day 1 of month correctly reflects in briefing generated on Day 28."
+      ],
+      "verification_criteria": [
+        "User full_name is rendered in briefings and MTD calculation spans from day 1 to target date."
+      ]
+    },
+    {
+      "id": "BUG-013",
+      "title": "N+1 Database Query Overhead in Chat Session Listing",
+      "severity": "MEDIUM",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "performance",
+      "affected_files": [
+        "backend/app/services/assistant_service.py"
+      ],
+      "affected_components": [
+        "get_user_sessions (/api/assistant/sessions)"
+      ],
+      "root_cause": "In get_user_sessions, for each session returned, two separate queries (COUNT messages and SELECT last message) are executed in a loop.",
+      "expected_behavior": "Session message counts and last message content should be fetched in a single grouped SQL query or window function.",
+      "actual_behavior": "Generates 1 + 2N database roundtrips per page load (41 queries for 20 sessions).",
+      "trigger_conditions": [
+        "User opening conversation drawer with 10+ chat sessions."
+      ],
+      "reproduction_steps": [
+        "1. Create 20 chat sessions with messages.",
+        "2. Call GET /api/assistant/sessions?page_size=20.",
+        "3. Observe 41 distinct database queries in SQL query logs."
+      ],
+      "evidence": [
+        "backend/app/services/assistant_service.py lines 164-184: queries executed inside for s in sessions loop."
+      ],
+      "impact": "Database latency spikes and connection pool exhaustion as user conversation history grows.",
+      "recommended_fix": "Use a correlated subquery, LEFT JOIN with GROUP BY, or SQLAlchemy selectinload to aggregate message counts and latest messages in a single query.",
+      "regression_tests": [
+        "Performance test asserting get_user_sessions executes <= 2 queries regardless of page_size."
+      ],
+      "verification_criteria": [
+        "Chat session drawer loads in a single aggregated database query."
+      ]
+    },
+    {
+      "id": "BUG-014",
+      "title": "Circadian Late-Night Hour Definition Mismatch between Backend and Specs",
+      "severity": "LOW",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "functional",
+      "affected_files": [
+        "backend/app/services/ingestion_service.py",
+        "test/phase1_telemetry.test.mjs"
+      ],
+      "affected_components": [
+        "ingest_device_usage_data",
+        "is_late_night screen time tagging"
+      ],
+      "root_cause": "Backend ingestion_service line 265 evaluates is_late as 'hr >= 22 or hr < 5', which excludes hour 5 (05:00 to 05:59). Frontend tests and specs define late-night as 22:00 to 05:59 (hr < 6).",
+      "expected_behavior": "Consistent classification of 05:00-05:59 across frontend and backend.",
+      "actual_behavior": "Screen time sessions at 05:30 AM are marked as daytime by backend ingestion, but marked as late-night by frontend validators.",
+      "trigger_conditions": [
+        "Device usage logged between 05:00 AM and 05:59 AM."
+      ],
+      "reproduction_steps": [
+        "1. Ingest session with start_time '2026-11-04T05:30:00'.",
+        "2. Observe is_late_night stored as False in backend database, while frontend test asserts True."
+      ],
+      "evidence": [
+        "backend/app/services/ingestion_service.py line 265 vs test/phase1_telemetry.test.mjs line 184."
+      ],
+      "impact": "Minor inconsistency in late-night screen time aggregation across client and server.",
+      "recommended_fix": "Change 'hr < 5' to 'hr < 6' in ingestion_service.py line 265.",
+      "regression_tests": [
+        "Test verifying 05:30 AM session is classified as late night across all services."
+      ],
+      "verification_criteria": [
+        "Both client and server classify 22:00 to 05:59 as circadian late-night."
+      ]
+    },
+    {
+      "id": "BUG-015",
+      "title": "Server-Sent Events (SSE) Leading Whitespace and Stream Token Splitting Flaw",
+      "severity": "LOW",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "frontend",
+      "affected_files": [
+        "backend/app/routers/assistant.py"
+      ],
+      "affected_components": [
+        "chat_stream_endpoint (/api/assistant/chat/stream)"
+      ],
+      "root_cause": "In chat_stream_endpoint, chunks yield json.dumps({'token': ' ' + ' '.join(chunk)}). For the very first chunk emitted, an unwanted leading space is prepended. Furthermore, splitting solely on space (' ') strips indentation.",
+      "expected_behavior": "The first streamed token must not have a prepended space, and whitespace formatting should be preserved.",
+      "actual_behavior": "Streamed text begins with an unnatural leading space and loses block indentation.",
+      "trigger_conditions": [
+        "Consuming the SSE chat stream endpoint."
+      ],
+      "reproduction_steps": [
+        "1. Connect to /api/assistant/chat/stream?message=hello.",
+        "2. Inspect first 'event: token' event: data starts with a leading space."
+      ],
+      "evidence": [
+        "backend/app/routers/assistant.py line 119: {'token': ' ' + ' '.join(chunk)}."
+      ],
+      "impact": "Cosmetic text rendering defect in streaming chat view.",
+      "recommended_fix": "Only prepend a space for chunks after the first, or split using regex matching word boundaries while retaining leading whitespace.",
+      "regression_tests": [
+        "Test asserting concatenated SSE stream tokens exactly equal the original response string."
+      ],
+      "verification_criteria": [
+        "Concatenated tokens perfectly match original markdown without leading space."
+      ]
+    },
+    {
+      "id": "BUG-016",
+      "title": "Offline Outbox Engine Disconnected from Application Network Layer",
+      "severity": "HIGH",
+      "confidence": "CONFIRMED",
+      "status": "confirmed",
+      "category": "architecture",
+      "affected_files": [
+        "src/services/api.ts",
+        "src/services/offlineSyncService.ts"
+      ],
+      "affected_components": [
+        "apiPost, apiPut, apiDelete (api.ts)",
+        "offlineSyncService"
+      ],
+      "root_cause": "offlineSyncService was implemented as a standalone engine with tests in test/phase7_verification.test.mjs, but was never integrated into api.ts. When network requests fail in apiPost or apiPut, errors are thrown directly to the UI rather than queueing into the outbox.",
+      "expected_behavior": "When isOnline is false or fetch throws network error (TypeError / ECONNREFUSED), mutations (transactions, habit logs, check-ins) should automatically enqueue into offlineSyncService outbox.",
+      "actual_behavior": "Mutations fail immediately with an unhandled network error, leaving user data unsaved.",
+      "trigger_conditions": [
+        "User creates a habit log, financial transaction, or experiment check-in while offline."
+      ],
+      "reproduction_steps": [
+        "1. Put client in offline mode.",
+        "2. Submit new transaction via + Spend.",
+        "3. Observe request throws TypeError: fetch failed and no record is added to offlineSyncService."
+      ],
+      "evidence": [
+        "src/services/api.ts: zero imports of offlineSyncService.",
+        "Grep across src/ confirms offlineSyncService is only exported, never consumed."
+      ],
+      "impact": "Offline-first capability is completely non-functional for user data entry in real app usage.",
+      "recommended_fix": "In api.ts, intercept network failures in mutation helpers and automatically enqueue them into offlineSyncService, returning an optimistic success payload.",
+      "regression_tests": [
+        "Integration test asserting apiPost enqueues mutation into offlineSyncService when network fails."
+      ],
+      "verification_criteria": [
+        "Failed network mutations successfully persist into outbox and reconcile when online."
+      ]
+    }
+  ],
+  "coverage": {
+    "files_discovered": 164,
+    "files_inspected": 86,
+    "files_traced": 42,
+    "files_tested": 28,
+    "modules": [
+      "services/offlineSyncService",
+      "services/api",
+      "services/connectorManager",
+      "services/smsParserService",
+      "services/statementParserService",
+      "services/voiceService",
+      "components/assistant",
+      "components/predictions",
+      "components/connectors",
+      "components/briefings",
+      "ml/risk_forecaster",
+      "ml/dynamic_correlation",
+      "ml/insight_synthesizer",
+      "ai/agent",
+      "ai/guardrails",
+      "ai/voice_utils",
+      "routers/assistant",
+      "routers/ingestion",
+      "routers/analytics",
+      "services/assistant_service",
+      "services/briefing_service",
+      "services/ingestion_service",
+      "services/voice_service"
+    ],
+    "excluded": [
+      "dist/",
+      "node_modules/",
+      "backend/notebooks/"
+    ],
+    "blocked": [
+      "Legacy pandas/scipy pipeline execution in test_ml_pipeline.py due to missing Python 3.14 system wheels."
+    ]
+  }
+}
+

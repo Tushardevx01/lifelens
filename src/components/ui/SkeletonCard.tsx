@@ -6,14 +6,14 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { Animated, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Animated, DimensionValue, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 import { colors }  from '@/src/theme/colors';
 import { radius }  from '@/src/theme/radius';
 import { spacing } from '@/src/theme/spacing';
 
 type SkeletonLineProps = {
-  width?: string | number;
+  width?: DimensionValue;
   height?: number;
   style?: StyleProp<ViewStyle>;
 };
@@ -35,7 +35,7 @@ export function SkeletonLine({ width = '100%', height = 14, style }: SkeletonLin
     <Animated.View
       style={[
         {
-          width: width as any,
+          width,
           height,
           backgroundColor: colors.surfaceHigh,
           borderRadius: radius.sm,

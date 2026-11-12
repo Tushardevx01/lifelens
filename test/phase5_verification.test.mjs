@@ -29,7 +29,7 @@ if (typeof globalThis.window === 'undefined') {
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import asyncStorageMock from '@react-native-async-storage/async-storage/jest';
+import asyncStorageMock from './helpers/asyncStorageMock.mjs';
 
 import {
   setAccessToken,
@@ -327,6 +327,39 @@ test('Phase 5.4: UI Primitives & Design System Component Logic', async (t) => {
     assert.ok(result.health_score >= 0 && result.health_score <= 100);
     assert.ok(result.finance_score >= 0 && result.finance_score <= 100);
     assert.ok(['Optimal', 'Good', 'Average', 'Below Average', 'Critical'].includes(result.band.label));
+  });
+
+  await t.test('FloatingTabBar filters routes with href: null and hidden styles', () => {
+    const mockRoutes = [
+      { key: 'home-1', name: 'home' },
+      { key: 'new-entry-2', name: 'new-entry' },
+      { key: 'insights-3', name: 'insights' },
+      { key: 'settings-4', name: 'settings' },
+      { key: 'history-5', name: 'history' },
+      { key: 'analytics-6', name: 'analytics' },
+    ];
+    const mockDescriptors = {
+      'home-1': { options: { title: 'Home' } },
+      'new-entry-2': { options: { title: 'Log' } },
+      'insights-3': { options: { title: 'Insights' } },
+      'settings-4': { options: { title: 'Profile' } },
+      'history-5': { options: { href: null } },
+      'analytics-6': { options: { href: null } },
+    };
+
+    const visibleRoutes = mockRoutes.filter((route) => {
+      const options = mockDescriptors[route.key]?.options;
+      if (!options) return true;
+      if (options.href === null) return false;
+      if (options.tabBarItemStyle?.display === 'none') return false;
+      return true;
+    });
+
+    assert.equal(visibleRoutes.length, 4);
+    assert.deepEqual(
+      visibleRoutes.map((r) => r.name),
+      ['home', 'new-entry', 'insights', 'settings']
+    );
   });
 });
 

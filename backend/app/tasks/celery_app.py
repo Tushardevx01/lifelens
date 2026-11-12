@@ -42,4 +42,12 @@ celery_app.conf.beat_schedule = {
         "task":     "app.tasks.ml_tasks.full_pipeline_for_all_users",
         "schedule": 86400,   # 24 hours
     },
+    "morning-briefing-pregen": {
+        "task":     "app.tasks.ml_tasks.pregenerate_morning_briefings_all_users",
+        "schedule": 86400,   # Daily morning pre-generation
+    },
+    "weekly-review-pregen": {
+        "task":     "app.tasks.ml_tasks.pregenerate_weekly_reviews_all_users",
+        "schedule": 604800,  # 7 days (Sunday evening review)
+    },
 }

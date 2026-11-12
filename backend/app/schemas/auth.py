@@ -32,3 +32,4 @@ class TokenResponse(BaseModel):
     """Response body for JWT token."""
     access_token: str
     token_type: str = "bearer"
+    user_id: UUID
