@@ -103,4 +103,85 @@ export const mockDashboardData: DashboardData = {
       severity: 'medium',
     },
   ],
+  morningBriefing: {
+    id: 'mock-morning-1',
+    date: '2026-11-07',
+    title: 'Morning Briefing — Saturday, Nov 07',
+    greeting: 'Good morning, Priya!',
+    recovery_score: 84.0,
+    recovery_tier: 'OPTIMAL',
+    optimal_focus_window: '09:30 AM – 12:00 PM',
+    secondary_focus_window: '03:30 PM – 05:00 PM',
+    executive_summary:
+      'Recovery score is 84/100 (Optimal). Your peak cognitive window is 09:30 AM – 12:00 PM. Tackle your primary deep work task before lunch.',
+    sleep_summary:
+      'You logged 8.1 hours of restorative sleep at 23:15 with 5/5 quality rating. Heart rate variability is balanced.',
+    risk_alerts: [
+      {
+        type: 'BUDGET',
+        severity: 'LOW',
+        title: 'Budget Safe',
+        message: 'Spending velocity is ₹840/day against a ₹1,166/day cap. Healthy buffer remaining.',
+      },
+    ],
+    experiment_callout: {
+      title: 'Digital Sunset Challenge',
+      progress: 'Day 5 of 7',
+      rule: 'Screen cutoff by 10:30 PM',
+      yesterday_adherence: '✓ Followed',
+      message: 'Day 5 of 7. Target rule: Keep phone outside bedroom by 10:30 PM.',
+    },
+    micro_action: 'Block out 09:30 AM – 12:00 PM for single-task focus. Take a 15-min walk after lunch.',
+    full_markdown:
+      '# 🌅 Morning Briefing\n\n> **Good morning, Priya!** Recovery score is 84/100.\n\n## 1. Physical Recovery\n- **Score:** 84/100 (Optimal)\n- **Sleep:** 8.1h\n\n## 2. Focus Window\n- **Peak:** 09:30 AM – 12:00 PM',
+    is_read: false,
+    created_at: '2026-11-07T06:30:00Z',
+  },
+  riskForecast: {
+    date: '2026-11-07',
+    workout_skip: {
+      probability: 0.18,
+      risk_level: 'LOW',
+      confidence: 0.85,
+      primary_driver: 'Optimal rest and consistent momentum',
+      contributing_factors: ['Steady 8.1h sleep duration', 'Consecutive active streak'],
+      mitigation_strategy: 'Pre-commit to a specific workout time window before lunch.',
+      target_recommendation: 'Full planned training session (45-60 min).',
+    },
+    budget_overrun: {
+      monthly_budget: 35000,
+      current_spend: 11400,
+      current_discretionary_spend: 3800,
+      discretionary_ratio_pct: 33.3,
+      days_elapsed: 7,
+      days_remaining: 23,
+      current_daily_velocity: 1628.5,
+      projected_eom_spend: 48855.5,
+      projected_overrun: 13855.5,
+      overrun_probability: 0.88,
+      risk_status: 'OVERRUN_IMMINENT',
+      recommended_daily_cap: 1026.0,
+      top_discretionary_categories: [
+        { category: 'Food Delivery', amount: 2400, percentage_of_spend: 21.1 },
+        { category: 'Online Shopping', amount: 1400, percentage_of_spend: 12.3 },
+      ],
+      actionable_advice:
+        'At current daily burn of ₹1,628/day, you are on track to exceed budget by ₹13,855. Keep daily spending under ₹1,026/day to balance your ledger.',
+    },
+    circadian_drift: {
+      status: 'STABLE',
+      alert_level: 'LOW',
+      bedtime_variance_minutes: 22.4,
+      max_shift_minutes: 35.0,
+      consecutive_drift_days: 0,
+      average_bedtime: '23:15',
+      average_wake_time: '07:15',
+      social_jetlag_minutes: 35.0,
+      resynchronization_protocol:
+        'Circadian rhythm is stable. Your sleep-wake schedule demonstrates high consistency, providing optimal hormonal and cognitive restoration.',
+    },
+    overall_risk_score: 42.5,
+    key_vulnerability_summary:
+      'Spending run-rate exceeding monthly budget by ₹13,856 • Physical readiness and circadian rhythm are optimal.',
+  },
 };

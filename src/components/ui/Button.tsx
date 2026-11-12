@@ -21,7 +21,7 @@ import { radius }     from '@/src/theme/radius';
 import { spacing }    from '@/src/theme/spacing';
 import { typography } from '@/src/theme/typography';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'outline';
 type ButtonSize    = 'sm' | 'md' | 'lg';
 
 type ButtonProps = {
@@ -31,6 +31,7 @@ type ButtonProps = {
   size?:             ButtonSize;
   loading?:          boolean;
   disabled?:         boolean;
+  fullWidth?:        boolean;
   icon?:             ReactNode;
   style?:            StyleProp<ViewStyle>;
   textStyle?:        StyleProp<TextStyle>;
@@ -44,6 +45,7 @@ export function Button({
   size      = 'md',
   loading   = false,
   disabled  = false,
+  fullWidth = false,
   icon,
   style,
   textStyle,
@@ -57,10 +59,12 @@ export function Button({
       disabled={isDisabled}
       accessibilityLabel={accessibilityLabel ?? title}
       accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
       style={({ pressed }) => [
         styles.base,
         styles[variant],
         styles[`size_${size}`],
+        fullWidth   && styles.fullWidth,
         pressed     && styles.pressed,
         isDisabled  && styles.disabled,
         style,
@@ -100,15 +104,28 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     gap: spacing.sm,
   },
+  fullWidth: {
+    width: '100%',
+  },
 
   // ─── Variants ─────────────────────────────────────────────────
   primary: {
     backgroundColor: colors.primary,
   },
   secondary: {
-    backgroundColor: 'transparent',
+    backgroundColor: colors.surfaceElevated,
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: colors.borderLight,
+  },
+  outline: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: 'rgba(184, 255, 61, 0.4)',
+  },
+  destructive: {
+    backgroundColor: 'rgba(255, 99, 109, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 99, 109, 0.35)',
   },
   ghost: {
     backgroundColor: colors.primaryMuted,
@@ -151,7 +168,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   secondaryText: {
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  outlineText: {
     color: colors.primary,
+    fontWeight: '700',
+  },
+  destructiveText: {
+    color: colors.error,
+    fontWeight: '700',
   },
   ghostText: {
     color: colors.textPrimary,

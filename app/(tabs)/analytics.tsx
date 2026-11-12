@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
@@ -127,6 +126,9 @@ export default function AnalyticsScreen() {
                     timeframe === tf && styles.timeframeBtnActive,
                   ]}
                   onPress={() => setTimeframe(tf)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Timeframe ${tf}`}
+                  accessibilityState={{ selected: timeframe === tf }}
                 >
                   <Text
                     style={[

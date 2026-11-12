@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
   StatusBar,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -61,10 +62,12 @@ export default function NewEntryScreen() {
   const [sleepHours, setSleepHours] = useState(7.5);
   const [sleepQuality, setSleepQuality] = useState(4);
   const [sleepBedtime, setSleepBedtime] = useState('23:00');
+  const [restingHeartRate, setRestingHeartRate] = useState(65);
 
   // Digital
   const [screenTimeHours, setScreenTimeHours] = useState(5.0);
   const [socialMediaHours, setSocialMediaHours] = useState(1.5);
+  const [unlockCount, setUnlockCount] = useState(45);
 
   // Health
   const [steps, setSteps] = useState(8500);
@@ -132,8 +135,10 @@ export default function NewEntryScreen() {
       sleep_hours: sleepHours,
       sleep_quality: sleepQuality,
       sleep_bedtime: sleepBedtime.trim() || null,
+      resting_heart_rate: restingHeartRate > 0 ? restingHeartRate : null,
       screen_time_hours: screenTimeHours,
       social_media_hours: socialMediaHours,
+      unlock_count: unlockCount >= 0 ? unlockCount : null,
       steps,
       active_minutes: activeMinutes,
       calories_burned: caloriesBurned,
@@ -214,6 +219,9 @@ export default function NewEntryScreen() {
             <Pressable
               onPress={() => setDate(todayStr)}
               style={[styles.datePill, date === todayStr && styles.datePillActive]}
+              accessibilityRole="button"
+              accessibilityLabel={`Select today's date ${todayStr}`}
+              accessibilityState={{ selected: date === todayStr }}
             >
               <Ionicons
                 name="today"
@@ -233,6 +241,9 @@ export default function NewEntryScreen() {
             <Pressable
               onPress={() => setDate(yesterdayStr)}
               style={[styles.datePill, date === yesterdayStr && styles.datePillActive]}
+              accessibilityRole="button"
+              accessibilityLabel={`Select yesterday's date ${yesterdayStr}`}
+              accessibilityState={{ selected: date === yesterdayStr }}
             >
               <Ionicons
                 name="time"
@@ -304,6 +315,17 @@ export default function NewEntryScreen() {
                 maxLength={5}
               />
             </View>
+
+            <NumberStepper
+              label="Resting Heart Rate"
+              value={restingHeartRate}
+              min={35}
+              max={150}
+              step={1}
+              unit="bpm"
+              onChange={setRestingHeartRate}
+              helperText="Resting pulse on waking (normal: 50–80 bpm)"
+            />
           </View>
         </View>
 
@@ -342,6 +364,17 @@ export default function NewEntryScreen() {
               unit="hrs"
               onChange={setSocialMediaHours}
               helperText={`Cannot exceed ${screenTimeHours} hrs`}
+            />
+
+            <NumberStepper
+              label="Device Unlocks"
+              value={unlockCount}
+              min={0}
+              max={300}
+              step={5}
+              unit="times"
+              onChange={setUnlockCount}
+              helperText="Phone pickups / unlocks today"
             />
           </View>
         </View>
@@ -463,6 +496,9 @@ export default function NewEntryScreen() {
                       styles.categoryPill,
                       isSelected && styles.categoryPillSelected,
                     ]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Spend category ${cat}`}
+                    accessibilityState={{ selected: isSelected }}
                   >
                     <Text
                       style={[
@@ -669,6 +705,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     width: 90,
     textAlign: 'center',
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
   },
   categoryWrap: {
     flexDirection: 'row',
@@ -719,6 +756,7 @@ const styles = StyleSheet.create({
     minHeight: 70,
     textAlignVertical: 'top',
     marginTop: spacing.xs,
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
   },
   submitContainer: {
     paddingHorizontal: spacing.lg,

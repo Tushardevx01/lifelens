@@ -1,12 +1,14 @@
+import html
 import uuid
 from datetime import date, timedelta
-from typing import Optional
+from typing import Optional, Literal
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, case, cast, String
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.utils.db_route import CommitRoute
 from app.models.engineered_features import EngineeredFeatures
 from app.models.daily_entry import DailyEntry
 from app.models.insight import Insight
@@ -14,15 +16,18 @@ from app.models.ml_model_metadata import MLModelMetadata
 from app.schemas.analytics import (
     DashboardResponse, DailySummarySchema, LifeScoreComponents, InsightResponse,
     LifeScoreHistoryPoint, PredictionResponse, ClusterBreakdownResponse,
-    AnomalyResponse, CorrelationResponse
+    AnomalyResponse, CorrelationResponse,
+    CompositeRiskForecastResponse, DailyMorningBriefingResponse,
+    WeeklyReviewStoryResponse, DynamicCorrelationResponse
 )
-from app.ml.insight_engine import generate_daily_summary, run_insight_engine
-from app.ml.feature_engineering import get_data_maturity, DataMaturity
+from app.services.briefing_service import BriefingService
+from app.ml.insight_engine import generate_daily_summary
+from app.ml.feature_engineering import get_data_maturity
 import pandas as pd
-from app.cache.redis_client import get_cached, set_cached, invalidate_user_cache
+from app.cache.redis_client import get_cached, set_cached
 from app.utils.security import get_current_user
 
-router = APIRouter()
+router = APIRouter(route_class=CommitRoute)
 
 
 @router.get("/dashboard", response_model=DashboardResponse)
@@ -68,10 +73,9 @@ async def get_dashboard(
     score_change = round(life_score - yest_score, 1)
 
     # Get top insights for most recent available date — CRITICAL first
-    from sqlalchemy import case
     severity_order = case(
         {"CRITICAL": 0, "WARNING": 1, "INFO": 2},
-        value=Insight.severity,
+        value=cast(Insight.severity, String),
     )
     insight_stmt = (
         select(Insight)
@@ -160,12 +164,33 @@ async def get_dashboard(
         data_maturity_val = data_maturity_label = None
         days_until_next_tier = None
 
+    # Domain scores are 0–100. The stored life_score_* fields are weighted point
+    # contributions, so return the underlying normalized domain scores instead.
+    if today_features:
+        sleep_domain = float(today_features.sleep_score or 0)
+        productivity_domain = float(today_features.productivity_score or 0)
+        health_domain = float(today_features.activity_index or 0) * 100
+        finance_domain = float(today_features.finance_score or 0)
+        weighted_sum = sum(
+            float(v or 0)
+            for v in (
+                today_features.life_score_sleep,
+                today_features.life_score_productivity,
+                today_features.life_score_health,
+                today_features.life_score_finance,
+            )
+        )
+        mood_adjustment = round(float(today_features.life_score or 0) - weighted_sum, 1)
+    else:
+        sleep_domain = productivity_domain = health_domain = finance_domain = 0.0
+        mood_adjustment = 0.0
+
     components = LifeScoreComponents(
-        sleep=today_features.life_score_sleep if today_features and today_features.life_score_sleep else 0,
-        productivity=today_features.life_score_productivity if today_features and today_features.life_score_productivity else 0,
-        health=today_features.life_score_health if today_features and today_features.life_score_health else 0,
-        finance=today_features.life_score_finance if today_features and today_features.life_score_finance else 0,
-        mood_adjustment=0,
+        sleep=round(sleep_domain, 1),
+        productivity=round(productivity_domain, 1),
+        health=round(health_domain, 1),
+        finance=round(finance_domain, 1),
+        mood_adjustment=mood_adjustment,
     )
 
     response = DashboardResponse(
@@ -247,12 +272,11 @@ async def get_insights(
     if entry_date:
         stmt = stmt.where(Insight.date == entry_date)
     if severity:
-        stmt = stmt.where(Insight.severity == severity)
+        stmt = stmt.where(cast(Insight.severity, String) == severity)
 
-    from sqlalchemy import case
     severity_order = case(
         {"CRITICAL": 0, "WARNING": 1, "INFO": 2},
-        value=Insight.severity,
+        value=cast(Insight.severity, String),
     )
     stmt = stmt.order_by(severity_order.asc(), Insight.created_at.desc()).limit(50)
     result = await db.execute(stmt)
@@ -322,7 +346,7 @@ async def get_prediction(
         .where(and_(
             MLModelMetadata.user_id == uid,
             MLModelMetadata.model_type == 'rf_regressor',
-            MLModelMetadata.is_active == True,
+            MLModelMetadata.is_active.is_(True),
         ))
         .order_by(MLModelMetadata.trained_at.desc())
         .limit(1)
@@ -438,7 +462,7 @@ async def get_anomalies(
         .where(and_(
             EngineeredFeatures.user_id == uid,
             EngineeredFeatures.date >= start,
-            EngineeredFeatures.is_anomaly == True,
+            EngineeredFeatures.is_anomaly.is_(True),
         ))
         .order_by(EngineeredFeatures.date.desc())
     )
@@ -476,7 +500,6 @@ async def get_correlations(
     from sqlalchemy import select as sa_select
     from app.models.daily_entry import DailyEntry as DE
     from app.ml.correlation import analyse_correlations
-    import pandas as pd
 
     stmt = sa_select(DE).where(DE.user_id == uid).order_by(DE.date.asc())
     result = await db.execute(stmt)
@@ -528,3 +551,139 @@ def _get_anomaly_primary_feature(feat_obj) -> str | None:
 def _get_anomaly_deviations(feat_obj) -> dict:
     """Read feature deviations stored during ML pipeline run."""
     return getattr(feat_obj, 'anomaly_details', None) or {}
+
+
+# ---------------------------------------------------------------------------
+# Phase 6: Behavioral Risk Forecasters & AI Personal Life Briefings
+# ---------------------------------------------------------------------------
+
+@router.get("/forecasts/risks", response_model=CompositeRiskForecastResponse)
+async def get_risk_forecasts(
+    target_date: Optional[date] = Query(None, alias="date"),
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get multi-head behavioral risk forecasts:
+      - Workout Skip Risk Classifier (0.0 - 1.0 probability)
+      - Budget Overrun Forecaster (EOM projection & velocity)
+      - Circadian Drift Detector (Bedtime variance & phase shift)
+    """
+    uid = uuid.UUID(user_id)
+    forecast = await BriefingService.get_composite_risk_forecasts(
+        db=db, user_id=uid, target_date=target_date
+    )
+    return CompositeRiskForecastResponse(
+        date=forecast.date,
+        workout_skip=forecast.workout_skip.__dict__,
+        budget_overrun=forecast.budget_overrun.__dict__,
+        circadian_drift=forecast.circadian_drift.__dict__,
+        overall_risk_score=forecast.overall_risk_score,
+        key_vulnerability_summary=forecast.key_vulnerability_summary,
+    )
+
+
+@router.get("/briefing/morning", response_model=DailyMorningBriefingResponse)
+async def get_morning_briefing(
+    target_date: Optional[date] = Query(None, alias="date"),
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get or generate today's morning briefing:
+      - Physical/neural recovery score (0-100)
+      - Peak ultradian focus windows
+      - Behavioral risk alerts with concrete micro-actions
+      - Today's active experiment challenge
+    """
+    uid = uuid.UUID(user_id)
+    briefing = await BriefingService.get_or_create_morning_briefing(
+        db=db, user_id=uid, target_date=target_date
+    )
+    return DailyMorningBriefingResponse(**briefing)
+
+
+@router.get("/briefing/weekly", response_model=WeeklyReviewStoryResponse)
+async def get_weekly_review(
+    target_date: Optional[date] = Query(None, alias="date"),
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get or generate Sunday Evening Weekly Review Story:
+      - Holistic 7-day narrative arc
+      - Top wins & behavioral bottlenecks
+      - Best day & recovery day highlights
+      - Next week's scientific experiment recommendation
+      - Printable/shareable HTML export card
+    """
+    uid = uuid.UUID(user_id)
+    story = await BriefingService.get_or_create_weekly_review(
+        db=db, user_id=uid, target_date=target_date
+    )
+    return WeeklyReviewStoryResponse(**story)
+
+
+@router.get("/correlations/dynamic", response_model=list[DynamicCorrelationResponse])
+async def get_dynamic_correlations(
+    min_sample_size: int = Query(7, ge=3, le=90),
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get dynamic multi-lag cross-feature correlations:
+      - Temporal lag analysis (X[t-1] -> Y[t] and X[t] -> Y[t])
+      - Pearson r, two-tailed p-value, Fisher z confidence intervals
+      - Epistemic qualifiers strictly distinguishing correlation vs causation
+    """
+    uid = uuid.UUID(user_id)
+    findings = await BriefingService.get_dynamic_correlations(
+        db=db, user_id=uid, min_sample_size=min_sample_size
+    )
+    return [
+        DynamicCorrelationResponse(
+            feature_a=f.feature_a,
+            feature_b=f.feature_b,
+            name_a=f.name_a,
+            name_b=f.name_b,
+            lag=f.lag,
+            r=f.r,
+            p_value=f.p_value,
+            sample_size=f.sample_size,
+            is_statistically_significant=f.is_statistically_significant,
+            strength=f.strength,
+            direction=f.direction,
+            ci_lower=f.ci_lower,
+            ci_upper=f.ci_upper,
+            insight_narrative=f.insight_narrative,
+            epistemic_qualifier=f.epistemic_qualifier,
+        )
+        for f in findings
+    ]
+
+
+@router.get("/briefing/export")
+async def export_briefing(
+    briefing_type: Literal["DAILY_MORNING", "WEEKLY_REVIEW"] = Query("WEEKLY_REVIEW"),
+    export_format: Literal["html", "markdown"] = Query("html"),
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Export briefing narrative as HTML or Markdown for user self-reflection.
+    """
+    from fastapi.responses import HTMLResponse, PlainTextResponse
+    uid = uuid.UUID(user_id)
+    if briefing_type == "DAILY_MORNING":
+        b = await BriefingService.get_or_create_morning_briefing(db=db, user_id=uid)
+        content = b["full_markdown"]
+        if export_format == "html":
+            safe_content = html.escape(content)
+            html_wrap = f"<html><body style='font-family:sans-serif;padding:24px;background:#0A0D14;color:#FFF;'><pre style='white-space:pre-wrap;'>{safe_content}</pre></body></html>"
+            return HTMLResponse(content=html_wrap)
+        return PlainTextResponse(content=content)
+    else:
+        w = await BriefingService.get_or_create_weekly_review(db=db, user_id=uid)
+        if export_format == "html":
+            return HTMLResponse(content=w.get("html_export_card", "<div>No export available</div>"))
+        return PlainTextResponse(content=w.get("full_narrative_markdown", ""))

@@ -17,12 +17,13 @@ import type {
   Experiment,
   ExperimentTemplate,
   ActiveExperimentProgress,
+  ExperimentCreate,
 } from '@/src/types/api.types';
 
 interface ExperimentHubModalProps {
   visible: boolean;
   onClose: () => void;
-  onOpenCreate: (initialData?: any) => void;
+  onOpenCreate: (initialData?: Partial<ExperimentCreate>) => void;
   onOpenEvaluation: (experimentId: string) => void;
 }
 

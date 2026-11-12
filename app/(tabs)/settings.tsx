@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
@@ -19,9 +18,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
-import { authApi, entriesApi, getDashboardData } from '@/src/services/api';
+import { authApi, entriesApi, getDashboardData, offlineSyncService } from '@/src/services/api';
 import type { User, DailyEntry } from '@/src/types/api.types';
 import { seedDemoDataset } from '@/src/features/dashboard/demoData';
+import { ConnectorsHubModal } from '@/src/components/connectors/ConnectorsHubModal';
 
 const STORAGE_KEYS = {
   DAILY_INSIGHTS: '@lifelens_settings_daily_insights',
@@ -37,8 +37,9 @@ export default function SettingsScreen() {
   // User state
   const [user, setUser] = useState<User | null>(null);
   const [entries, setEntries] = useState<DailyEntry[]>([]);
-  const [lifeScore, setLifeScore] = useState<number>(84.5);
+  const [lifeScore, setLifeScore] = useState<number | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [connectorsModalVisible, setConnectorsModalVisible] = useState(false);
 
   // Settings state toggles
   const [dailyInsights, setDailyInsights] = useState(true);
@@ -82,16 +83,31 @@ export default function SettingsScreen() {
   // Load real profile and data metrics
   const loadProfileData = useCallback(async () => {
     try {
-      const [currentUser, userEntries, dash] = await Promise.all([
+      let userEntries: DailyEntry[] = [];
+      let listSuccess = false;
+
+      const [currentUser, dash] = await Promise.all([
         authApi.me().catch(() => null),
-        entriesApi.list().catch(() => [] as DailyEntry[]),
         getDashboardData().catch(() => null),
       ]);
+
+      try {
+        userEntries = await entriesApi.listAll();
+        listSuccess = true;
+      } catch {
+        listSuccess = false;
+      }
+
       if (currentUser) setUser(currentUser);
-      if (userEntries) setEntries(userEntries);
-      if (dash?.lifeScore?.overall) setLifeScore(dash.lifeScore.overall);
+      if (listSuccess) {
+        setEntries(userEntries || []);
+      } else {
+        setEntries([]);
+      }
+      if (typeof dash?.lifeScore?.overall === 'number') setLifeScore(dash.lifeScore.overall);
     } catch (err) {
       console.warn('[LifeLens] Failed to load user profile:', err);
+      setEntries([]);
     }
   }, []);
 
@@ -105,16 +121,22 @@ export default function SettingsScreen() {
     } catch {
       // Ignored
     }
+    // Do not leave another account's queued mutations on the device.
+    await offlineSyncService.clearAll().catch(() => {});
     router.replace('/login');
   };
 
   const handleLoadDemoData = async () => {
     setActionLoading(true);
     try {
-      const { success, skipped } = await seedDemoDataset();
+      let success = 0;
+      let skipped = 0;
+      const res = await seedDemoDataset();
+      success = res.success;
+      skipped = res.skipped;
       Alert.alert(
         'Demo Data Loaded',
-        `Successfully imported ${success} days of habit telemetry (${skipped} already present). Your machine learning models, trends, and correlations are now fully unlocked!`,
+        `Successfully loaded ${success} days of habit telemetry (${skipped} duplicates skipped). Your machine learning models, trends, and correlations are now fully unlocked!`,
         [
           {
             text: 'View Analytics',
@@ -146,7 +168,7 @@ export default function SettingsScreen() {
           onPress: async () => {
             setActionLoading(true);
             try {
-              const all = await entriesApi.list();
+              const all = await entriesApi.listAll();
               for (const e of all) {
                 await entriesApi.delete(e.date);
               }
@@ -188,11 +210,12 @@ export default function SettingsScreen() {
         month: 'long',
         year: 'numeric',
       })
-    : 'August 2026';
+    : '—';
 
   const userDisplayName = user?.full_name || (user?.email ? user.email.split('@')[0] : 'LifeLens Explorer');
-  const userInitials = userDisplayName
+  const userInitials = (userDisplayName || 'LE')
     .split(' ')
+    .filter(Boolean)
     .map((p) => p.charAt(0).toUpperCase())
     .slice(0, 2)
     .join('');
@@ -232,7 +255,7 @@ export default function SettingsScreen() {
                   <Text style={styles.proBadgeText}>PRO</Text>
                 </View>
               </View>
-              <Text style={styles.profileEmail}>{user?.email || 'demo@lifelens.ai'}</Text>
+              <Text style={styles.profileEmail}>{user?.email || 'Not signed in'}</Text>
               <Text style={styles.profileMeta}>Member since {memberSince}</Text>
             </View>
           </View>
@@ -240,7 +263,7 @@ export default function SettingsScreen() {
           {/* Quick Stats Grid */}
           <View style={styles.profileStatsRow}>
             <View style={styles.profileStatItem}>
-              <Text style={styles.profileStatValue}>{lifeScore.toFixed(1)}</Text>
+              <Text style={styles.profileStatValue}>{lifeScore !== null ? lifeScore.toFixed(1) : '—'}</Text>
               <Text style={styles.profileStatLabel}>Life Score</Text>
             </View>
             <View style={styles.statDivider} />
@@ -268,6 +291,8 @@ export default function SettingsScreen() {
               style={styles.actionRow}
               onPress={handleLoadDemoData}
               disabled={actionLoading}
+              accessibilityRole="button"
+              accessibilityLabel="Load 45-day demo data"
             >
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIconWrap, { backgroundColor: 'rgba(184, 255, 61, 0.15)' }]}>
@@ -289,7 +314,12 @@ export default function SettingsScreen() {
 
             <View style={styles.rowDivider} />
 
-            <Pressable style={styles.actionRow} onPress={handleExportCsv}>
+            <Pressable
+              style={styles.actionRow}
+              onPress={handleExportCsv}
+              accessibilityRole="button"
+              accessibilityLabel="Export historical entries as CSV"
+            >
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIconWrap, { backgroundColor: colors.surfaceElevated }]}>
                   <Ionicons name="document-text-outline" size={18} color={colors.textPrimary} />
@@ -310,6 +340,8 @@ export default function SettingsScreen() {
               style={styles.actionRow}
               onPress={handleClearData}
               disabled={actionLoading}
+              accessibilityRole="button"
+              accessibilityLabel="Clear all personal data"
             >
               <View style={styles.settingLeft}>
                 <View style={[styles.settingIconWrap, { backgroundColor: 'rgba(255, 99, 109, 0.15)' }]}>
@@ -319,6 +351,37 @@ export default function SettingsScreen() {
                   <Text style={[styles.settingTitle, { color: colors.error }]}>Clear My Data</Text>
                   <Text style={styles.settingDesc}>
                     Remove all tracked entries and reset intelligence
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Automated Data Connectors (Phase 5) */}
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>DATA SOURCES & CONNECTORS</Text>
+          <View style={styles.card}>
+            <Pressable
+              style={styles.actionRow}
+              onPress={() => setConnectorsModalVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Open automated data connectors hub"
+            >
+              <View style={styles.settingLeft}>
+                <View style={[styles.settingIconWrap, { backgroundColor: 'rgba(184, 255, 61, 0.15)' }]}>
+                  <Ionicons name="hardware-chip" size={18} color={colors.primary} />
+                </View>
+                <View style={styles.settingTextCol}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={styles.settingTitle}>Automated Device Connectors</Text>
+                    <View style={{ backgroundColor: '#1E252B', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: '#344047' }}>
+                      <Text style={{ fontSize: 9, fontWeight: '700', color: '#4A9EFF' }}>AUTO-SYNC</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.settingDesc}>
+                    Apple Health, Google Health Connect, Screen Time & On-Device SMS Parser
                   </Text>
                 </View>
               </View>
@@ -472,6 +535,12 @@ export default function SettingsScreen() {
           <Text style={styles.buildText}>Expo SDK 57 • Live API Connected</Text>
         </View>
       </ScrollView>
+
+      <ConnectorsHubModal
+        visible={connectorsModalVisible}
+        onClose={() => setConnectorsModalVisible(false)}
+        onSyncComplete={loadProfileData}
+      />
     </View>
   );
 }

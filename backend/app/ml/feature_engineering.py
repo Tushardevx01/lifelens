@@ -10,7 +10,6 @@ All fixes applied per audit:
 """
 
 import pandas as pd
-import numpy as np
 from typing import Optional
 
 
@@ -51,10 +50,14 @@ class DataMaturity(str, Enum):
 def get_data_maturity(data_or_count) -> DataMaturity:
     """Return the DataMaturity tier based on number of days/data rows."""
     n = data_or_count if isinstance(data_or_count, int) else len(data_or_count)
-    if n < 7:   return DataMaturity.RULE_BASED_ONLY
-    if n < 21:  return DataMaturity.TRENDS_ONLY
-    if n < 30:  return DataMaturity.ANOMALY_READY
-    if n < 60:  return DataMaturity.CLUSTERING_READY
+    if n < 7:
+        return DataMaturity.RULE_BASED_ONLY
+    if n < 21:
+        return DataMaturity.TRENDS_ONLY
+    if n < 30:
+        return DataMaturity.ANOMALY_READY
+    if n < 60:
+        return DataMaturity.CLUSTERING_READY
     return DataMaturity.FULL_ML
 
 
@@ -228,8 +231,11 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     for src_col, lag_name in lag_cols:
         if src_col in df.columns:
             series = pd.to_numeric(df[src_col], errors='coerce')
-            col_mean = float(series.mean()) if not series.isna().all() else 0.0
-            df[lag_name] = series.shift(1).fillna(col_mean).astype(float)
+            # Lag values must only use information available at that row; the first
+            # row has no history, so fill it with 0 rather than the full-series mean.
+            lagged = series.shift(1)
+            past_mean = series.expanding(min_periods=1).mean().shift(1)
+            df[lag_name] = lagged.fillna(past_mean).fillna(0.0).astype(float)
 
     # Ensure mood_score_lag1 always exists (engine references it even when mood not tracked)
     if 'mood_score_lag1' not in df.columns:

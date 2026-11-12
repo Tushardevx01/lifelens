@@ -53,7 +53,7 @@ module.exports = [
       '@typescript-eslint/no-require-imports': 'off',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
-      'no-console': 'warn',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
       'prefer-const': 'error',
       'no-var': 'error',
     },
@@ -74,6 +74,6 @@ module.exports = [
     },
   },
   {
-    ignores: ['node_modules/', '.expo/', 'dist/', 'build/'],
+    ignores: ['node_modules/', '.expo/', 'dist/', 'build/', 'backend/'],
   },
 ];

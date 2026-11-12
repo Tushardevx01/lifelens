@@ -11,7 +11,6 @@ from app.ml.base import MODELS_DIR
 import json
 
 import joblib
-import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
@@ -59,12 +58,15 @@ def label_clusters(pipeline: Pipeline, X: pd.DataFrame) -> dict[int, str]:
     """
     scaler  = pipeline.named_steps['scaler']
     kmeans  = pipeline.named_steps['kmeans']
+    # Dominant feature must be determined on comparable (scaled) values; raw
+    # columns mix 0–100 scores with 0–1 indices.
+    scaled_centroids = pd.DataFrame(kmeans.cluster_centers_, columns=CLUSTERING_FEATURES)
     centroids   = scaler.inverse_transform(kmeans.cluster_centers_)
     centroid_df = pd.DataFrame(centroids, columns=CLUSTERING_FEATURES)
 
     label_map: dict[int, str] = {}
     for i, row in centroid_df.iterrows():
-        dominant = str(row.idxmax())
+        dominant = str(scaled_centroids.loc[i].idxmax())
         if dominant == 'productivity_score' and row['sleep_score'] > 60:
             label_map[int(i)] = "Deep Work Day"
         elif dominant == 'distraction_level':

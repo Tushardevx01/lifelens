@@ -181,7 +181,11 @@ export function ExperimentModal({
                       accessibilityLabel={`Use template ${tpl.title}`}
                     >
                       <Ionicons
-                        name={(tpl.icon_name as any) || 'flask-outline'}
+                        name={
+                          ((tpl.icon_name || 'flask-outline') as React.ComponentProps<
+                            typeof Ionicons
+                          >['name'])
+                        }
                         size={18}
                         color={colors.primary}
                         style={{ marginBottom: 4 }}

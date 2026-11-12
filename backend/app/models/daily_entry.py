@@ -31,11 +31,13 @@ class DailyEntry(Base):
     # --- Phone & Digital ---
     screen_time_hours: Mapped[float] = mapped_column(Numeric(4, 2), nullable=False)
     social_media_hours: Mapped[float | None] = mapped_column(Numeric(4, 2), nullable=True)
+    unlock_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # --- Health ---
     steps: Mapped[int] = mapped_column(Integer, nullable=False)
     active_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     calories_burned: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    resting_heart_rate: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # --- Productivity ---
     deep_work_hours: Mapped[float] = mapped_column(Numeric(4, 2), nullable=False)
@@ -65,7 +67,12 @@ class DailyEntry(Base):
         CheckConstraint("sleep_hours >= 0 AND sleep_hours <= 24", name="ck_sleep_hours_range"),
         CheckConstraint("sleep_quality >= 1 AND sleep_quality <= 5", name="ck_sleep_quality_range"),
         CheckConstraint("screen_time_hours >= 0", name="ck_screen_time_positive"),
+        CheckConstraint("unlock_count IS NULL OR unlock_count >= 0", name="ck_unlock_count_positive"),
         CheckConstraint("steps >= 0", name="ck_steps_positive"),
+        CheckConstraint(
+            "resting_heart_rate IS NULL OR (resting_heart_rate >= 30 AND resting_heart_rate <= 220)",
+            name="ck_resting_heart_rate_range",
+        ),
         CheckConstraint("deep_work_hours >= 0 AND deep_work_hours <= 24", name="ck_deep_work_range"),
         CheckConstraint("daily_spend >= 0", name="ck_daily_spend_positive"),
         CheckConstraint(

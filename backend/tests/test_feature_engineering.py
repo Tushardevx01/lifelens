@@ -215,6 +215,25 @@ class TestEngineerFeatures:
             assert (result[col] >= 0).all()
             assert (result[col] <= 1.0001).all()
 
+    def test_lag_features_use_only_past_values(self):
+        today = date.today()
+        df = pd.DataFrame({
+            "user_id": "user-001",
+            "date": [today - timedelta(days=4 - i) for i in range(5)],
+            "sleep_hours": [4.0, 5.0, 6.0, 7.0, 8.0],
+            "sleep_quality": [5] * 5,
+            "screen_time_hours": [2.0] * 5,
+            "steps": [8000] * 5,
+            "deep_work_hours": [4.0] * 5,
+            "daily_spend": [500.0] * 5,
+        })
+        result = engineer_features(df)
+        lags = result["sleep_score_lag1"].tolist()
+        assert lags[0] == 0.0  # no history exists for the first day
+        assert lags[1:] == [50.0, 62.5, 75.0, 87.5]
+        # The full-series mean (75) must never leak into the first day's lag.
+        assert lags[0] != result["sleep_score"].mean()
+
 
 # =============================================================================
 # validate_min_data

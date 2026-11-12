@@ -131,10 +131,6 @@ def _approx_student_t_pvalue(t_stat: float, df: float) -> float:
         return max(0.0001, min(1.0, round(2.0 * p_one_tail, 4)))
 
     # For small df, use Peizer-Pratt / Taylor transformation
-    x = df / (df + (abs_t ** 2))
-    # Approximation via incomplete beta
-    a = df / 2.0
-    b = 0.5
     # Normal approximation with variance correction
     z = (abs_t * math.sqrt(1.0 - 1.0 / (4.0 * df))) / math.sqrt(1.0 + (abs_t ** 2) / (2.0 * df))
     p_one_tail = 0.5 * math.erfc(z / math.sqrt(2.0))
@@ -290,8 +286,8 @@ def evaluate_experiment_results(
             f"Your adherence rate was {adherence_rate}%. While not fully conclusive, the trend points in the right direction."
         )
         recommendation = (
-            f"Consider extending this experiment for another 7 days to strengthen the behavioral routine "
-            f"and gather more definitive evidence."
+            "Consider extending this experiment for another 7 days to strengthen the behavioral routine "
+            "and gather more definitive evidence."
         )
     elif outcome == ExperimentOutcomeEnum.NO_EFFECT:
         synthesis = (
@@ -310,7 +306,7 @@ def evaluate_experiment_results(
             f"The intervention rule may have introduced unintended friction or stress."
         )
         recommendation = (
-            f"We recommend pausing this intervention. Your baseline pattern performed better."
+            "We recommend pausing this intervention. Your baseline pattern performed better."
         )
     else:
         synthesis = (
@@ -318,7 +314,7 @@ def evaluate_experiment_results(
             f"({t_n} treatment days recorded). Your average was {t_mean:.1f} vs {b_mean:.1f} baseline."
         )
         recommendation = (
-            f"Log entries more consistently over 7 uninterrupted days to enable rigorous evaluation."
+            "Log entries more consistently over 7 uninterrupted days to enable rigorous evaluation."
         )
 
     return {

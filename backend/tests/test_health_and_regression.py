@@ -10,18 +10,15 @@ Tests all hardened edge cases:
   6. Global exception handler error masking and unique error_id generation
 """
 
-import uuid
 import pytest
 import pandas as pd
-import numpy as np
-from datetime import date, timedelta
 from httpx import AsyncClient
 
 from app.ml.feature_engineering import compute_finance_score
 from app.ml.correlation import analyse_correlations
 from app.ml.base import MODELS_DIR
 from app.models.user import User
-from app.utils.security import hash_password, create_access_token, get_current_user_verified
+from app.utils.security import create_access_token, get_current_user_verified
 from sqlalchemy.ext.asyncio import AsyncSession
 
 

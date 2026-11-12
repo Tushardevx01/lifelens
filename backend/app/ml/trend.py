@@ -7,12 +7,12 @@ Upgrades to LSTM in Phase 3 (90+ days).
 """
 
 import warnings
-warnings.filterwarnings('ignore')
 
-import numpy as np
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.stattools import adfuller
+
+warnings.filterwarnings('ignore')
 
 
 TREND_METRICS = ['sleep_score', 'productivity_score', 'life_score']
@@ -49,7 +49,7 @@ def fit_arima(series: pd.Series, forecast_days: int = FORECAST_DAYS) -> dict:
         forecast    = result.forecast(steps=forecast_days)
         conf_int    = result.get_forecast(steps=forecast_days).conf_int(alpha=0.2)
 
-        slope = float((forecast.iloc[-1] - forecast.iloc[0]) / forecast_days)
+        slope = float((forecast.iloc[-1] - forecast.iloc[0]) / max(1, forecast_days - 1))
 
         trend_direction = (
             'declining'  if slope < -0.5 else

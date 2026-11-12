@@ -1,7 +1,6 @@
 """
 Tests for the life score computation.
 """
-import pytest
 from app.ml.life_score import compute_life_score, get_score_band
 
 

@@ -28,7 +28,9 @@ export default function LifeScoreHero({
   score  = 84.5,
   change = 2.3,
 }: LifeScoreHeroProps) {
-  const isPositive = change >= 0;
+  const safeScore = typeof score === 'number' && !isNaN(score) ? score : 84.5;
+  const safeChange = typeof change === 'number' && !isNaN(change) ? change : 2.3;
+  const isPositive = safeChange >= 0;
   const changeSign = isPositive ? '+' : '';
 
   return (
@@ -39,19 +41,19 @@ export default function LifeScoreHero({
       {/* Score row */}
       <View style={styles.scoreRow}>
         <View style={styles.scoreTextBlock}>
-          <Text style={styles.scoreNumber}>{score.toFixed(1)}</Text>
+          <Text style={styles.scoreNumber}>{safeScore.toFixed(1)}</Text>
           <Text style={styles.scoreUnit}>/100</Text>
         </View>
 
         {/* Circular progress ring */}
         <CircularProgress
           size={108}
-          progress={score}
+          progress={safeScore}
           color={colors.primary}
           strokeWidth={10}
           backgroundColor={colors.surfaceHigh}
         >
-          <Text style={styles.ringNumber}>{Math.round(score)}</Text>
+          <Text style={styles.ringNumber}>{Math.round(safeScore)}</Text>
         </CircularProgress>
       </View>
 
@@ -69,7 +71,7 @@ export default function LifeScoreHero({
               { color: isPositive ? colors.green : colors.red },
             ]}
           >
-            {isPositive ? '↑' : '↓'} {changeSign}{change.toFixed(1)} from yesterday
+            {isPositive ? '↑' : '↓'} {changeSign}{safeChange.toFixed(1)} from yesterday
           </Text>
         </View>
       </View>

@@ -16,11 +16,13 @@ class DailyEntryCreate(BaseModel):
     # Digital
     screen_time_hours: float = Field(..., ge=0, le=24)
     social_media_hours: Optional[float] = Field(None, ge=0)
+    unlock_count: Optional[int] = Field(None, ge=0, description="Device unlocks count")
 
     # Health
     steps: int = Field(..., ge=0)
     active_minutes: Optional[int] = Field(None, ge=0)
     calories_burned: Optional[int] = Field(None, ge=0)
+    resting_heart_rate: Optional[int] = Field(None, ge=30, le=220, description="Resting heart rate in bpm")
 
     # Productivity
     deep_work_hours: float = Field(..., ge=0, le=24)
@@ -59,9 +61,11 @@ class DailyEntryUpdate(BaseModel):
     sleep_bedtime: Optional[str] = None
     screen_time_hours: Optional[float] = Field(None, ge=0, le=24)
     social_media_hours: Optional[float] = Field(None, ge=0)
+    unlock_count: Optional[int] = Field(None, ge=0)
     steps: Optional[int] = Field(None, ge=0)
     active_minutes: Optional[int] = Field(None, ge=0)
     calories_burned: Optional[int] = Field(None, ge=0)
+    resting_heart_rate: Optional[int] = Field(None, ge=30, le=220)
     deep_work_hours: Optional[float] = Field(None, ge=0, le=24)
     tasks_completed: Optional[int] = Field(None, ge=0)
     daily_spend: Optional[float] = Field(None, ge=0)
@@ -81,9 +85,11 @@ class DailyEntryResponse(BaseModel):
     sleep_bedtime: Optional[str] = None
     screen_time_hours: float
     social_media_hours: Optional[float] = None
+    unlock_count: Optional[int] = None
     steps: int
     active_minutes: Optional[int] = None
     calories_burned: Optional[int] = None
+    resting_heart_rate: Optional[int] = None
     deep_work_hours: float
     tasks_completed: Optional[int] = None
     daily_spend: float

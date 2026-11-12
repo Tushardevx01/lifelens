@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
@@ -118,10 +117,11 @@ export default function HistoryScreen() {
         startStr = d.toISOString().split('T')[0];
       }
 
-      const list = await entriesApi.list(startStr);
+      const list = await entriesApi.listAll(startStr);
       setEntries(list || []);
     } catch (err) {
       console.warn('[LifeLens] Failed to load history entries:', err);
+      setEntries([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -245,6 +245,9 @@ export default function HistoryScreen() {
                 key={r}
                 onPress={() => setTimeRange(r)}
                 style={[styles.rangePill, timeRange === r && styles.rangePillActive]}
+                accessibilityRole="button"
+                accessibilityLabel={`Filter history by ${r}`}
+                accessibilityState={{ selected: timeRange === r }}
               >
                 <Text
                   style={[
@@ -284,6 +287,9 @@ export default function HistoryScreen() {
                   styles.filterPill,
                   scoreFilter === sf && styles.filterPillActive,
                 ]}
+                accessibilityRole="button"
+                accessibilityLabel={`Filter by ${sf}`}
+                accessibilityState={{ selected: scoreFilter === sf }}
               >
                 <Text
                   style={[
@@ -318,6 +324,8 @@ export default function HistoryScreen() {
             <Pressable
               style={styles.logButton}
               onPress={() => router.push('/(tabs)/new-entry')}
+              accessibilityRole="button"
+              accessibilityLabel="Log your daily entry"
             >
               <Ionicons name="add" size={18} color={colors.background} />
               <Text style={styles.logButtonText}>Log Your Day</Text>
@@ -399,6 +407,8 @@ export default function HistoryScreen() {
                       style={styles.deleteButton}
                       onPress={() => handleDelete(entry.date)}
                       hitSlop={8}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Delete entry for ${formattedDate}`}
                     >
                       <Ionicons name="trash-outline" size={15} color={colors.textMuted} />
                       <Text style={styles.deleteText}>Delete</Text>

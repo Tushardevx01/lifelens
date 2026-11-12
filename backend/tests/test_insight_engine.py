@@ -7,17 +7,11 @@ Tests EVERY rule with:
   - edge cases (None values, boundary conditions)
 """
 
-import pytest
 from app.ml.insight_engine import (
-    run_insight_engine, Severity, InsightType,
-    _rule_chronic_sleep_debt, _rule_inconsistent_sleep,
+    run_insight_engine, Severity, _rule_chronic_sleep_debt, _rule_inconsistent_sleep,
     _rule_phone_killing_productivity, _rule_social_media_overuse,
-    _rule_sedentary_day, _rule_steps_below_trend,
-    _rule_no_deep_work, _rule_productivity_below_trend,
-    _rule_spending_spike, _rule_consecutive_low_mood,
-    _rule_low_energy_high_screen, _rule_perfect_day,
+    _rule_sedentary_day, _rule_no_deep_work, _rule_spending_spike, _rule_consecutive_low_mood,
     _rule_burnout_risk, _rule_anomaly_detected,
-    _rule_great_sleep_low_productivity, _rule_exercise_mood_boost,
     _rule_streak_detection,
 )
 

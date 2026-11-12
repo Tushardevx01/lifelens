@@ -1,4 +1,4 @@
-import type { DailyEntryCreate } from '@/src/types/api.types';
+import type { DailyEntryCreate, DailyEntry } from '@/src/types/api.types';
 import { entriesApi } from '@/src/services/api';
 
 export const DEMO_DATASET: DailyEntryCreate[] = [
@@ -817,8 +817,17 @@ export const DEMO_DATASET: DailyEntryCreate[] = [
 export async function seedDemoDataset(onProgress?: (count: number, total: number) => void): Promise<{ success: number; skipped: number }> {
   let success = 0;
   let skipped = 0;
+  const now = new Date();
   for (let i = 0; i < DEMO_DATASET.length; i++) {
-    const entry = DEMO_DATASET[i];
+    const d = DEMO_DATASET[i];
+    // Dynamically anchor seeded entries relative to today so current analytics and morning briefings align
+    const entryDate = new Date(now);
+    entryDate.setDate(now.getDate() - (DEMO_DATASET.length - 1 - i));
+    const dateStr = entryDate.toISOString().split('T')[0];
+    const entry: DailyEntryCreate = {
+      ...d,
+      date: dateStr,
+    };
     try {
       await entriesApi.create(entry);
       success += 1;
@@ -833,4 +842,38 @@ export async function seedDemoDataset(onProgress?: (count: number, total: number
     onProgress?.(i + 1, DEMO_DATASET.length);
   }
   return { success, skipped };
+}
+
+export function getDemoDailyEntries(): DailyEntry[] {
+  const now = new Date();
+  return DEMO_DATASET.map((d, index) => {
+    // Dynamically anchor demo entries relative to today so 7D/30D/90D filters and streaks are always active
+    const entryDate = new Date(now);
+    entryDate.setDate(now.getDate() - (DEMO_DATASET.length - 1 - index));
+    const dateStr = entryDate.toISOString().split('T')[0];
+
+    return {
+      id: `demo-entry-${dateStr}`,
+      user_id: 'demo-user',
+      date: dateStr,
+      sleep_hours: d.sleep_hours,
+      sleep_quality: d.sleep_quality,
+      sleep_bedtime: d.sleep_bedtime || null,
+      screen_time_hours: d.screen_time_hours,
+      social_media_hours: d.social_media_hours ?? null,
+      steps: d.steps,
+      active_minutes: d.active_minutes ?? null,
+      calories_burned: d.calories_burned ?? null,
+      deep_work_hours: d.deep_work_hours,
+      tasks_completed: d.tasks_completed ?? null,
+      daily_spend: d.daily_spend,
+      spend_category: d.spend_category ?? null,
+      mood_score: d.mood_score ?? null,
+      energy_level: d.energy_level ?? null,
+      notes: d.notes ?? null,
+      created_at: `${dateStr}T12:00:00Z`,
+      mood: d.mood_score ?? null,
+      exercise_minutes: d.active_minutes ?? null,
+    };
+  });
 }

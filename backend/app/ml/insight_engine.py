@@ -283,7 +283,7 @@ def _rule_perfect_day(d: dict) -> Optional[InsightResult]:
     sleep  = _v(d, 'sleep_score', 0)
     prod   = _v(d, 'productivity_score', 0)
     steps  = _v(d, 'steps', 0)
-    mood   = _v(d, 'mood_score', 0)
+    mood   = _v(d, 'mood_score', None)
     if sleep >= 80 and prod >= 75 and steps >= 9000 and (mood is None or mood >= 8):
         return InsightResult(
             severity=Severity.INFO, insight_type=InsightType.TREND,
@@ -364,7 +364,7 @@ def _rule_streak_detection(d: dict) -> Optional[InsightResult]:
     # FIX: use productivity_score_lag1 (correct key) instead of lag1 that doesn't exist
     lag_prod = _v(d, 'productivity_score_lag1', None)
     avg_7d   = _v(d, 'productivity_7d_avg', 0)
-    if prod >= 75 and (lag_prod is None or lag_prod >= 65) and avg_7d >= 65:
+    if prod >= 75 and lag_prod is not None and lag_prod >= 65 and avg_7d >= 65:
         return InsightResult(
             severity=Severity.INFO, insight_type=InsightType.TREND,
             title="\U0001f525 Productive Streak",

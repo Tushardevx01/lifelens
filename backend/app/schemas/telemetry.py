@@ -14,6 +14,7 @@ class TransactionCreate(BaseModel):
     merchant: str = Field(..., min_length=1, max_length=100, description="Merchant or payee name")
     timestamp: datetime = Field(..., description="ISO 8601 transaction timestamp")
     is_discretionary: bool = Field(True, description="Whether this purchase is non-essential/discretionary")
+    source: Optional[str] = Field("MANUAL", max_length=50, description="Source: MANUAL, SMS, STATEMENT_CSV")
     notes: Optional[str] = Field(None, max_length=1000, description="Optional personal notes")
 
 
@@ -29,6 +30,7 @@ class TransactionResponse(BaseModel):
     merchant: str
     timestamp: datetime
     is_discretionary: bool
+    source: Optional[str] = "MANUAL"
     notes: Optional[str] = None
     created_at: datetime
 
@@ -43,6 +45,11 @@ class TransactionSummaryResponse(BaseModel):
     transaction_count: int
     category_breakdown: dict[str, float]
     top_merchants: list[dict[str, Any]]
+    daily_burn_rate: float = 0.0
+    projected_eom_spend: float = 0.0
+    monthly_budget: float = 35000.0
+    budget_remaining: float = 0.0
+    budget_run_rate_status: str = "ON_TRACK"
 
 
 # ============================================================================
@@ -80,6 +87,9 @@ class AppUsageSummaryResponse(BaseModel):
     late_night_minutes: int
     category_breakdown: dict[str, int]
     top_apps: list[dict[str, Any]]
+    distraction_index: float = 0.0
+    distracting_minutes: int = 0
+    productive_minutes: int = 0
 
 
 # ============================================================================
@@ -93,6 +103,7 @@ class FocusSessionCreate(BaseModel):
     duration_minutes: int = Field(..., gt=0, le=1440, description="Duration in minutes")
     self_reported_focus: int = Field(..., ge=1, le=5, description="Self-reported focus quality (1=distracted, 5=deep flow)")
     distraction_count: int = Field(0, ge=0, description="Number of interruptions / context switches")
+    task_completed: Optional[bool] = Field(False, description="Whether a key deliverable/task was completed")
     notes: Optional[str] = Field(None, max_length=1000, description="Reflection notes on session")
 
     @field_validator("end_time")
@@ -203,3 +214,116 @@ class HabitWithStreakResponse(BaseModel):
     completion_rate_7d: float
     history_7d: list[dict[str, Any]]
 
+
+# ============================================================================
+# 5. Sleep Intervals & Stages
+# ============================================================================
+
+class SleepIntervalCreate(BaseModel):
+    stage: str = Field(..., description="CORE, DEEP, REM, AWAKE, or IN_BED")
+    start_time: datetime = Field(..., description="Start timestamp")
+    end_time: datetime = Field(..., description="End timestamp")
+    duration_minutes: int = Field(..., ge=0, description="Duration in minutes")
+    date: Optional[date_type] = Field(None, description="Sleep date (defaults to date of start_time)")
+
+    @field_validator("end_time")
+    @classmethod
+    def end_time_after_start(_cls, v, info):
+        start = info.data.get("start_time")
+        if start and v < start:
+            raise ValueError("end_time must be after or equal to start_time")
+        return v
+
+
+class SleepIntervalBatchCreate(BaseModel):
+    intervals: list[SleepIntervalCreate] = Field(..., min_length=1, max_length=100)
+    resting_heart_rate: Optional[int] = Field(None, ge=30, le=220)
+    auto_merge_daily_entry: bool = True
+
+
+class SleepIntervalResponse(BaseModel):
+    id: UUID
+    user_id: UUID
+    date: date_type
+    stage: str
+    start_time: datetime
+    end_time: datetime
+    duration_minutes: int
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class SleepSummaryResponse(BaseModel):
+    date: date_type
+    total_sleep_hours: float
+    total_in_bed_hours: float = 0.0
+    sleep_quality: int
+    bedtime: Optional[str] = None
+    wake_time: Optional[str] = None
+    deep_minutes: int = 0
+    rem_minutes: int = 0
+    core_minutes: int = 0
+    awake_minutes: int = 0
+    in_bed_minutes: int = 0
+    resting_heart_rate: Optional[int] = None
+    stage_breakdown: dict[str, int] = {}
+    circadian_drift_minutes: float = 0.0
+    bedtime_variance_minutes: float = 0.0
+    phase_shift: str = "aligned"
+    social_jetlag_minutes: float = 0.0
+    sleep_score: int = 75
+
+
+# ============================================================================
+# 6. Physical Health & Workouts
+# ============================================================================
+
+class WorkoutSessionCreate(BaseModel):
+    activity_type: str = Field(..., min_length=1, max_length=50, description="Walking, Running, Cycling, Strength, HIIT, Yoga, etc.")
+    start_time: datetime = Field(..., description="Start timestamp")
+    end_time: datetime = Field(..., description="End timestamp")
+    duration_minutes: int = Field(..., gt=0, le=1440, description="Duration in minutes")
+    calories_burned: Optional[int] = Field(None, ge=0, description="Calories burned (kCal)")
+    steps: Optional[int] = Field(None, ge=0, description="Estimated steps")
+    intensity: Optional[str] = Field("MODERATE", max_length=20, description="LOW, MODERATE, VIGOROUS")
+    notes: Optional[str] = Field(None, max_length=1000)
+
+    @field_validator("end_time")
+    @classmethod
+    def end_time_after_start(_cls, v, info):
+        start = info.data.get("start_time")
+        if start and v < start:
+            raise ValueError("end_time must be after or equal to start_time")
+        return v
+
+
+class WorkoutSessionResponse(BaseModel):
+    id: UUID
+    user_id: UUID
+    activity_type: str
+    start_time: datetime
+    end_time: datetime
+    duration_minutes: int
+    calories_burned: Optional[int] = None
+    steps: Optional[int] = None
+    intensity: Optional[str] = None
+    notes: Optional[str] = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class WorkoutConsistencyResponse(BaseModel):
+    current_streak: int
+    streak_days: int = 0
+    best_streak: int
+    total_workouts_7d: int
+    total_active_minutes_7d: int
+    total_minutes_7d: int = 0
+    rest_day_adherence_pct: float
+    rest_days_adherence: float = 1.0
+    workout_skip_vulnerability: float
+    skip_vulnerability: float = 0.0
+    skip_risk_level: str
+    recommendation: str

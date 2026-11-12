@@ -7,6 +7,7 @@ import secrets
 import uuid
 
 from app.database import get_db
+from app.utils.db_route import CommitRoute
 from app.schemas.auth import UserRegister, UserResponse, TokenResponse
 from app.services.auth_service import (
     register_user, authenticate_user, get_user_by_id, change_password, delete_user
@@ -15,15 +16,16 @@ from app.utils.security import get_current_user, hash_password
 from app.models.user import User
 from app.config import get_settings
 
-# P6: Redis-backed reset tokens (falls back to in-memory dict if Redis unavailable)
-from app.cache.redis_client import redis_client, REDIS_AVAILABLE
+# P6: Redis-backed reset tokens (falls back to bounded in-memory dict with TTL if Redis unavailable)
+from app.cache.redis_client import redis_client, REDIS_AVAILABLE, invalidate_user_cache
+import time
 
-router = APIRouter()
+router = APIRouter(route_class=CommitRoute)
 settings = get_settings()
 
-# Fallback in-memory store used only when Redis is unavailable
-_mem_reset_tokens: dict[str, str] = {}
-
+# Fallback in-memory store used only when Redis is unavailable (bounded, TTL-protected)
+_mem_reset_tokens: dict[str, tuple[str, float]] = {}  # token -> (user_id, expires_at)
+_MAX_MEM_RESET_TOKENS = 1000
 RESET_TOKEN_TTL = 900  # 15 minutes
 
 
@@ -35,7 +37,16 @@ def _store_reset_token(token: str, user_id: str) -> None:
             return
         except Exception:
             pass
-    _mem_reset_tokens[token] = user_id
+    now = time.monotonic()
+    # Evict expired tokens to prevent memory growth
+    expired = [k for k, (_, exp) in _mem_reset_tokens.items() if exp < now]
+    for k in expired:
+        _mem_reset_tokens.pop(k, None)
+    if len(_mem_reset_tokens) >= _MAX_MEM_RESET_TOKENS:
+        # Evict oldest entry
+        oldest = min(_mem_reset_tokens, key=lambda k: _mem_reset_tokens[k][1])
+        _mem_reset_tokens.pop(oldest, None)
+    _mem_reset_tokens[token] = (user_id, now + RESET_TOKEN_TTL)
 
 
 def _consume_reset_token(token: str) -> str | None:
@@ -50,7 +61,13 @@ def _consume_reset_token(token: str) -> str | None:
             return None
         except Exception:
             pass
-    return _mem_reset_tokens.pop(token, None)
+    entry = _mem_reset_tokens.pop(token, None)
+    if not entry:
+        return None
+    user_id, exp = entry
+    if exp < time.monotonic():
+        return None
+    return user_id
 
 
 class ChangePasswordRequest(BaseModel):
@@ -184,4 +201,10 @@ async def reset_password(
     user.token_version = (user.token_version or 0) + 1
     await db.commit()
     await db.refresh(user)
+    if REDIS_AVAILABLE and redis_client:
+        try:
+            redis_client.delete(f"user_sess:{user_id}")
+        except Exception:
+            pass
+    invalidate_user_cache(user_id)
     return {"message": "Password reset successfully. You can now log in."}

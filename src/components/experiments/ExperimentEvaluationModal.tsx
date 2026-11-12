@@ -87,7 +87,7 @@ export function ExperimentEvaluationModal({
     }
   };
 
-  const getVerdictTheme = (verdict: string) => {
+  const getVerdictTheme = (verdict: string): { bg: string; border: string; color: string; icon: React.ComponentProps<typeof Ionicons>['name'] } => {
     switch (verdict) {
       case 'SUCCESS':
         return {
@@ -174,7 +174,7 @@ export function ExperimentEvaluationModal({
                       { backgroundColor: theme.bg, borderColor: theme.border },
                     ]}
                   >
-                    <Ionicons name={theme.icon as any} size={22} color={theme.color} />
+                    <Ionicons name={theme.icon} size={22} color={theme.color} />
                     <View style={styles.verdictTextCol}>
                       <Text style={[styles.verdictTitle, { color: theme.color }]}>
                         {evaluation.verdict_label}

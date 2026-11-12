@@ -107,7 +107,7 @@ def test_life_score_components_sum():
 # ── K-Means Clustering ────────────────────────────────────────────────────────
 
 def test_clustering_trains_and_predicts():
-    from app.ml.clustering import train_clustering_pipeline, predict_cluster, model_exists
+    from app.ml.clustering import train_clustering_pipeline, predict_cluster
 
     df      = engineer_features(_make_df(20))
     uid     = str(uuid.uuid4())

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import asyncStorageMock from '@react-native-async-storage/async-storage/jest';
+import asyncStorageMock from './helpers/asyncStorageMock.mjs';
 
 test('Phase 1 Verification: Persistent Token and Session Storage', async (t) => {
   const AsyncStorage = asyncStorageMock;

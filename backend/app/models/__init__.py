@@ -9,12 +9,29 @@ from app.models.telemetry import (
     FocusStudySession,
     Habit,
     HabitLog,
+    SleepInterval,
+    WorkoutSession,
 )
 from app.models.experiment import (
     Experiment,
     ExperimentCheckin,
     ExperimentStatusEnum,
     ExperimentOutcomeEnum,
+)
+from app.models.chat import (
+    ChatSession,
+    ChatMessage,
+)
+from app.models.connector import (
+    DataConnector,
+    ConnectorSyncLog,
+    DataConnectorType,
+    DataConnectorStatus,
+    SyncLogStatus,
+)
+from app.models.briefing import (
+    Briefing,
+    BriefingType,
 )
 
 __all__ = [
@@ -28,8 +45,19 @@ __all__ = [
     "FocusStudySession",
     "Habit",
     "HabitLog",
+    "SleepInterval",
+    "WorkoutSession",
     "Experiment",
     "ExperimentCheckin",
     "ExperimentStatusEnum",
     "ExperimentOutcomeEnum",
+    "ChatSession",
+    "ChatMessage",
+    "DataConnector",
+    "ConnectorSyncLog",
+    "DataConnectorType",
+    "DataConnectorStatus",
+    "SyncLogStatus",
+    "Briefing",
+    "BriefingType",
 ]

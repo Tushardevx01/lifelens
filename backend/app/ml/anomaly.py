@@ -10,7 +10,6 @@ Fixes applied:
 from app.ml.base import MODELS_DIR
 
 import joblib
-import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler

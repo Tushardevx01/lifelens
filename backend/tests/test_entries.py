@@ -6,7 +6,6 @@ Tests 6 cases from the Module 9 verification plan.
 
 import io
 import pytest
-import pytest_asyncio
 from datetime import date, timedelta
 from httpx import AsyncClient
 

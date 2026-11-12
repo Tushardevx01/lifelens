@@ -1,9 +1,9 @@
-import uuid
-from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Depends, Query, status, HTTPException
+from typing import Optional, List
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.utils.db_route import CommitRoute
 from app.utils.security import get_current_user
 from app.cache.redis_client import invalidate_user_cache
 from app.schemas.experiment import (
@@ -19,7 +19,7 @@ from app.schemas.experiment import (
 )
 from app.services import experiment_service
 
-router = APIRouter()
+router = APIRouter(route_class=CommitRoute)
 
 
 @router.post(

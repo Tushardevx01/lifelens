@@ -1,15 +1,18 @@
 import uuid
 import io
-from datetime import date, datetime, time
+import logging
+from datetime import date, datetime
 from typing import Optional
 
 import pandas as pd
-from sqlalchemy import select, delete, and_
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status, UploadFile
 
 from app.models.daily_entry import DailyEntry
 from app.schemas.entry import DailyEntryCreate, DailyEntryUpdate, CsvUploadResponse
+
+logger = logging.getLogger(__name__)
 
 
 async def create_entry(
@@ -48,9 +51,11 @@ async def create_entry(
         sleep_bedtime=bedtime,
         screen_time_hours=data.screen_time_hours,
         social_media_hours=data.social_media_hours,
+        unlock_count=data.unlock_count,
         steps=data.steps,
         active_minutes=data.active_minutes,
         calories_burned=data.calories_burned,
+        resting_heart_rate=data.resting_heart_rate,
         deep_work_hours=data.deep_work_hours,
         tasks_completed=data.tasks_completed,
         daily_spend=data.daily_spend,
@@ -137,9 +142,15 @@ async def delete_entry(db: AsyncSession, user_id: str, entry_date: date) -> None
 async def import_csv(
     db: AsyncSession, user_id: str, file: UploadFile
 ) -> CsvUploadResponse:
-    """Batch import entries from CSV. Validates each row via Pydantic."""
+    """Batch import entries from CSV. Validates each row via Pydantic with strict file size bounds."""
     uid = uuid.UUID(user_id)
-    content = await file.read()
+    MAX_CSV_BYTES = 10 * 1024 * 1024  # 10MB max
+    content = await file.read(MAX_CSV_BYTES + 1)
+    if len(content) > MAX_CSV_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail="CSV file exceeds maximum allowed size of 10MB."
+        )
 
     try:
         df = pd.read_csv(io.BytesIO(content))
@@ -166,6 +177,7 @@ async def import_csv(
     existing_dates: set = {row[0] for row in existing_result.fetchall()}
 
     imported   = 0
+    imported_dates: set[date] = set()
     errors     = []
     total_rows = len(df)
 
@@ -189,6 +201,9 @@ async def import_csv(
                     date=entry_date,
                     sleep_hours=float(row['sleep_hours']),
                     sleep_quality=int(row['sleep_quality']),
+                    sleep_bedtime=str(row['sleep_bedtime']).strip() if 'sleep_bedtime' in row and pd.notna(row.get('sleep_bedtime')) else None,
+                    resting_heart_rate=int(row['resting_heart_rate']) if 'resting_heart_rate' in row and pd.notna(row.get('resting_heart_rate')) else None,
+                    unlock_count=int(row['unlock_count']) if 'unlock_count' in row and pd.notna(row.get('unlock_count')) else None,
                     screen_time_hours=float(row['screen_time_hours']),
                     steps=int(row['steps']),
                     deep_work_hours=float(row['deep_work_hours']),
@@ -206,11 +221,21 @@ async def import_csv(
                 errors.append({"row": int(idx) + 1, "error": f"Validation error: {ve}"})
                 continue
 
+            bedtime_val = None
+            if validated.sleep_bedtime:
+                try:
+                    bedtime_val = datetime.strptime(validated.sleep_bedtime, "%H:%M").time()
+                except Exception:
+                    bedtime_val = None
+
             entry = DailyEntry(
                 user_id=uid,
                 date=validated.date,
                 sleep_hours=validated.sleep_hours,
                 sleep_quality=validated.sleep_quality,
+                sleep_bedtime=bedtime_val,
+                resting_heart_rate=validated.resting_heart_rate,
+                unlock_count=validated.unlock_count,
                 screen_time_hours=validated.screen_time_hours,
                 steps=validated.steps,
                 deep_work_hours=validated.deep_work_hours,
@@ -226,10 +251,22 @@ async def import_csv(
             )
             db.add(entry)
             existing_dates.add(entry_date)   # prevent dupes within same CSV
+            imported_dates.add(entry_date)
             imported += 1
 
         except Exception as e:
             errors.append({"row": int(idx) + 1, "error": str(e)})
 
     await db.flush()
+
+    # Compute features for every imported day, not just today, so historical
+    # rows are immediately usable by analytics and ML.
+    if imported_dates:
+        from app.services.analytics_service import compute_and_store_features
+        for imported_date in sorted(imported_dates):
+            try:
+                await compute_and_store_features(db, user_id, imported_date)
+            except Exception as e:
+                logger.warning(f"Feature computation after CSV import failed for {imported_date}: {e}")
+
     return CsvUploadResponse(imported=imported, errors=errors, total_rows=total_rows)

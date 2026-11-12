@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime
 from sqlalchemy import (
     Float, SmallInteger, Boolean, String, Date,
-    DateTime, ForeignKey, func, JSON
+    DateTime, ForeignKey, JSON
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column

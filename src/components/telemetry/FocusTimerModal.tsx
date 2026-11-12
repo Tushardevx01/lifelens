@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
+import { IconButton } from '@/src/components/ui';
 import { telemetryApi } from '@/src/services/api';
 import { StarRating } from '@/src/components/entry/StarRating';
 
@@ -33,6 +34,7 @@ export function FocusTimerModal({ visible, onClose, onSuccess }: FocusTimerModal
   const [distractionCount, setDistractionCount] = useState(0);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [focusRating, setFocusRating] = useState(4);
+  const [taskCompleted, setTaskCompleted] = useState(false);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -96,6 +98,7 @@ export function FocusTimerModal({ visible, onClose, onSuccess }: FocusTimerModal
     setTimerState('idle');
     setElapsedSeconds(0);
     setDistractionCount(0);
+    setTaskCompleted(false);
     setTaskName('');
     setNotes('');
     setStartTime(null);
@@ -116,6 +119,7 @@ export function FocusTimerModal({ visible, onClose, onSuccess }: FocusTimerModal
         duration_minutes: durationMins,
         self_reported_focus: focusRating,
         distraction_count: distractionCount,
+        task_completed: taskCompleted,
         notes: notes.trim() || null,
       });
 
@@ -160,9 +164,12 @@ export function FocusTimerModal({ visible, onClose, onSuccess }: FocusTimerModal
               <Text style={styles.title}>Deep Work Timer</Text>
               <Text style={styles.subtitle}>Track focus quality & study sessions</Text>
             </View>
-            <Pressable onPress={handleResetAndClose} hitSlop={12}>
-              <Ionicons name="close" size={22} color={colors.textSecondary} />
-            </Pressable>
+            <IconButton
+              icon="close"
+              size={20}
+              onPress={handleResetAndClose}
+              accessibilityLabel="Close focus timer modal"
+            />
           </View>
 
           {/* Active Timer Mode */}
@@ -289,6 +296,35 @@ export function FocusTimerModal({ visible, onClose, onSuccess }: FocusTimerModal
                 />
               </View>
 
+              {/* Task / Deliverable Completed Toggle */}
+              <Pressable
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: colors.surfaceElevated,
+                  padding: spacing.md,
+                  borderRadius: radius.md,
+                  marginBottom: spacing.lg,
+                  borderWidth: 1,
+                  borderColor: taskCompleted ? colors.primary : colors.border,
+                }}
+                onPress={() => setTaskCompleted(!taskCompleted)}
+              >
+                <Ionicons
+                  name={taskCompleted ? 'checkbox' : 'square-outline'}
+                  size={22}
+                  color={taskCompleted ? colors.primary : colors.textMuted}
+                />
+                <View style={{ marginLeft: spacing.sm, flex: 1 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textPrimary }}>
+                    Key Deliverable Completed
+                  </Text>
+                  <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+                    Increments daily completed tasks count
+                  </Text>
+                </View>
+              </Pressable>
+
               {/* Submit Review */}
               <Pressable
                 style={[styles.primaryActionButton, loading && { opacity: 0.6 }]}
@@ -371,6 +407,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     fontSize: 14,
     color: colors.textPrimary,
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
   },
   activeTaskBadge: {
     flexDirection: 'row',
