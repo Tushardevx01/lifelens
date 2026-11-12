@@ -811,6 +811,15 @@ export const assistantApi = {
     return apiGet('/api/assistant/prompts');
   },
 
+  getGeminiStatus: async (): Promise<{
+    configured: boolean;
+    provider: string;
+    model: string;
+    status: string;
+  }> => {
+    return apiGet('/api/assistant/gemini/status');
+  },
+
   voice: {
     transcribe: (audioFile: AudioFileInput) => voiceApi.transcribe(audioFile),
     synthesize: (data: VoiceSynthesizeRequest) => voiceApi.synthesize(data),
@@ -945,7 +954,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   if (!BASE_URL) return mockDashboardData;
 
   try {
-    const [dashRes, predRes, clustersRes, correlationsRes, anomaliesRes, morningRes, risksRes] =
+    const [dashRes, predRes, clustersRes, correlationsRes, anomaliesRes, morningRes, risksRes, latestEntries] =
       await Promise.all([
         analyticsApi.getDashboard(),
         analyticsApi.getTomorrowPrediction().catch(() => null),
@@ -954,6 +963,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         analyticsApi.getAnomalies(7).catch(() => [] as AnomalyResponse[]),
         briefingsApi.getMorning().catch(() => null),
         forecastsApi.getRisks().catch(() => null),
+        entriesApi.list(undefined, undefined, 1, 1).catch(() => [] as DailyEntry[]),
       ]);
 
     const lifeScore: LifeScore = {
@@ -1036,6 +1046,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       anomalies,
       morningBriefing: morningRes ?? undefined,
       riskForecast: risksRes ?? undefined,
+      latestEntry: latestEntries && latestEntries.length > 0 ? latestEntries[0] : null,
     };
 
     // Background reconciliation of queued offline mutations upon confirmed connectivity

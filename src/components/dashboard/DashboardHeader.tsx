@@ -24,6 +24,7 @@ interface DashboardHeaderProps {
   name?: string;
   onBellPress?: () => void;
   onAvatarPress?: () => void;
+  onAiPress?: () => void;
   hasUnreadAlerts?: boolean;
 }
 
@@ -31,6 +32,7 @@ export default function DashboardHeader({
   name = 'Tushar',
   onBellPress,
   onAvatarPress,
+  onAiPress,
   hasUnreadAlerts = true,
 }: DashboardHeaderProps) {
   const today = new Date();
@@ -60,6 +62,20 @@ export default function DashboardHeader({
         </Text>
         <Text style={styles.date}>{dateLabel}</Text>
       </View>
+
+      {/* Interactive AI Companion Button */}
+      {onAiPress && (
+        <Pressable
+          style={({ pressed }) => [styles.aiButton, pressed && styles.aiButtonPressed]}
+          onPress={onAiPress}
+          accessibilityLabel="Ask LifeLens Gemini AI"
+          accessibilityRole="button"
+          hitSlop={8}
+        >
+          <Ionicons name="sparkles" size={15} color={colors.primary} />
+          <Text style={styles.aiButtonText}>Ask AI</Text>
+        </Pressable>
+      )}
 
       {/* Interactive Bell / Alerts button */}
       <Pressable
@@ -133,6 +149,27 @@ const styles = StyleSheet.create({
   bellPressed: {
     opacity: 0.75,
     transform: [{ scale: 0.94 }],
+  },
+  aiButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(184, 255, 61, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(184, 255, 61, 0.3)',
+    borderRadius: radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  aiButtonPressed: {
+    opacity: 0.75,
+    transform: [{ scale: 0.95 }],
+  },
+  aiButtonText: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   badgeDot: {
     position: 'absolute',

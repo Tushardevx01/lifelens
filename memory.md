@@ -2,342 +2,108 @@
 
 ## Project Overview
 
-LifeLens AI is a mobile application built with Expo and React Native using TypeScript. The application MUST be runnable directly through the Expo Go app during development.
+LifeLens AI is a premier holistic life-tracking and behavioral telemetry mobile application built with React Native and Expo (SDK 58). It tracks 6 core domains: physical movement & steps, circadian rhythm & sleep, focused deep work, personal finance, digital screen time, and subjective wellbeing. It includes an official backend integration with Google Gemini AI for behavioral synthesis, lifestyle telemetry grounding, and predictive recovery intelligence.
+
+The application MUST remain runnable directly through the Expo Go app during development with zero custom native binaries.
 
 ## Current Status
 
-**Phase:** Dashboard Implementation  
-**Date:** 2026-08-26  
+**Phase:** Consolidated Life Dashboard & Gemini AI Integration  
+**Date:** 2026-11-12  
 **Version:** 1.0.0  
-**Expo Go Compatible:** Yes
+**Expo SDK:** SDK 58 (Expo Go compatible)  
+**React / React Native:** React 19.3.0, React Native 0.88.1  
+**TypeScript:** 5.9.3 (0 errors in `npm run typecheck`)  
+**Backend:** FastAPI, Python 3.12 (275 tests passing)  
+**Frontend Tests:** 221 tests passing  
+**Expo Go Compatible:** Yes (SDK 58 compatible, tested with web build and unit tests)  
 
 ## Tech Stack
 
-- Expo ~57.0.16
-- React Native 0.86.2
-- React 19.2.3
-- TypeScript ~6.0.3
-- Expo Router ~57.0.16
-- ESLint ^9.39.5
-- Prettier ^3.9.6
-- @expo/vector-icons (icons)
+- **Mobile Framework:** Expo ^58.0.24, Expo Router ~58.0.31
+- **Runtime:** React 19.3.0, React Native 0.88.1
+- **Type Checking:** TypeScript ~5.9.3 (`npm run typecheck` clean)
+- **Code Quality:** ESLint ^9.39.5, Prettier ^3.9.6
+- **Icons:** `@expo/vector-icons` (Ionicons)
+- **Backend API:** FastAPI 0.111.0, Pydantic 2.7.1, SQLAlchemy 2.0.30
+- **AI Engine:** Google Gemini REST API (`generativelanguage.googleapis.com`), `GeminiService` with grounded lifestyle telemetry and strict guardrails
+- **Database / Cache:** PostgreSQL + SQLite (test), Redis 5.0.4
 
 ## Project Structure
 
 ```
 lifelens/
 ├── app/                        # Expo Router routes
-│   ├── _layout.tsx             # Root layout (Stack)
-│   ├── login.tsx               # Login screen route
-│   ├── signup.tsx              # SignUp screen route
-│   ├── (tabs)/                 # Tab navigation group
-│   │   ├── _layout.tsx         # Tab layout (4 tabs)
-│   │   ├── index.tsx           # Dashboard (main screen)
-│   │   ├── new-entry.tsx       # New Entry placeholder
-│   │   ├── history.tsx         # History placeholder
-│   │   └── settings.tsx        # Settings placeholder
+│   ├── _layout.tsx             # Root layout (Stack & Auth wrapper)
+│   ├── login.tsx               # Login screen
+│   ├── signup.tsx              # SignUp screen
+│   ├── chat.tsx                # LifeLens AI Assistant (Gemini) chat screen
+│   ├── (tabs)/                 # Main tab navigation
+│   │   ├── _layout.tsx         # Floating bottom navigation
+│   │   ├── home.tsx            # Consolidated First Screen Life Dashboard
+│   │   ├── new-entry.tsx       # Daily manual journal / logging
+│   │   ├── insights.tsx        # AI Insights & Behavioral anomalies
+│   │   ├── settings.tsx        # Profile & configuration
+│   │   ├── history.tsx         # Historical timeline
+│   │   └── analytics.tsx       # Domain analytics & correlation matrix
 │   ├── modal.tsx
 │   └── +not-found.tsx
+├── backend/
+│   ├── app/
+│   │   ├── ai/                 # Agent loop, guardrails, epistemic filters
+│   │   ├── cache/              # Redis session and rate limit caches
+│   │   ├── core/               # App configuration & settings
+│   │   ├── database/           # Database session and models
+│   │   ├── models/             # SQLAlchemy ORM models
+│   │   ├── routers/            # FastAPI route controllers
+│   │   └── services/           # Backend services:
+│   │       ├── gemini_service.py # Official Google Gemini AI service
+│   │       └── ...
+│   └── tests/                  # 275 pytest unit/integration tests
 ├── src/
 │   ├── components/
-│   │   ├── ui/                 # Reusable UI components
-│   │   │   ├── Button.tsx
-│   │   │   ├── Card.tsx
-│   │   │   ├── Input.tsx
-│   │   │   ├── Screen.tsx
-│   │   │   ├── Text.tsx
-│   │   │   └── index.ts
-│   │   ├── dashboard/          # Dashboard-specific components
-│   │   │   ├── DashboardHeader.tsx
-│   │   │   ├── InsightCard.tsx
-│   │   │   ├── LifeScoreCard.tsx
-│   │   │   ├── ScoreBreakdown.tsx
-│   │   │   ├── LifeScoreTrend.tsx
-│   │   │   ├── ProductivityPrediction.tsx
-│   │   │   ├── InsightsList.tsx
-│   │   │   ├── BehaviouralClusters.tsx
-│   │   │   ├── Correlations.tsx
-│   │   │   ├── AnomalyAlerts.tsx
-│   │   │   ├── DashboardSkeleton.tsx
-│   │   │   ├── DashboardEmpty.tsx
-│   │   │   ├── DashboardError.tsx
-│   │   │   └── index.ts
-│   │   └── navigation/
-│   │       └── BottomNavigation.tsx
-│   ├── features/
-│   │   ├── auth/
-│   │   │   ├── LoginScreen.tsx
-│   │   │   ├── SignUpScreen.tsx
-│   │   │   └── index.ts
-│   │   └── dashboard/
-│   │       ├── dashboard.types.ts
-│   │       ├── dashboard.data.ts
-│   │       ├── dashboard.utils.ts
-│   │       └── index.ts
-│   ├── hooks/
-│   ├── theme/
-│   │   ├── colors.ts
-│   │   ├── spacing.ts
-│   │   ├── typography.ts
-│   │   ├── radius.ts
-│   │   └── index.ts
-│   ├── constants/
+│   │   ├── dashboard/          # LifeStatsGrid, LifeScoreCard, TrendCard, AlertsModal
+│   │   ├── telemetry/          # WorkoutModal, SleepTrackerModal, FocusTimerModal, TransactionModal, ScreenTimeModal
+│   │   ├── assistant/          # ChatModal, ChatMessageBubble, VoiceModeModal
+│   │   ├── briefings/          # DailyBriefingCard, MorningBriefingModal, WeeklyStoryModal
+│   │   ├── navigation/         # FloatingTabBar (SDK 58 compatible)
+│   │   └── ui/                 # Reusable Button, Card, Input, Text, Screen
 │   ├── services/
-│   ├── types/
-│   └── utils/
-├── assets/
-├── docs/
-│   └── ARCHITECTURE.md
-├── memory.md
-├── skill.md
-├── package.json
-├── tsconfig.json
-└── app.json
+│   │   ├── api.ts              # Centralized API client (Dashboard, Assistant, Telemetry)
+│   │   └── ...
+│   └── theme/                  # Theme tokens (colors, spacing, radius, typography)
 ```
 
-## Current Features
+## Consolidated Life Dashboard (First Screen)
 
-- Global dark/neon-green theme system
-- Reusable UI components (Button, Input, Card, Text, Screen)
-- Login screen with:
-  - LifeLens AI branding (heart + pulse icon)
-  - Welcome Back card
-  - Explore Live Demo button
-  - Email/Password inputs with icons
-  - Show/hide password toggle
-  - Forgot password link
-  - Sign In button with loading/disabled states
-  - Register link
-  - Entrance animations
-  - Keyboard handling
-- SignUp screen with:
-  - Full Name, Email, Password, Confirm Password inputs
-  - Password mismatch validation
-  - Terms of Service links
-  - Sign Up button
-  - Sign In link
-- Dashboard with:
-  - DashboardHeader (branding, date, notification icon)
-  - InsightCard (expandable daily insight)
-  - LifeScoreCard (overall score with category breakdown)
-  - ScoreBreakdown (animated progress bars)
-  - LifeScoreTrend (bar chart with timeframe selector)
-  - ProductivityPrediction (AI prediction card)
-  - InsightsList (insight summaries)
-  - BehaviouralClusters (status badges)
-  - Correlations (correlation cards)
-  - AnomalyAlerts (warning alerts)
-  - DashboardSkeleton (loading state)
-  - DashboardEmpty (empty state)
-  - DashboardError (error state)
-- Bottom tab navigation (Dashboard, New Entry, History, Settings)
-- Dark status bar
+The home screen (`app/(tabs)/home.tsx`) serves as the single command center for daily status:
+1. **DashboardHeader:** Displays member greeting, current date, direct "Ask AI" Gemini trigger, and interactive lifestyle notification bell with unread badge.
+2. **DailyBriefingCard:** Morning recovery score, circadian delta, and focus highlights with weekly review triggers.
+3. **LifeScoreCard:** Overall composite score (0-100), daily delta, and 4 domain breakdown progress bars (Health, Focus, Sleep, Mind).
+4. **LifeStatsGrid:** 6 vital metric cards displaying:
+   - *Daily Steps & Movement:* Step count against goal (default 10k), progress bar, tap to open Workout modal.
+   - *Sleep Duration & Quality:* Sleep hours, quality stars (1-5), recorded bedtime, tap to open Sleep Tracker modal.
+   - *Productivity & Focus:* Deep work hours, completed tasks, focus rating, tap to open Focus Timer modal.
+   - *Spending & Expenses:* Total spend, primary category, discretionary percentage, tap to open Transaction modal.
+   - *Screen Time & Habits:* Total screen time hours, social media hours, late night flag, tap to open Screen Time modal.
+   - *Subjective Wellbeing:* Mood rating (/10), energy level stars (/5), reflection presence, tap to open daily logger.
+   - *Missing Data Handling:* Displays clean `--` and prompt pills (`+ Log`) when data has not yet been recorded. Never invents synthetic numbers.
+5. **TrendCard:** Interactive 7-day / 30-day sparkline score trajectory.
+6. **Explore Navigation Hub:** 4 clean quick-access cards leading to Log Today, Analytics, Insights, and History.
 
-## In Progress
+## Gemini AI Integration Architecture
 
-None
+- **Backend Service:** `backend/app/services/gemini_service.py` (`GeminiService`)
+- **Key Configuration:** Reads `GEMINI_API_KEY` and `LLM_MODEL` (defaults to `gemini-1.5-flash`) from environment. Secure on backend; never exposed to React Native client.
+- **Grounding Pipeline:** Formats verified telemetry (sleep, steps, active minutes, spending, deep work, mood, energy) into system instructions with an epistemic non-hallucination constraint.
+- **Reliability & Timeouts:** Implements a strict 20s timeout, non-blocking fallback to deterministic synthesis, HTTP status code inspection (401, 403, 429), and streaming support.
+- **Status Endpoint:** `GET /api/assistant/gemini/status` returns `{ configured, provider, model, status }`.
+- **Honest Telemetry Policy:** If `GEMINI_API_KEY` is not provided, reports status as `awaiting_api_key` and provides deterministic telemetry synthesis without simulating or claiming fake credentials.
 
-## Completed
+## QA Verification Results
 
-- [x] Initial project setup with Expo + TypeScript
-- [x] Configured Expo Router for navigation
-- [x] Set up ESLint with TypeScript support
-- [x] Set up Prettier for code formatting
-- [x] Created src/ directory structure
-- [x] Created documentation files
-- [x] Verified Expo Go compatibility
-- [x] Created global theme system (colors, spacing, typography, radius)
-- [x] Created reusable UI components
-- [x] Built login screen with all required sections
-- [x] Built signup screen with all required sections
-- [x] Set up navigation (login as initial route)
-- [x] Added entrance animations
-- [x] Added keyboard handling
-- [x] Added @expo/vector-icons for icons
-- [x] Updated all screens to use dark theme
-- [x] TypeScript and ESLint validation passed
-- [x] Built dashboard with 10+ sections
-- [x] Created dashboard component architecture
-- [x] Added bottom tab navigation
-- [x] Added loading, empty, and error states
-- [x] Added mock data architecture
-- [x] Added dashboard animations
-- [x] Premium mobile visual redesign
-- [x] New typography system
-- [x] New dark color system
-- [x] Floating navigation
-- [x] Card architecture
-- [x] Current dashboard structure
-
-## Known Issues
-
-None at this time.
-
-## Important Decisions
-
-| Decision | Choice | Reason |
-|----------|--------|--------|
-| Framework | Expo + React Native | Cross-platform mobile development, Expo Go compatibility |
-| Language | TypeScript | Type safety and better developer experience |
-| Navigation | Expo Router | File-based routing, works with Expo Go |
-| Styling | React Native StyleSheet | Standard styling system, Expo Go compatible |
-| State Management | React useState/useReducer | Simple, no additional dependencies needed |
-| Directory Structure | src/ layout | Separates app routes from source code |
-| Theme | Centralized theme system | Consistent design tokens, easy to maintain |
-| Icons | @expo/vector-icons | Expo Go compatible, no native modules needed |
-| Design Language | Dark + Neon Green | Premium, modern, AI-focused aesthetic |
-
-## Design Tokens
-
-### Colors
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| background | #080908 | App background |
-| surface | #111311 | Card backgrounds |
-| surfaceSecondary | #171917 | Secondary surfaces |
-| border | #292D29 | Borders |
-| primary | #B8FF00 | Neon green accent |
-| primaryBright | #C8FF2C | Bright accent |
-| primaryMuted | rgba(184, 255, 0, 0.15) | Subtle green |
-| text | #F5F5F5 | Primary text |
-| textSecondary | #929792 | Secondary text |
-| textMuted | #5F645F | Muted text |
-
-### Spacing
-
-xs(4), sm(8), md(12), lg(16), xl(20), xxl(24), xxxl(32), xxxxl(40), xxxxxl(48)
-
-### Radius
-
-sm(6), md(10), lg(14), xl(18), xxl(24), full(9999)
-
-## Dependencies
-
-### Production Dependencies
-
-| Package | Version | Purpose | Expo Go Compatible |
-|---------|---------|---------|-------------------|
-| expo | ~57.0.16 | Core Expo SDK | Yes |
-| expo-router | ~57.0.16 | File-based navigation | Yes |
-| expo-vector-icons | latest | Icons | Yes |
-| react | 19.2.3 | React library | Yes |
-| react-native | 0.86.2 | React Native framework | Yes |
-| react-native-reanimated | 4.5.1 | Animations | Yes |
-| react-native-safe-area-context | ~5.7.0 | Safe area handling | Yes |
-| react-native-screens | ~4.26.0 | Native screen optimization | Yes |
-
-### Dev Dependencies
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| typescript | ~6.0.3 | TypeScript compiler |
-| eslint | ^9.39.5 | Code linting |
-| prettier | ^3.9.6 | Code formatting |
-| @typescript-eslint/eslint-plugin | ^8.67.0 | TypeScript ESLint rules |
-| @typescript-eslint/parser | ^8.67.0 | TypeScript ESLint parser |
-| eslint-config-expo | ^57.0.1 | Expo ESLint config |
-| eslint-plugin-react | ^7.37.5 | React ESLint rules |
-| eslint-plugin-react-hooks | ^7.1.1 | React hooks ESLint rules |
-
-## Environment Variables
-
-Required environment variables (see `.env.example`):
-
-```
-EXPO_PUBLIC_API_URL=
-```
-
-## Expo Go Compatibility
-
-All dependencies in this project are compatible with Expo Go. No custom native modules or development builds are required.
-
-## Commands
-
-```bash
-# Development
-npm start              # Start Expo dev server
-npm run android        # Start on Android
-npm run ios            # Start on iOS
-npm run web            # Start on web
-
-# Code Quality
-npm run lint           # Run ESLint
-npm run lint:fix       # Fix ESLint issues
-npm run format         # Format code with Prettier
-npm run format:check   # Check formatting
-npm run typecheck      # Run TypeScript compiler
-```
-
-## Last Changes
-
-### 2026-09-17 (Bugfix & Network Resilience)
-
-- Fixed infinite loading spinner caused by unresponsive backend (`https://lifelens-api.onrender.com`)
-- Added request timeout with `AbortController` in `src/services/api.ts`
-- Restored `mockDashboardData` in `src/features/dashboard/dashboard.data.ts` as reliable fallback
-- Fixed React Hook violation in `FloatingTabBar.tsx` by extracting `TabBarButton`
-- Fixed missing React import in `IconButton.tsx`
-- Added standard web/fetch globals and relaxed `no-undef` in `eslint.config.js`
-- Implemented full Insights screen (`app/(tabs)/insights.tsx`) using hardcoded `mockDashboardData`
-- Added Discover Patterns (correlations), Daily Synthesis, Predictive Forecast, Behavioral Clusters, Actionable Takeaways, and Anomaly Alerts
-- Implemented full History & Timeline screen (`app/(tabs)/history.tsx`) with streak metrics, 30-day TrendCard, interactive filters, and chronological daily log entries
-- Implemented full Profile & Settings screen (`app/(tabs)/settings.tsx`) with user identity card, AI switches, wearable integrations, preferences, and logout
-- Implemented full Analytics screen (`app/(tabs)/two.tsx`) with LifeScoreHero, 4-pillar MetricGrid, ScoreBreakdown, LifeScoreTrend, cognitive diagnostics, and biometric telemetry
-- Updated `FloatingTabBar.tsx` and `app/(tabs)/_layout.tsx` to properly map the Analytics tab icon (`stats-chart`) and label
-- Configured root entry routing (`app/index.tsx`) to start at `/login`, with successful authentication or demo flow transitioning into the home dashboard (`/(tabs)/home`)
-- Added GitHub Actions CI/CD GitOps workflow (`.github/workflows/build.yml`) for automated validation, Android APK building, and Web export
-- Configured Android package (`ai.lifelens.app`) in `app.json` and created `eas.json`
-- Fixed CI build pipeline: auto-accept Android SDK licenses via `yes | sdkmanager --licenses`, added `gradle/actions/setup-gradle@v4`, and upgraded runners to Node 22
-- Published official GitHub Release `v1.0.0` with downloadable `lifelens-v1.0.0.apk` asset attached
-- Validated with `npm run typecheck` and `npm run lint` (0 errors)
-
-
-### 2026-08-26 (Dashboard)
-
-- Created dashboard feature structure (types, mock data, utils)
-- Created 13 dashboard components (Header, InsightCard, LifeScoreCard, ScoreBreakdown, LifeScoreTrend, ProductivityPrediction, InsightsList, BehaviouralClusters, Correlations, AnomalyAlerts, Skeleton, Empty, Error)
-- Created BottomNavigation component with 4 tabs
-- Built main Dashboard screen with all sections
-- Set up (tabs) route group with bottom tabs
-- Created placeholder routes (new-entry, history, settings)
-- Added loading, empty, and error states
-- Added mock data architecture
-- Added dashboard animations (staggered fade-in)
-- TypeScript and ESLint validation passed
-
-### 2026-08-26 (Auth)
-
-- Created global theme system (colors, spacing, typography, radius)
-- Created reusable UI components (Button, Input, Card, Text, Screen)
-- Built login screen with all required sections
-- Built signup screen with all required sections
-- Set up navigation with login as initial route
-- Added entrance animations using React Native Animated API
-- Added keyboard handling with KeyboardAvoidingView
-- Added @expo/vector-icons for icons (heart, pulse, mail, lock, eye, etc.)
-- Updated all screens to use dark/neon-green theme
-- Created dashboard and analytics placeholder screens
-- Updated documentation
-
-### 2026-08-24
-
-- Initial project setup with Expo + TypeScript
-- Configured Expo Router for navigation
-- Set up ESLint with TypeScript support
-- Set up Prettier for code formatting
-- Created src/ directory structure
-- Created documentation files (memory.md, skill.md, docs/ARCHITECTURE.md)
-- Removed react-native-worklets for Expo Go compatibility
-- Verified all dependencies are Expo Go compatible
-
-## Next Recommended Steps
-
-1. Implement real authentication flow
-2. Add forgot password screen
-3. Connect dashboard to real API
-4. Implement new entry screen
-5. Implement history screen
-6. Implement settings screen
-7. Add data persistence
-8. Add push notifications
+- **TypeScript:** 0 errors (`npm run typecheck`)
+- **ESLint:** 0 errors (`npm run lint`)
+- **Frontend Unit & Integration Tests:** 221 tests passing (`npm test`)
+- **Expo Web Production Export:** Build completed with 0 errors (`npm run build:web`)
+- **Backend Test Suite:** 275 tests passing in 12.31s (`backend/.venv/bin/pytest backend/tests/ -v`)

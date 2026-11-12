@@ -1,4 +1,4 @@
-import type { DailyMorningBriefing, CompositeRiskForecastResponse } from '@/src/types/api.types';
+import type { DailyMorningBriefing, CompositeRiskForecastResponse, DailyEntry } from '@/src/types/api.types';
 
 export type ScoreCategory = 'sleep' | 'productivity' | 'health' | 'finance';
 
@@ -82,4 +82,5 @@ export type DashboardData = {
   anomalies: AnomalyAlert[];
   morningBriefing?: DailyMorningBriefing;
   riskForecast?: CompositeRiskForecastResponse;
+  latestEntry?: DailyEntry | null;
 };

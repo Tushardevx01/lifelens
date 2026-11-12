@@ -42,6 +42,19 @@ from app.services import assistant_service, voice_service
 router = APIRouter(route_class=CommitRoute)
 
 
+@router.get(
+    "/gemini/status",
+    summary="Get Gemini AI service configuration and connectivity status",
+)
+async def gemini_status_endpoint():
+    """
+    Returns diagnostic status of the Gemini AI integration.
+    Never exposes API keys.
+    """
+    from app.services.gemini_service import gemini_service
+    return gemini_service.get_status()
+
+
 @router.post(
     "/chat",
     response_model=ChatMessageResponse,

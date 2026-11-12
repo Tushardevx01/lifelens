@@ -30,6 +30,7 @@ from app.ai.guardrails import (
 from app.ai.tools import (
     execute_tool,
 )
+from app.services.gemini_service import gemini_service
 
 logger = logging.getLogger("lifelens.ai.agent")
 settings = get_settings()
@@ -334,11 +335,23 @@ async def run_conversational_agent(
         if isinstance(tool_result, dict) and tool_result.get("card"):
             collected_cards.append(tool_result["card"])
 
-    # 3. LLM Generation or Deterministic Synthesis
-    # We check if an LLM provider is available and configured
-    raw_response = ""
-    # Deterministic high-precision analytical synthesis
-    raw_response = synthesize_deterministic_response(user_message, executed_tools)
+    # 3. LLM Generation via Gemini or Deterministic Synthesis
+    raw_response: Optional[str] = None
+    if gemini_service.is_configured():
+        try:
+            raw_response = await gemini_service.generate_lifestyle_response(
+                system_prompt=SYSTEM_PROMPT,
+                user_query=user_message,
+                telemetry_context=executed_tools,
+                conversation_history=conversation_history,
+            )
+        except Exception as exc:
+            logger.warning(f"Gemini generation encountered an error: {exc}. Falling back to deterministic synthesis.")
+            raw_response = None
+
+    if not raw_response:
+        # Deterministic high-precision analytical synthesis fallback
+        raw_response = synthesize_deterministic_response(user_message, executed_tools)
 
     # 4. Apply Epistemic Guardrails and Non-Judgmental Tone Sanitation
     sanitized_response, guardrail_flags = apply_guardrails(raw_response, user_message)
