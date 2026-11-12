@@ -19,6 +19,7 @@ from app.ml.correlation import analyse_correlations
 from app.ml.base import MODELS_DIR
 from app.models.user import User
 from app.utils.security import create_access_token, get_current_user_verified
+from app.cache.redis_client import invalidate_user_cache
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -76,10 +77,11 @@ class TestHealthAndSecurity:
         verified_id = await get_current_user_verified(token=token_v0, db=db)
         assert verified_id == str(test_user.id)
 
-        # Bump version in DB
+        # Bump version in DB and invalidate cache
         test_user.token_version = 1
         await db.commit()
         await db.refresh(test_user)
+        invalidate_user_cache(str(test_user.id))
 
         # Old token v0 must now fail
         with pytest.raises(Exception):

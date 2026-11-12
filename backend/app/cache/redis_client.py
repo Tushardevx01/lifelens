@@ -110,6 +110,8 @@ def invalidate_user_cache(user_id: str) -> None:
     if not client:
         return
     try:
+        # Fast direct delete for user session key
+        client.delete(f"user_sess:{user_id}")
         pattern = f"*:{user_id}*"
         # Non-blocking scan iterator
         keys_to_delete = []

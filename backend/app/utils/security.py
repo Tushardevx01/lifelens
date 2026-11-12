@@ -84,6 +84,8 @@ async def get_current_user(
                     if cached_active and cached_ver == token_ver:
                         return user_id
                     raise credentials_exception
+        except HTTPException:
+            raise
         except Exception:
             pass
 
