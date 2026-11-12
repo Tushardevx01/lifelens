@@ -60,9 +60,9 @@ export default function LifeScoreTrend({ data = defaultData }: LifeScoreTrendPro
           return (
             <View key={i} style={styles.barGroup}>
               <View style={styles.bars}>
-                <View style={[styles.bar, { height: lifeHeight, backgroundColor: colors.primary }]} />
-                <View style={[styles.bar, { height: sleepHeight, backgroundColor: '#00D4AA' }]} />
-                <View style={[styles.bar, { height: prodHeight, backgroundColor: '#4A9EFF' }]} />
+                <View style={[styles.bar, { height: lifeHeight, backgroundColor: colors.darkButton }]} />
+                <View style={[styles.bar, { height: sleepHeight, backgroundColor: '#7C3AED' }]} />
+                <View style={[styles.bar, { height: prodHeight, backgroundColor: '#2563EB' }]} />
               </View>
               <Text style={styles.dayLabel}>{point.day}</Text>
             </View>
@@ -72,15 +72,15 @@ export default function LifeScoreTrend({ data = defaultData }: LifeScoreTrendPro
 
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: colors.primary }]} />
+          <View style={[styles.legendDot, { backgroundColor: colors.darkButton }]} />
           <Text style={styles.legendText}>Life</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#00D4AA' }]} />
+          <View style={[styles.legendDot, { backgroundColor: '#7C3AED' }]} />
           <Text style={styles.legendText}>Sleep</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#4A9EFF' }]} />
+          <View style={[styles.legendDot, { backgroundColor: '#2563EB' }]} />
           <Text style={styles.legendText}>Productivity</Text>
         </View>
       </View>
@@ -91,15 +91,22 @@ export default function LifeScoreTrend({ data = defaultData }: LifeScoreTrendPro
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xxl,
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
     padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   title: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     marginBottom: spacing.md,
   },
   timeframeRow: {
@@ -110,19 +117,19 @@ const styles = StyleSheet.create({
   timeframeBtn: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: radius.sm,
+    borderRadius: radius.full,
     backgroundColor: colors.surfaceSecondary,
   },
   timeframeActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.darkButton,
   },
   timeframeText: {
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   timeframeTextActive: {
-    color: '#000',
+    color: '#FFFFFF',
   },
   chart: {
     flexDirection: 'row',

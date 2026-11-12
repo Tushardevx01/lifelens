@@ -347,7 +347,7 @@ export function ExperimentModal({
 
             {/* Baseline Info Box */}
             <View style={styles.infoBox}>
-              <Ionicons name="analytics-outline" size={18} color={colors.primary} />
+              <Ionicons name="analytics-outline" size={18} color={colors.darkButton} />
               <Text style={styles.infoText}>
                 LifeLens will automatically compute your 14-day baseline distribution prior to start date,
                 and calculate Cohen's d effect size once the treatment period concludes.
@@ -374,10 +374,10 @@ export function ExperimentModal({
               accessibilityLabel="Launch this experiment"
             >
               {loading ? (
-                <ActivityIndicator size="small" color={colors.background} />
+                <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <>
-                  <Ionicons name="rocket-outline" size={18} color={colors.background} />
+                  <Ionicons name="rocket-outline" size={18} color="#FFFFFF" />
                   <Text style={styles.submitText}>Start Experiment</Text>
                 </>
               )}
@@ -392,13 +392,13 @@ export function ExperimentModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(36, 36, 36, 0.45)',
     justifyContent: 'flex-end',
   },
   container: {
     backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.xxl,
-    borderTopRightRadius: radius.xxl,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
     maxHeight: '92%',
     paddingTop: spacing.lg,
   },
@@ -414,18 +414,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     marginTop: 2,
   },
   closeBtn: {
     width: 32,
     height: 32,
     borderRadius: radius.full,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: colors.textMuted,
+    color: colors.secondaryText,
     letterSpacing: 0.6,
   },
   templateTrack: {
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   },
   templateCard: {
     width: 150,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.lg,
@@ -460,13 +460,13 @@ const styles = StyleSheet.create({
   templateTitle: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.primaryText,
     lineHeight: 16,
     marginBottom: 4,
   },
   templateCategory: {
     fontSize: 10,
-    color: colors.textMuted,
+    color: colors.secondaryText,
   },
   pillGrid: {
     flexDirection: 'row',
@@ -477,21 +477,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: radius.full,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     borderWidth: 1,
     borderColor: colors.border,
   },
   metricPillActive: {
-    backgroundColor: 'rgba(0, 229, 255, 0.12)',
+    backgroundColor: '#FFEDE1',
     borderColor: colors.primary,
   },
   metricPillText: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontWeight: '500',
   },
   metricPillTextActive: {
-    color: colors.primary,
+    color: colors.darkButton,
     fontWeight: '700',
   },
   directionRow: {
@@ -503,24 +503,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.sm,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
   },
   directionBtnActive: {
     borderColor: colors.primary,
-    backgroundColor: 'rgba(0, 229, 255, 0.08)',
+    backgroundColor: '#FFEDE1',
   },
   directionText: {
     fontSize: 11,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontWeight: '500',
     flex: 1,
   },
   directionTextActive: {
-    color: colors.primary,
+    color: colors.darkButton,
     fontWeight: '600',
   },
   durationRow: {
@@ -531,33 +531,33 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.full,
   },
   durationPillActive: {
     borderColor: colors.primary,
-    backgroundColor: 'rgba(0, 229, 255, 0.12)',
+    backgroundColor: '#FFEDE1',
   },
   durationText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   durationTextActive: {
-    color: colors.primary,
+    color: colors.darkButton,
     fontWeight: '700',
   },
   textInput: {
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     fontSize: 14,
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   textArea: {
     minHeight: 64,
@@ -567,15 +567,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.sm,
-    backgroundColor: 'rgba(0, 229, 255, 0.06)',
+    backgroundColor: '#EFF5FA',
     borderWidth: 1,
-    borderColor: 'rgba(0, 229, 255, 0.20)',
-    borderRadius: radius.md,
+    borderColor: '#D0E4F5',
+    borderRadius: radius.lg,
     padding: spacing.md,
   },
   infoText: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: '#1E3A8A',
     lineHeight: 17,
     flex: 1,
   },
@@ -591,13 +591,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceElevated,
+    borderRadius: radius.full,
+    backgroundColor: colors.secondary,
   },
   cancelText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   submitBtn: {
     flex: 2,
@@ -606,8 +606,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
     paddingVertical: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.primary,
+    borderRadius: radius.full,
+    backgroundColor: colors.darkButton,
   },
   submitBtnDisabled: {
     opacity: 0.6,
@@ -615,6 +615,6 @@ const styles = StyleSheet.create({
   submitText: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.background,
+    color: '#FFFFFF',
   },
 });

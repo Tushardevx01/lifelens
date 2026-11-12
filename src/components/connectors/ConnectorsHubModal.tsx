@@ -227,10 +227,10 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
               disabled={syncingAll}
             >
               {syncingAll ? (
-                <ActivityIndicator size="small" color="#0E1011" />
+                <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <>
-                  <Ionicons name="cloud-download" size={16} color="#0E1011" />
+                  <Ionicons name="cloud-download" size={16} color="#FFFFFF" />
                   <Text style={styles.syncAllBtnText}>Sync All</Text>
                 </>
               )}
@@ -239,7 +239,7 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
 
           {/* Privacy Guarantee Pill */}
           <View style={styles.privacyCard}>
-            <Ionicons name="shield-checkmark" size={20} color="#00D4AA" />
+            <Ionicons name="shield-checkmark" size={20} color="#2D5016" />
             <Text style={styles.privacyText}>
               <Text style={styles.privacyBold}>100% On-Device Privacy: </Text>
               Zero raw SMS texts, passwords, or personal messages ever leave your phone. Only sanitized amounts & merchant tags are ingested.
@@ -247,10 +247,10 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
           </View>
 
           {/* Standalone Autonomy Pill */}
-          <View style={[styles.privacyCard, { backgroundColor: 'rgba(93, 169, 255, 0.08)', borderColor: 'rgba(93, 169, 255, 0.25)' }]}>
-            <Ionicons name="hardware-chip-outline" size={20} color={colors.primary} />
-            <Text style={styles.privacyText}>
-              <Text style={[styles.privacyBold, { color: colors.primary }]}>Zero 3rd-Party Requirement: </Text>
+          <View style={[styles.privacyCard, { backgroundColor: '#EFF5FA', borderColor: '#D0E4F5' }]}>
+            <Ionicons name="hardware-chip-outline" size={20} color={colors.darkButton} />
+            <Text style={[styles.privacyText, { color: '#1E3A8A' }]}>
+              <Text style={[styles.privacyBold, { color: colors.darkButton }]}>Zero 3rd-Party Requirement: </Text>
               LifeLens features native on-device trackers for Sleep Stages, Circadian Drift, Workouts, Screen Unlocks, Deep Work, and Expenses — fully functional without Google Fit or Apple Health.
             </Text>
           </View>
@@ -295,7 +295,7 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
                 title="On-Device SMS Financial Parser"
                 subtitle="Instant UPI & bank debit alerts (HDFC, SBI, ICICI, Google Pay, PhonePe, Paytm)"
                 iconName="chatbubble-ellipses"
-                iconColor="#B8FF00"
+                iconColor={colors.darkButton}
                 badgeText="On-Device"
                 connector={getConnector('SMS_PARSER')}
                 isEnabled={isEnabled('SMS_PARSER')}
@@ -322,7 +322,7 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
             style={styles.uploadStatementCta}
             onPress={() => setStatementModalVisible(true)}
           >
-            <Ionicons name="document-text-outline" size={18} color={colors.primary} />
+            <Ionicons name="document-text-outline" size={18} color={colors.darkButton} />
             <Text style={styles.uploadStatementText}>Import Bank Statement (CSV / JSON)</Text>
           </TouchableOpacity>
 
@@ -331,7 +331,7 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
           <View style={styles.auditLogCard}>
             {recentLogs.length === 0 ? (
               <View style={styles.logRow}>
-                <Ionicons name="time-outline" size={16} color={colors.textSecondary} style={{ marginTop: 2 }} />
+                <Ionicons name="time-outline" size={16} color={colors.secondaryText} style={{ marginTop: 2 }} />
                 <Text style={styles.logText}>No sync activity yet.</Text>
               </View>
             ) : (
@@ -343,7 +343,7 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
                     index === recentLogs.length - 1 && { borderBottomWidth: 0 },
                   ]}
                 >
-                  <Ionicons name="checkmark-circle" size={16} color="#00D4AA" style={{ marginTop: 2 }} />
+                  <Ionicons name="checkmark-circle" size={16} color="#2E7D32" style={{ marginTop: 2 }} />
                   <Text style={styles.logText}>{log}</Text>
                 </View>
               ))
@@ -393,7 +393,7 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
                   disabled={importingStatement}
                 >
                   {importingStatement ? (
-                    <ActivityIndicator size="small" color="#0E1011" />
+                    <ActivityIndicator size="small" color="#FFFFFF" />
                   ) : (
                     <Text style={styles.importBtnText}>Parse & Ingest</Text>
                   )}
@@ -410,7 +410,7 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0E1011',
+    backgroundColor: colors.canvas,
   },
   header: {
     flexDirection: 'row',
@@ -419,16 +419,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#1A1D1E',
+    borderBottomColor: colors.border,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: colors.text,
+    color: colors.primaryText,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: colors.primary,
+    color: colors.darkButton,
     fontWeight: '600',
     marginTop: 2,
   },
@@ -440,15 +440,15 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   syncBanner: {
-    backgroundColor: '#17191A',
-    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#26292B',
+    borderColor: colors.border,
   },
   syncBannerLeft: {
     flex: 1,
@@ -457,61 +457,61 @@ const styles = StyleSheet.create({
   syncBannerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.primaryText,
     marginBottom: 4,
   },
   syncBannerSubtitle: {
     fontSize: 12,
-    color: colors.textMuted,
+    color: colors.secondaryText,
   },
   syncAllBtn: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.darkButton,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: radius.md,
+    borderRadius: radius.full,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
   syncAllBtnText: {
-    color: '#0E1011',
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 13,
   },
   privacyCard: {
-    backgroundColor: '#11221D',
-    borderRadius: radius.md,
+    backgroundColor: '#EDF5DC',
+    borderRadius: radius.lg,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#194D3B',
+    borderColor: '#D4E8B8',
   },
   privacyText: {
     flex: 1,
     fontSize: 12,
-    color: '#9FEAD2',
+    color: '#2D5016',
     lineHeight: 18,
   },
   privacyBold: {
     fontWeight: '700',
-    color: '#00D4AA',
+    color: '#1E380E',
   },
   sectionHeader: {
     fontSize: 11,
     fontWeight: '700',
-    color: colors.textMuted,
+    color: colors.secondaryText,
     letterSpacing: 1,
     marginBottom: 12,
   },
   uploadStatementCta: {
-    backgroundColor: '#17191A',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: `${colors.primary}40`,
+    borderColor: colors.border,
     borderStyle: 'dashed',
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -522,14 +522,14 @@ const styles = StyleSheet.create({
   uploadStatementText: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.darkButton,
   },
   auditLogCard: {
-    backgroundColor: '#17191A',
-    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#26292B',
+    borderColor: colors.border,
   },
   logRow: {
     flexDirection: 'row',
@@ -537,26 +537,26 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#202324',
+    borderBottomColor: colors.border,
   },
   logText: {
     flex: 1,
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     lineHeight: 17,
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: 'rgba(36, 36, 36, 0.45)',
     justifyContent: 'center',
     padding: 20,
   },
   statementModalCard: {
-    backgroundColor: '#17191A',
-    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#2D3235',
+    borderColor: colors.border,
   },
   modalHeaderRow: {
     flexDirection: 'row',
@@ -567,20 +567,20 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.primaryText,
   },
   modalSubtitle: {
     fontSize: 12,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     lineHeight: 16,
     marginBottom: 14,
   },
   csvInput: {
-    backgroundColor: '#0E1011',
+    backgroundColor: colors.secondary,
     borderWidth: 1,
-    borderColor: '#2D3235',
+    borderColor: colors.border,
     borderRadius: radius.md,
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 12,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     padding: 12,
@@ -599,18 +599,18 @@ const styles = StyleSheet.create({
   },
   sampleBtnText: {
     fontSize: 13,
-    color: '#4A9EFF',
+    color: colors.darkButton,
     fontWeight: '600',
   },
   importBtn: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.darkButton,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: radius.md,
+    borderRadius: radius.full,
   },
   importBtnText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#0E1011',
+    color: '#FFFFFF',
   },
 });

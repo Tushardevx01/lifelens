@@ -58,7 +58,7 @@ export default function InsightsScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       <ScrollView
         style={styles.scrollView}
@@ -71,8 +71,8 @@ export default function InsightsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
+            tintColor={colors.darkButton}
+            colors={[colors.darkButton]}
           />
         }
       >
@@ -88,7 +88,7 @@ export default function InsightsScreen() {
               accessibilityRole="button"
               accessibilityLabel="Chat with LifeLens AI"
             >
-              <Ionicons name="sparkles" size={14} color={colors.primary} />
+              <Ionicons name="sparkles" size={14} color="#66300C" />
               <Text style={styles.aiBadgeText}>Ask AI</Text>
             </Pressable>
           </View>
@@ -99,7 +99,7 @@ export default function InsightsScreen() {
 
         {loading && !refreshing ? (
           <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            <ActivityIndicator size="large" color={colors.darkButton} />
           </View>
         ) : !data ? (
           <View style={styles.emptyContainer}>
@@ -189,23 +189,23 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   aiBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: '#FFEAE0',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: 'rgba(184, 255, 61, 0.25)',
+    borderColor: '#F8D2BD',
   },
   aiBadgeText: {
-    color: colors.primary,
+    color: '#66300C',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     lineHeight: 20,
     marginTop: 4,
   },
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontWeight: '800',
+    color: colors.primaryText,
   },
 });

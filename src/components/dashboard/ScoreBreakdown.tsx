@@ -15,10 +15,10 @@ interface ScoreBreakdownProps {
 }
 
 const defaultCategories: Category[] = [
-  { name: 'Sleep', score: 82, color: '#00D4AA' },
-  { name: 'Productivity', score: 91, color: '#4A9EFF' },
-  { name: 'Health', score: 78, color: '#B8FF00' },
-  { name: 'Finance', score: 85, color: '#FF9F43' },
+  { name: 'Sleep', score: 82, color: '#7C3AED' },
+  { name: 'Productivity', score: 91, color: '#2563EB' },
+  { name: 'Health', score: 78, color: '#15803D' },
+  { name: 'Finance', score: 85, color: '#C05621' },
 ];
 
 function AnimatedBar({ score, color }: { score: number; color: string }) {
@@ -71,15 +71,22 @@ export default function ScoreBreakdown({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xxl,
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
     padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   title: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     marginBottom: spacing.lg,
   },
   row: {
@@ -92,9 +99,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   categoryName: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   score: {
     fontSize: 14,
@@ -119,6 +126,7 @@ const styles = StyleSheet.create({
   percentage: {
     color: colors.textMuted,
     fontSize: 12,
+    fontWeight: '600',
     width: 36,
     textAlign: 'right',
   },

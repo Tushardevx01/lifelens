@@ -91,37 +91,37 @@ export function ExperimentEvaluationModal({
     switch (verdict) {
       case 'SUCCESS':
         return {
-          bg: 'rgba(0, 230, 153, 0.12)',
-          border: 'rgba(0, 230, 153, 0.40)',
-          color: colors.green,
+          bg: '#EDF5DC',
+          border: '#D4E8B8',
+          color: '#2D5016',
           icon: 'trophy',
         };
       case 'PARTIAL_SUCCESS':
         return {
-          bg: 'rgba(0, 229, 255, 0.12)',
-          border: 'rgba(0, 229, 255, 0.40)',
-          color: colors.primary,
+          bg: '#FFEDE1',
+          border: '#F8D2BD',
+          color: colors.darkButton,
           icon: 'trending-up',
         };
       case 'NEGATIVE':
         return {
-          bg: 'rgba(255, 68, 68, 0.12)',
-          border: 'rgba(255, 68, 68, 0.40)',
+          bg: '#FDF1F1',
+          border: '#F8C8C8',
           color: colors.error,
           icon: 'warning',
         };
       case 'NO_EFFECT':
         return {
-          bg: 'rgba(150, 150, 150, 0.12)',
-          border: 'rgba(150, 150, 150, 0.40)',
-          color: colors.textSecondary,
+          bg: '#F1E8E3',
+          border: '#EEE8E5',
+          color: colors.secondaryText,
           icon: 'remove-circle-outline',
         };
       default:
         return {
-          bg: 'rgba(255, 170, 0, 0.12)',
-          border: 'rgba(255, 170, 0, 0.40)',
-          color: colors.orange,
+          bg: '#FCF6E5',
+          border: '#F5E6B8',
+          color: '#8C6D00',
           icon: 'help-circle-outline',
         };
     }
@@ -421,13 +421,13 @@ export function ExperimentEvaluationModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(36, 36, 36, 0.45)',
     justifyContent: 'flex-end',
   },
   container: {
     backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.xxl,
-    borderTopRightRadius: radius.xxl,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
     maxHeight: '94%',
     paddingTop: spacing.lg,
   },
@@ -443,18 +443,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     marginTop: 2,
   },
   closeBtn: {
     width: 32,
     height: 32,
     borderRadius: radius.full,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   emptyBox: {
     padding: spacing.xxl,
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: colors.textMuted,
+    color: colors.secondaryText,
   },
   body: {
     maxHeight: 560,
@@ -501,12 +501,12 @@ const styles = StyleSheet.create({
   },
   verdictSubtitle: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     marginTop: 2,
   },
   synthesisCard: {
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
@@ -520,31 +520,31 @@ const styles = StyleSheet.create({
   synthesisEyebrow: {
     fontSize: 10,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.darkButton,
     letterSpacing: 0.6,
   },
   synthesisText: {
     fontSize: 13,
-    color: colors.textPrimary,
+    color: colors.primaryText,
     lineHeight: 19,
   },
   recommendationBox: {
-    backgroundColor: 'rgba(0, 229, 255, 0.06)',
+    backgroundColor: '#EFF5FA',
     padding: spacing.sm,
     borderRadius: radius.md,
-    borderLeftWidth: 2,
-    borderLeftColor: colors.primary,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.darkButton,
     marginTop: spacing.xs,
   },
   recommendationTitle: {
     fontSize: 11,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.darkButton,
     marginBottom: 2,
   },
   recommendationText: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: '#1E3A8A',
     lineHeight: 17,
   },
   section: {
@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: colors.textMuted,
+    color: colors.secondaryText,
     letterSpacing: 0.6,
   },
   statsGrid: {
@@ -564,27 +564,27 @@ const styles = StyleSheet.create({
   statBox: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     padding: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
   },
   statBoxLabel: {
     fontSize: 9,
     fontWeight: '600',
-    color: colors.textMuted,
+    color: colors.secondaryText,
     letterSpacing: 0.5,
   },
   statBoxValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
     marginVertical: 2,
   },
   statBoxSub: {
     fontSize: 11,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   rigorRow: {
     flexDirection: 'row',
@@ -594,15 +594,15 @@ const styles = StyleSheet.create({
   },
   rigorText: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontWeight: '500',
   },
   timelineRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     padding: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -630,12 +630,12 @@ const styles = StyleSheet.create({
   },
   dayNum: {
     fontSize: 10,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     fontWeight: '600',
   },
   dayVal: {
     fontSize: 10,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontWeight: '700',
   },
   finalizeSection: {
@@ -651,7 +651,7 @@ const styles = StyleSheet.create({
   },
   ratingLabel: {
     fontSize: 13,
-    color: colors.textPrimary,
+    color: colors.primaryText,
     fontWeight: '600',
   },
   stars: {
@@ -662,13 +662,13 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   reflectionInput: {
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
     padding: spacing.md,
     fontSize: 13,
-    color: colors.textPrimary,
+    color: colors.primaryText,
     minHeight: 54,
     textAlignVertical: 'top',
   },
@@ -676,25 +676,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.sm,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     padding: spacing.md,
   },
   habitToggleBoxActive: {
-    borderColor: colors.primary,
-    backgroundColor: 'rgba(0, 229, 255, 0.06)',
+    borderColor: colors.darkButton,
+    backgroundColor: '#FFEDE1',
   },
   habitToggleTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
     lineHeight: 18,
   },
   habitToggleSub: {
     fontSize: 11,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     marginTop: 2,
     lineHeight: 15,
   },
@@ -710,13 +710,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceElevated,
+    borderRadius: radius.full,
+    backgroundColor: colors.secondary,
   },
   footerCancelText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   footerCompleteBtn: {
     flex: 2,
@@ -725,8 +725,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
     paddingVertical: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.primary,
+    borderRadius: radius.full,
+    backgroundColor: colors.darkButton,
   },
   btnDisabled: {
     opacity: 0.6,
@@ -734,6 +734,6 @@ const styles = StyleSheet.create({
   footerCompleteText: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.background,
+    color: '#FFFFFF',
   },
 });

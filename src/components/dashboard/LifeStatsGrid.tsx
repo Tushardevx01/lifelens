@@ -1,18 +1,13 @@
 /**
  * LifeStatsGrid — Consolidated Life Dashboard Component
  *
- * Displays the 6 essential daily life statistics in clean, minimal, readable cards:
- *   1. Daily Steps & Locomotion (with goal progress bar)
+ * Displays the 6 essential daily life statistics in clean, warm, pastel cards:
+ *   1. Daily Steps & Movement (with goal progress bar)
  *   2. Sleep Duration & Quality (hours, stars, bedtime)
  *   3. Productivity & Focus (deep work hours, tasks completed)
- *   4. Daily Spending & Expenses (amount, category, discretionary ratio)
+ *   4. Daily Spending & Expenses (amount, category)
  *   5. Screen Time & Digital Habits (total screen, social media)
  *   6. Subjective Wellbeing (mood rating, energy stars)
- *
- * Requirements:
- * - Highlights important numbers first with high legibility.
- * - Handles missing data gracefully with '--' and tap-to-log prompts.
- * - Tapping any card opens the corresponding modal or detailed view.
  */
 
 import React from 'react';
@@ -75,8 +70,8 @@ export default function LifeStatsGrid({
   return (
     <View style={styles.container}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Today's Vital Statistics</Text>
-        <Text style={styles.sectionSubtitle}>Tap any card to log or inspect</Text>
+        <Text style={styles.sectionTitle}>Today's Overview</Text>
+        <Text style={styles.sectionSubtitle}>Tap card to log</Text>
       </View>
 
       <View style={styles.grid}>
@@ -88,8 +83,8 @@ export default function LifeStatsGrid({
           accessibilityRole="button"
         >
           <View style={styles.cardHeader}>
-            <View style={[styles.iconWrap, { backgroundColor: 'rgba(184, 255, 0, 0.12)' }]}>
-              <Ionicons name="footsteps-outline" size={18} color={colors.primary} />
+            <View style={[styles.iconWrap, { backgroundColor: '#EDF5DC' }]}>
+              <Ionicons name="footsteps" size={17} color="#789938" />
             </View>
             <Text style={styles.cardDomainLabel}>Movement</Text>
           </View>
@@ -108,7 +103,7 @@ export default function LifeStatsGrid({
                 styles.progressBarFill,
                 {
                   width: `${stepsProgress ?? 0}%`,
-                  backgroundColor: colors.primary,
+                  backgroundColor: '#8FB351',
                 },
               ]}
             />
@@ -117,7 +112,7 @@ export default function LifeStatsGrid({
           <Text style={styles.secondaryDetail}>
             {activeMinutes !== undefined && activeMinutes !== null
               ? `${activeMinutes}m active`
-              : 'Tap to log'}
+              : '+ Log workout'}
             {calories ? ` · ${calories} kcal` : ''}
           </Text>
         </Pressable>
@@ -130,8 +125,8 @@ export default function LifeStatsGrid({
           accessibilityRole="button"
         >
           <View style={styles.cardHeader}>
-            <View style={[styles.iconWrap, { backgroundColor: 'rgba(0, 212, 170, 0.12)' }]}>
-              <Ionicons name="moon-outline" size={18} color={colors.cyan} />
+            <View style={[styles.iconWrap, { backgroundColor: '#F3EDF9' }]}>
+              <Ionicons name="moon" size={17} color="#7E699B" />
             </View>
             <Text style={styles.cardDomainLabel}>Sleep</Text>
           </View>
@@ -146,8 +141,8 @@ export default function LifeStatsGrid({
           {/* Sleep Quality & Bedtime */}
           <View style={styles.tagRow}>
             {sleepQuality ? (
-              <View style={[styles.pillBadge, { backgroundColor: 'rgba(0, 212, 170, 0.15)' }]}>
-                <Text style={[styles.pillBadgeText, { color: colors.cyan }]}>
+              <View style={[styles.pillBadge, { backgroundColor: '#EBE3F5' }]}>
+                <Text style={[styles.pillBadgeText, { color: '#7E699B' }]}>
                   {sleepQuality}/5 ★
                 </Text>
               </View>
@@ -158,7 +153,7 @@ export default function LifeStatsGrid({
           </View>
 
           <Text style={styles.secondaryDetail}>
-            {sleepHours !== undefined && sleepHours !== null ? 'Target: 7–9 hrs' : 'Tap to log sleep'}
+            {sleepHours !== undefined && sleepHours !== null ? 'Target: 7–9 hrs' : '+ Log sleep'}
           </Text>
         </Pressable>
 
@@ -170,8 +165,8 @@ export default function LifeStatsGrid({
           accessibilityRole="button"
         >
           <View style={styles.cardHeader}>
-            <View style={[styles.iconWrap, { backgroundColor: 'rgba(74, 158, 255, 0.12)' }]}>
-              <Ionicons name="flash-outline" size={18} color={colors.blue} />
+            <View style={[styles.iconWrap, { backgroundColor: '#EFF5FA' }]}>
+              <Ionicons name="flash" size={17} color="#50769A" />
             </View>
             <Text style={styles.cardDomainLabel}>Deep Work</Text>
           </View>
@@ -185,16 +180,16 @@ export default function LifeStatsGrid({
 
           <View style={styles.tagRow}>
             {tasksCompleted !== undefined && tasksCompleted !== null ? (
-              <View style={[styles.pillBadge, { backgroundColor: 'rgba(74, 158, 255, 0.15)' }]}>
-                <Text style={[styles.pillBadgeText, { color: colors.blue }]}>
-                  {tasksCompleted} tasks done
+              <View style={[styles.pillBadge, { backgroundColor: '#DFECF6' }]}>
+                <Text style={[styles.pillBadgeText, { color: '#50769A' }]}>
+                  {tasksCompleted} done
                 </Text>
               </View>
             ) : null}
           </View>
 
           <Text style={styles.secondaryDetail}>
-            {deepWorkHours !== undefined && deepWorkHours !== null ? 'Peak focus block' : 'Launch focus timer'}
+            {deepWorkHours !== undefined && deepWorkHours !== null ? 'Peak focus' : '+ Start timer'}
           </Text>
         </Pressable>
 
@@ -206,8 +201,8 @@ export default function LifeStatsGrid({
           accessibilityRole="button"
         >
           <View style={styles.cardHeader}>
-            <View style={[styles.iconWrap, { backgroundColor: 'rgba(255, 159, 67, 0.12)' }]}>
-              <Ionicons name="wallet-outline" size={18} color={colors.orange} />
+            <View style={[styles.iconWrap, { backgroundColor: '#FFF1E8' }]}>
+              <Ionicons name="wallet" size={17} color="#A35C2B" />
             </View>
             <Text style={styles.cardDomainLabel}>Expenses</Text>
           </View>
@@ -220,8 +215,8 @@ export default function LifeStatsGrid({
 
           <View style={styles.tagRow}>
             {spendCategory ? (
-              <View style={[styles.pillBadge, { backgroundColor: 'rgba(255, 159, 67, 0.15)' }]}>
-                <Text style={[styles.pillBadgeText, { color: colors.orange }]} numberOfLines={1}>
+              <View style={[styles.pillBadge, { backgroundColor: '#FFE4D4' }]}>
+                <Text style={[styles.pillBadgeText, { color: '#A35C2B' }]} numberOfLines={1}>
                   {spendCategory}
                 </Text>
               </View>
@@ -229,7 +224,7 @@ export default function LifeStatsGrid({
           </View>
 
           <Text style={styles.secondaryDetail}>
-            {dailySpend !== undefined && dailySpend !== null ? 'Daily outflow' : 'Log a purchase'}
+            {dailySpend !== undefined && dailySpend !== null ? 'Daily outflow' : '+ Add spend'}
           </Text>
         </Pressable>
 
@@ -241,8 +236,8 @@ export default function LifeStatsGrid({
           accessibilityRole="button"
         >
           <View style={styles.cardHeader}>
-            <View style={[styles.iconWrap, { backgroundColor: 'rgba(255, 82, 82, 0.12)' }]}>
-              <Ionicons name="phone-portrait-outline" size={18} color={colors.error} />
+            <View style={[styles.iconWrap, { backgroundColor: '#FDF1F1' }]}>
+              <Ionicons name="phone-portrait" size={17} color="#A84545" />
             </View>
             <Text style={styles.cardDomainLabel}>Screen Time</Text>
           </View>
@@ -261,7 +256,7 @@ export default function LifeStatsGrid({
           </View>
 
           <Text style={styles.secondaryDetail}>
-            {screenTime !== undefined && screenTime !== null ? 'Digital wellness' : 'Inspect usage'}
+            {screenTime !== undefined && screenTime !== null ? 'Digital habits' : '+ Record time'}
           </Text>
         </Pressable>
 
@@ -273,8 +268,8 @@ export default function LifeStatsGrid({
           accessibilityRole="button"
         >
           <View style={styles.cardHeader}>
-            <View style={[styles.iconWrap, { backgroundColor: 'rgba(184, 255, 0, 0.12)' }]}>
-              <Ionicons name="happy-outline" size={18} color={colors.primary} />
+            <View style={[styles.iconWrap, { backgroundColor: '#FCF6E5' }]}>
+              <Ionicons name="happy" size={17} color="#9E7B28" />
             </View>
             <Text style={styles.cardDomainLabel}>Wellbeing</Text>
           </View>
@@ -288,16 +283,16 @@ export default function LifeStatsGrid({
 
           <View style={styles.tagRow}>
             {energy !== undefined && energy !== null ? (
-              <View style={[styles.pillBadge, { backgroundColor: 'rgba(184, 255, 0, 0.15)' }]}>
-                <Text style={[styles.pillBadgeText, { color: colors.primary }]}>
-                  ⚡ Energy {energy}/5
+              <View style={[styles.pillBadge, { backgroundColor: '#F9F0D4' }]}>
+                <Text style={[styles.pillBadgeText, { color: '#9E7B28' }]}>
+                  ⚡ {energy}/5 energy
                 </Text>
               </View>
             ) : null}
           </View>
 
           <Text style={styles.secondaryDetail}>
-            {mood !== undefined && mood !== null ? 'Daily reflection' : 'Rate today\'s feeling'}
+            {mood !== undefined && mood !== null ? 'Reflection logged' : '+ Rate feeling'}
           </Text>
         </Pressable>
       </View>
@@ -317,7 +312,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '700',
     color: colors.textPrimary,
     letterSpacing: -0.3,
@@ -325,6 +320,7 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 12,
     color: colors.textMuted,
+    fontWeight: '500',
   },
   grid: {
     flexDirection: 'row',
@@ -332,16 +328,18 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   card: {
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.xl,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
     padding: spacing.lg,
     flex: 1,
     minWidth: '46%',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
+    boxShadow: '0px 3px 10px rgba(102, 48, 12, 0.04)',
+    elevation: 2,
   },
   cardPressed: {
-    opacity: 0.82,
+    opacity: 0.88,
     transform: [{ scale: 0.98 }],
   },
   cardHeader: {
@@ -351,27 +349,27 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   iconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: radius.sm,
+    width: 30,
+    height: 30,
+    borderRadius: radius.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
   cardDomainLabel: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     color: colors.textSecondary,
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    letterSpacing: 0.5,
   },
   metricRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 4,
-    marginVertical: 2,
+    marginVertical: 3,
   },
   primaryMetric: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '800',
     color: colors.textPrimary,
     letterSpacing: -0.5,
@@ -382,27 +380,27 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   progressBarTrack: {
-    height: 4,
-    backgroundColor: colors.surfaceHigh,
-    borderRadius: 2,
+    height: 6,
+    backgroundColor: colors.surfaceSoft,
+    borderRadius: 3,
     marginVertical: 6,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 2,
+    borderRadius: 3,
   },
   tagRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     marginVertical: 4,
-    minHeight: 20,
+    minHeight: 22,
   },
   pillBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.full,
   },
   pillBadgeText: {
     fontSize: 11,
@@ -411,11 +409,12 @@ const styles = StyleSheet.create({
   timeTag: {
     fontSize: 11,
     color: colors.textMuted,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   secondaryDetail: {
     fontSize: 12,
     color: colors.textSecondary,
+    fontWeight: '500',
     marginTop: 2,
   },
 });

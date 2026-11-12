@@ -24,7 +24,7 @@ from app.config import get_settings
 logger = logging.getLogger("lifelens.ai.gemini")
 
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
-DEFAULT_MODEL = "gemini-1.5-flash"
+DEFAULT_MODEL = "gemini-3.5-flash-lite"
 REQUEST_TIMEOUT_SECONDS = 20.0
 CONNECT_TIMEOUT_SECONDS = 5.0
 
@@ -166,54 +166,67 @@ class GeminiService:
         if not clean_query:
             return None
 
-        model = self.model_name
-        url = f"{GEMINI_BASE_URL}/models/{model}:generateContent?key={api_key}"
-        payload = self._build_payload(system_prompt, clean_query, telemetry_context, conversation_history)
+        models_to_try = [self.model_name]
+        fallback = "gemini-3.5-flash-lite" if self.model_name != "gemini-3.5-flash-lite" else "gemini-3.1-flash-lite"
+        if fallback not in models_to_try:
+            models_to_try.append(fallback)
 
+        payload = self._build_payload(system_prompt, clean_query, telemetry_context, conversation_history)
         timeout = httpx.Timeout(REQUEST_TIMEOUT_SECONDS, connect=CONNECT_TIMEOUT_SECONDS)
 
-        try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                response = await client.post(
-                    url,
-                    json=payload,
-                    headers={"Content-Type": "application/json"},
-                )
-
-                if response.status_code == 200:
-                    data = response.json()
-                    candidates = data.get("candidates", [])
-                    if candidates and len(candidates) > 0:
-                        parts = candidates[0].get("content", {}).get("parts", [])
-                        if parts and len(parts) > 0:
-                            generated_text = parts[0].get("text", "").strip()
-                            if generated_text:
-                                logger.info(f"Gemini successfully generated response for query ({len(generated_text)} chars)")
-                                return generated_text
-                    logger.warning("Gemini returned 200 OK but candidate text was empty.")
-                    return None
-
-                elif response.status_code in (401, 403):
-                    logger.error(f"Gemini authentication failed (HTTP {response.status_code}): Check GEMINI_API_KEY.")
-                    return None
-                elif response.status_code == 429:
-                    logger.warning("Gemini rate limit / quota exceeded (HTTP 429). Falling back to deterministic synthesis.")
-                    return None
-                else:
-                    logger.warning(
-                        f"Gemini API returned HTTP {response.status_code}: {response.text[:200]}"
+        for model in models_to_try:
+            url = f"{GEMINI_BASE_URL}/models/{model}:generateContent?key={api_key}"
+            try:
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    response = await client.post(
+                        url,
+                        json=payload,
+                        headers={"Content-Type": "application/json"},
                     )
-                    return None
 
-        except httpx.TimeoutException:
-            logger.warning(f"Gemini API request timed out after {REQUEST_TIMEOUT_SECONDS}s. Falling back.")
-            return None
-        except httpx.RequestError as exc:
-            logger.warning(f"Gemini HTTP connection error: {exc}. Falling back to deterministic synthesis.")
-            return None
-        except Exception as exc:
-            logger.exception(f"Unexpected error calling Gemini API: {exc}")
-            return None
+                    if response.status_code == 200:
+                        data = response.json()
+                        candidates = data.get("candidates", [])
+                        if candidates and len(candidates) > 0:
+                            parts = candidates[0].get("content", {}).get("parts", [])
+                            if parts and len(parts) > 0:
+                                generated_text = parts[0].get("text", "").strip()
+                                if generated_text:
+                                    logger.info(f"Gemini ({model}) generated response ({len(generated_text)} chars)")
+                                    return generated_text
+                        logger.warning(f"Gemini ({model}) returned 200 OK but candidate text was empty.")
+                        return None
+
+                    elif response.status_code in (401, 403) or (
+                        response.status_code == 400 and "API_KEY_INVALID" in response.text
+                    ):
+                        logger.error(
+                            f"Gemini authentication failed (HTTP {response.status_code}): Invalid or inactive GEMINI_API_KEY."
+                        )
+                        return None
+                    elif response.status_code == 429:
+                        logger.warning("Gemini rate limit / quota exceeded (HTTP 429). Falling back to deterministic synthesis.")
+                        return None
+                    elif response.status_code in (503, 404):
+                        logger.warning(f"Gemini model {model} returned HTTP {response.status_code}. Attempting fallback model.")
+                        continue
+                    else:
+                        logger.warning(
+                            f"Gemini API returned HTTP {response.status_code}: {response.text[:200]}"
+                        )
+                        return None
+
+            except httpx.TimeoutException:
+                logger.warning(f"Gemini API request timed out for {model}. Attempting fallback.")
+                continue
+            except httpx.RequestError as exc:
+                logger.warning(f"Gemini HTTP connection error for {model}: {exc}.")
+                continue
+            except Exception as exc:
+                logger.exception(f"Unexpected error calling Gemini API: {exc}")
+                return None
+
+        return None
 
     async def stream_lifestyle_response(
         self,

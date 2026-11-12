@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.65)',
+    backgroundColor: 'rgba(36, 36, 36, 0.45)',
   },
   backdrop: {
     flex: 1,
@@ -299,8 +299,8 @@ const styles = StyleSheet.create({
   amountInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.md,
+    backgroundColor: colors.secondary,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     paddingHorizontal: spacing.md,
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   currencySymbol: {
     fontSize: 26,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.darkButton,
     marginRight: spacing.sm,
   },
   amountInput: {
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
   },
   textInput: {
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
@@ -343,12 +343,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 6,
     borderRadius: radius.full,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     borderWidth: 1,
     borderColor: colors.border,
   },
   pillSelected: {
-    backgroundColor: 'rgba(184, 255, 61, 0.15)',
+    backgroundColor: '#FFEDE1',
     borderColor: colors.primary,
   },
   pillText: {
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   pillTextSelected: {
-    color: colors.primary,
+    color: colors.darkButton,
     fontWeight: '600',
   },
   toggleRow: {
@@ -380,15 +380,15 @@ const styles = StyleSheet.create({
     width: 48,
     height: 28,
     borderRadius: 14,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     borderWidth: 1,
     borderColor: colors.border,
     padding: 2,
     justifyContent: 'center',
   },
   switchTrackActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.darkButton,
+    borderColor: colors.darkButton,
   },
   switchThumb: {
     width: 22,
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textSecondary,
   },
   switchThumbActive: {
-    backgroundColor: colors.background,
+    backgroundColor: '#FFFFFF',
     alignSelf: 'flex-end',
   },
   footer: {
@@ -407,8 +407,8 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
   },
   submitButton: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
+    backgroundColor: colors.darkButton,
+    borderRadius: radius.full,
     paddingVertical: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
   submitText: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.background,
+    color: '#FFFFFF',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },

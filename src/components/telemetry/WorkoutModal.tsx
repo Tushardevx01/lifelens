@@ -177,7 +177,7 @@ export function WorkoutModal({ visible, onClose, onSuccess }: WorkoutModalProps)
           <View style={styles.header}>
             <View style={styles.headerTitleRow}>
               <View style={styles.fitnessIcon}>
-                <Ionicons name="fitness" size={18} color="#B8FF00" />
+                <Ionicons name="fitness" size={18} color={colors.darkButton} />
               </View>
               <View>
                 <Text style={styles.title}>Native Workout Tracker</Text>
@@ -198,7 +198,7 @@ export function WorkoutModal({ visible, onClose, onSuccess }: WorkoutModalProps)
               <View style={styles.consistencyBanner}>
                 <View style={styles.consCol}>
                   <Text style={styles.consLabel}>Workout Streak</Text>
-                  <Text style={[styles.consVal, { color: '#B8FF00' }]}>
+                  <Text style={[styles.consVal, { color: colors.darkButton }]}>
                     {consistency.streak_days ?? consistency.current_streak ?? 0} days
                   </Text>
                 </View>
@@ -289,7 +289,7 @@ export function WorkoutModal({ visible, onClose, onSuccess }: WorkoutModalProps)
                   <Ionicons
                     name={isLiveActive ? 'pause' : 'play'}
                     size={14}
-                    color={isLiveActive ? '#FFF' : '#B8FF00'}
+                    color={isLiveActive ? '#FFF' : colors.darkButton}
                   />
                   <Text style={[styles.stopwatchText, isLiveActive && { color: '#FFF' }]}>
                     {isLiveActive ? 'Pause Timer' : elapsedSeconds > 0 ? 'Resume Timer' : 'Live Stopwatch'}
@@ -407,15 +407,17 @@ export function WorkoutModal({ visible, onClose, onSuccess }: WorkoutModalProps)
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(36, 36, 36, 0.45)',
     justifyContent: 'flex-end',
   },
   sheetContainer: {
     backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
+    borderTopLeftRadius: radius.hero,
+    borderTopRightRadius: radius.hero,
     maxHeight: '90%',
     paddingBottom: spacing.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   header: {
     flexDirection: 'row',
@@ -425,7 +427,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceLight,
+    borderBottomColor: colors.border,
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -433,20 +435,20 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   fitnessIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(184, 255, 61, 0.15)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFEAE0',
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
-    color: colors.textPrimary,
+    color: colors.primaryText,
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   subtitle: {
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontSize: 12,
   },
   body: {
@@ -455,8 +457,8 @@ const styles = StyleSheet.create({
   },
   consistencyBanner: {
     flexDirection: 'row',
-    backgroundColor: colors.surfaceLight,
-    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.xl,
     padding: spacing.md,
     marginBottom: spacing.md,
     alignItems: 'center',
@@ -472,18 +474,19 @@ const styles = StyleSheet.create({
   },
   consLabel: {
     fontSize: 10,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     marginBottom: 2,
+    fontWeight: '600',
   },
   consVal: {
     fontSize: 14,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontWeight: '800',
+    color: colors.primaryText,
   },
   sectionLabel: {
-    color: colors.textMuted,
+    color: colors.secondaryText,
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 0.5,
     marginBottom: spacing.xs,
     marginTop: spacing.sm,
@@ -498,7 +501,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: colors.surfaceSecondary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.full,
@@ -506,21 +509,21 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   actPillSelected: {
-    backgroundColor: '#B8FF00',
-    borderColor: '#B8FF00',
+    backgroundColor: colors.darkButton,
+    borderColor: colors.darkButton,
   },
   actLabel: {
-    color: colors.textPrimary,
+    color: colors.secondaryText,
     fontSize: 13,
     fontWeight: '600',
   },
   actLabelSelected: {
-    color: colors.background,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   durationCard: {
-    backgroundColor: colors.surfaceLight,
-    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.xl,
     padding: spacing.md,
     marginBottom: spacing.md,
   },
@@ -531,9 +534,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   durationTitle: {
-    color: colors.textPrimary,
+    color: colors.primaryText,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   stopwatchBtn: {
     flexDirection: 'row',
@@ -543,16 +546,16 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: '#B8FF00',
+    borderColor: '#C05621',
   },
   stopwatchBtnActive: {
     backgroundColor: '#FF5A5F',
     borderColor: '#FF5A5F',
   },
   stopwatchText: {
-    color: '#B8FF00',
+    color: '#C05621',
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   liveTimerWrap: {
     alignItems: 'center',
@@ -560,12 +563,12 @@ const styles = StyleSheet.create({
   },
   liveTimerDigits: {
     fontSize: 36,
-    fontWeight: '800',
-    color: colors.textPrimary,
+    fontWeight: '900',
+    color: colors.primaryText,
     fontVariant: ['tabular-nums'],
   },
   liveTimerSub: {
-    color: colors.textMuted,
+    color: colors.secondaryText,
     fontSize: 12,
     marginTop: 4,
   },
@@ -577,23 +580,23 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: spacing.sm,
     backgroundColor: colors.surface,
-    borderRadius: radius.sm,
+    borderRadius: radius.full,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.border,
   },
   minsPillSelected: {
-    borderColor: colors.primary,
-    backgroundColor: 'rgba(93, 169, 255, 0.15)',
+    borderColor: '#F8D2BD',
+    backgroundColor: '#FFEAE0',
   },
   minsText: {
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontSize: 13,
     fontWeight: '600',
   },
   minsTextSelected: {
-    color: colors.primary,
-    fontWeight: '700',
+    color: '#66300C',
+    fontWeight: '800',
   },
   intensityRow: {
     flexDirection: 'row',
@@ -603,33 +606,33 @@ const styles = StyleSheet.create({
   intensityPill: {
     flex: 1,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surfaceLight,
-    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.full,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.border,
   },
   intensityPillSelected: {
-    borderColor: colors.primary,
-    backgroundColor: 'rgba(93, 169, 255, 0.15)',
+    borderColor: '#F8D2BD',
+    backgroundColor: '#FFEAE0',
   },
   intensityText: {
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontSize: 12,
     fontWeight: '600',
   },
   intensityTextSelected: {
-    color: colors.primary,
-    fontWeight: '700',
+    color: '#66300C',
+    fontWeight: '800',
   },
   metCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(184, 255, 61, 0.08)',
-    borderRadius: radius.md,
+    backgroundColor: '#FFF8F4',
+    borderRadius: radius.xl,
     padding: spacing.md,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(184, 255, 61, 0.2)',
+    borderColor: '#F8D2BD',
   },
   metCol: {
     flex: 1,
@@ -637,20 +640,21 @@ const styles = StyleSheet.create({
   },
   metLabel: {
     fontSize: 10,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     marginBottom: 2,
+    fontWeight: '600',
   },
   metVal: {
     fontSize: 14,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontWeight: '800',
+    color: colors.primaryText,
   },
   notesInput: {
-    backgroundColor: colors.surfaceLight,
-    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.border,
-    color: colors.textPrimary,
+    color: colors.primaryText,
     fontSize: 13,
     padding: spacing.md,
     marginBottom: spacing.lg,

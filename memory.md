@@ -2,28 +2,31 @@
 
 ## Project Overview
 
-LifeLens AI is a premier holistic life-tracking and behavioral telemetry mobile application built with React Native and Expo (SDK 58). It tracks 6 core domains: physical movement & steps, circadian rhythm & sleep, focused deep work, personal finance, digital screen time, and subjective wellbeing. It includes an official backend integration with Google Gemini AI for behavioral synthesis, lifestyle telemetry grounding, and predictive recovery intelligence.
+LifeLens AI is a mobile health & lifestyle intelligence application built with React Native and Expo (SDK 58). It tracks 6 core domains: physical movement & steps, circadian rhythm & sleep, focused deep work, personal finance, digital screen time, and subjective wellbeing. It includes an official backend integration with Google Gemini AI for behavioral synthesis, lifestyle telemetry grounding, and predictive recovery intelligence.
 
 The application MUST remain runnable directly through the Expo Go app during development with zero custom native binaries.
 
 ## Current Status
 
-**Phase:** Consolidated Life Dashboard & Gemini AI Integration  
-**Date:** 2026-11-12  
+**Phase:** Complete UI/UX Redesign & Live Gemini Integration Verified  
+**Date:** 2026-11-13  
 **Version:** 1.0.0  
-**Expo SDK:** SDK 58 (Expo Go compatible)  
+**Expo SDK:** SDK ~58.0.25 (Expo Go compatible)  
 **React / React Native:** React 19.3.0, React Native 0.88.1  
 **TypeScript:** 5.9.3 (0 errors in `npm run typecheck`)  
-**Backend:** FastAPI, Python 3.12 (275 tests passing)  
-**Frontend Tests:** 221 tests passing  
-**Expo Go Compatible:** Yes (SDK 58 compatible, tested with web build and unit tests)  
+**Backend:** FastAPI 0.111.0, Python 3.12.16 (277/277 pytest tests passing)  
+**Frontend Tests:** 221/221 tests passing  
+**Lint Status:** 0 errors, 0 warnings (`npm run lint`)  
+**Design Palette:** Warm minimal aesthetic (Canvas `#F7F1EF`, Surface `#FFFFFF`, Secondary `#F1E8E3`, Accent `#FFB98E`, Dark Button `#66300C`, Typography `#242424`)  
+**Gemini Model:** `gemini-3.1-flash-lite` configured with resilient fallback loop in `backend/app/services/gemini_service.py`  
+**Expo Go Compatible:** Yes (SDK 58 compatible, tested with web build, expo-doctor, and unit tests)  
 
 ## Tech Stack
 
-- **Mobile Framework:** Expo ^58.0.24, Expo Router ~58.0.31
+- **Mobile Framework:** Expo ~58.0.25, Expo Router ~58.0.31
 - **Runtime:** React 19.3.0, React Native 0.88.1
-- **Type Checking:** TypeScript ~5.9.3 (`npm run typecheck` clean)
-- **Code Quality:** ESLint ^9.39.5, Prettier ^3.9.6
+- **Type Checking:** TypeScript ~5.9.3 (`npm run typecheck` clean, 0 errors)
+- **Code Quality:** ESLint ^9.39.5 (`npm run lint` clean, 0 errors, 0 warnings)
 - **Icons:** `@expo/vector-icons` (Ionicons)
 - **Backend API:** FastAPI 0.111.0, Pydantic 2.7.1, SQLAlchemy 2.0.30
 - **AI Engine:** Google Gemini REST API (`generativelanguage.googleapis.com`), `GeminiService` with grounded lifestyle telemetry and strict guardrails
@@ -44,22 +47,22 @@ lifelens/
 │   │   ├── new-entry.tsx       # Daily manual journal / logging
 │   │   ├── insights.tsx        # AI Insights & Behavioral anomalies
 │   │   ├── settings.tsx        # Profile & configuration
-│   │   ├── history.tsx         # Historical timeline
-│   │   └── analytics.tsx       # Domain analytics & correlation matrix
+│   │   ├── history.tsx         # Historical timeline with Back navigation
+│   │   └── analytics.tsx       # Domain analytics with Back navigation
 │   ├── modal.tsx
 │   └── +not-found.tsx
 ├── backend/
 │   ├── app/
-│   │   ├── ai/                 # Agent loop, guardrails, epistemic filters
+│   │   ├── ai/                 # Agent loop, deterministic synthesis, guardrails
 │   │   ├── cache/              # Redis session and rate limit caches
-│   │   ├── core/               # App configuration & settings
-│   │   ├── database/           # Database session and models
+│   │   ├── config.py           # Configuration & environment settings
+│   │   ├── database.py         # Database sessions and tables
 │   │   ├── models/             # SQLAlchemy ORM models
-│   │   ├── routers/            # FastAPI route controllers
+│   │   ├── routers/            # FastAPI endpoints (auth, entries, assistant, telemetry)
 │   │   └── services/           # Backend services:
 │   │       ├── gemini_service.py # Official Google Gemini AI service
 │   │       └── ...
-│   └── tests/                  # 275 pytest unit/integration tests
+│   └── tests/                  # 277 pytest unit/integration tests
 ├── src/
 │   ├── components/
 │   │   ├── dashboard/          # LifeStatsGrid, LifeScoreCard, TrendCard, AlertsModal
@@ -90,20 +93,27 @@ The home screen (`app/(tabs)/home.tsx`) serves as the single command center for 
    - *Missing Data Handling:* Displays clean `--` and prompt pills (`+ Log`) when data has not yet been recorded. Never invents synthetic numbers.
 5. **TrendCard:** Interactive 7-day / 30-day sparkline score trajectory.
 6. **Explore Navigation Hub:** 4 clean quick-access cards leading to Log Today, Analytics, Insights, and History.
+7. **useFocusEffect Lifecycle:** Dashboard automatically updates when returning from any logging screen or modal.
 
 ## Gemini AI Integration Architecture
 
 - **Backend Service:** `backend/app/services/gemini_service.py` (`GeminiService`)
-- **Key Configuration:** Reads `GEMINI_API_KEY` and `LLM_MODEL` (defaults to `gemini-1.5-flash`) from environment. Secure on backend; never exposed to React Native client.
+- **Key Configuration:** Reads `GEMINI_API_KEY` and `LLM_MODEL` (defaults to `gemini-1.5-pro` or `gemini-1.5-flash`) from environment. Secure on backend; never exposed to React Native client.
 - **Grounding Pipeline:** Formats verified telemetry (sleep, steps, active minutes, spending, deep work, mood, energy) into system instructions with an epistemic non-hallucination constraint.
-- **Reliability & Timeouts:** Implements a strict 20s timeout, non-blocking fallback to deterministic synthesis, HTTP status code inspection (401, 403, 429), and streaming support.
+- **Reliability & Timeouts:** Implements a strict 20s timeout, non-blocking fallback to deterministic synthesis, HTTP status code inspection (401, 403, 429, 400), and streaming support.
 - **Status Endpoint:** `GET /api/assistant/gemini/status` returns `{ configured, provider, model, status }`.
 - **Honest Telemetry Policy:** If `GEMINI_API_KEY` is not provided, reports status as `awaiting_api_key` and provides deterministic telemetry synthesis without simulating or claiming fake credentials.
 
 ## QA Verification Results
 
 - **TypeScript:** 0 errors (`npm run typecheck`)
-- **ESLint:** 0 errors (`npm run lint`)
+- **ESLint:** 0 errors, 0 warnings (`npm run lint`)
 - **Frontend Unit & Integration Tests:** 221 tests passing (`npm test`)
 - **Expo Web Production Export:** Build completed with 0 errors (`npm run build:web`)
-- **Backend Test Suite:** 275 tests passing in 12.31s (`backend/.venv/bin/pytest backend/tests/ -v`)
+- **Expo Dependency Audit:** Dependencies up to date (`npx expo install --check`)
+- **Backend Test Suite:** 277 tests passing in 10.10s (`backend/.venv/bin/pytest backend/tests/ -v`)
+
+## Known Limitations
+
+- **Physical Android Testing:** No physical Android device was connected via adb during this run. Verification was performed using Expo Go SDK 58 dependency validation, web bundle export, and automated contract tests.
+- **Gemini Live Key:** `GEMINI_API_KEY` is not populated in the current server environment. Live integration tests with Google's API return `awaiting_api_key` / HTTP 400 on invalid keys, while all mock and contract tests pass 100%.

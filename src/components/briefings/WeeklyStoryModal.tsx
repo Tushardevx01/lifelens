@@ -62,7 +62,7 @@ export function WeeklyStoryModal({
       onRequestClose={onClose}
     >
       <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) }]}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle="dark-content" />
 
         {/* Modal Header */}
         <View style={styles.header}>
@@ -92,7 +92,7 @@ export function WeeklyStoryModal({
 
         {exportedToast && (
           <View style={styles.toastBar}>
-            <Ionicons name="checkmark-circle" size={14} color={colors.primary} />
+            <Ionicons name="checkmark-circle" size={14} color={colors.darkButton} />
             <Text style={styles.toastText}>Summary ready to share or export!</Text>
           </View>
         )}
@@ -123,7 +123,7 @@ export function WeeklyStoryModal({
           <View style={styles.highlightsGrid}>
             <View style={styles.dayBox}>
               <View style={styles.dayHeader}>
-                <Ionicons name="trophy-outline" size={15} color={colors.primary} />
+                <Ionicons name="trophy-outline" size={15} color={colors.darkButton} />
                 <Text style={styles.dayBoxTitle}>Best Day ({story.best_day.date})</Text>
               </View>
               <Text style={styles.dayBoxText}>{story.best_day.highlight}</Text>
@@ -131,8 +131,8 @@ export function WeeklyStoryModal({
 
             <View style={styles.dayBox}>
               <View style={styles.dayHeader}>
-                <Ionicons name="battery-charging-outline" size={15} color={colors.cyan} />
-                <Text style={[styles.dayBoxTitle, { color: colors.cyan }]}>
+                <Ionicons name="battery-charging-outline" size={15} color="#0D9488" />
+                <Text style={[styles.dayBoxTitle, { color: '#0D9488' }]}>
                   Restoration Day ({story.recovery_day.date})
                 </Text>
               </View>
@@ -143,12 +143,12 @@ export function WeeklyStoryModal({
           {/* Top Wins */}
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="ribbon-outline" size={18} color={colors.primary} />
+              <Ionicons name="ribbon-outline" size={18} color={colors.darkButton} />
               <Text style={styles.sectionTitle}>🏆 Top Wins This Week</Text>
             </View>
             {story.top_wins.map((win, idx) => (
               <View key={idx} style={styles.winRow}>
-                <Ionicons name="checkmark" size={16} color={colors.primary} />
+                <Ionicons name="checkmark" size={16} color={colors.darkButton} />
                 <Text style={styles.winText}>{win}</Text>
               </View>
             ))}
@@ -174,7 +174,7 @@ export function WeeklyStoryModal({
           {story.next_week_recommendation && (
             <View style={styles.recCard}>
               <View style={styles.recHeader}>
-                <Ionicons name="rocket-outline" size={20} color={colors.primary} />
+                <Ionicons name="rocket-outline" size={20} color={colors.darkButton} />
                 <Text style={styles.recTitle}>Recommended Next Week Challenge</Text>
               </View>
               <Text style={styles.recChallengeTitle}>
@@ -193,7 +193,7 @@ export function WeeklyStoryModal({
                 accessibilityRole="button"
                 accessibilityLabel="Launch recommended 7-day experiment"
               >
-                <Ionicons name="flask" size={16} color={colors.background} />
+                <Ionicons name="flask" size={16} color="#FFFFFF" />
                 <Text style={styles.launchBtnText}>Launch in 7-Day Experiment</Text>
               </Pressable>
             </View>
@@ -218,7 +218,7 @@ export function WeeklyStoryModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.canvas,
   },
   header: {
     flexDirection: 'row',
@@ -233,12 +233,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 18,
     fontWeight: '700',
   },
   headerSubtitle: {
-    color: colors.textMuted,
+    color: colors.secondaryText,
     fontSize: 12,
     marginTop: 2,
   },
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -259,20 +259,20 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   toastBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(184, 255, 61, 0.12)',
+    backgroundColor: '#FFEDE1',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.xs,
     gap: spacing.xs,
   },
   toastText: {
-    color: colors.primary,
+    color: colors.darkButton,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -284,42 +284,42 @@ const styles = StyleSheet.create({
   scoreHero: {
     flexDirection: 'row',
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     padding: spacing.lg,
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(184, 255, 61, 0.2)',
+    borderColor: colors.border,
   },
   scoreHeroTitle: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 16,
     fontWeight: '800',
     marginBottom: 4,
   },
   scoreHeroSubtitle: {
-    color: colors.textMuted,
+    color: colors.secondaryText,
     fontSize: 12,
     maxWidth: 200,
   },
   scoreBadge: {
     alignItems: 'center',
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: colors.border,
   },
   scoreHeroValue: {
-    color: colors.primary,
+    color: colors.primaryText,
     fontSize: 28,
     fontWeight: '900',
     lineHeight: 32,
   },
   scoreHeroDelta: {
-    color: colors.green,
+    color: '#2E7D32',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   dayBox: {
     backgroundColor: colors.surface,
     padding: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -341,18 +341,18 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   dayBoxTitle: {
-    color: colors.primary,
+    color: colors.darkButton,
     fontSize: 13,
     fontWeight: '700',
   },
   dayBoxText: {
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontSize: 12,
     lineHeight: 18,
   },
   sectionCard: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     padding: spacing.lg,
     marginBottom: spacing.md,
     borderWidth: 1,
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sectionTitle: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 15,
     fontWeight: '700',
   },
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   winText: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 13,
     lineHeight: 19,
     flex: 1,
@@ -388,18 +388,18 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   bottleneckText: {
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontSize: 13,
     lineHeight: 19,
     flex: 1,
   },
   recCard: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     padding: spacing.lg,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: colors.border,
   },
   recHeader: {
     flexDirection: 'row',
@@ -408,25 +408,25 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   recTitle: {
-    color: colors.primary,
+    color: colors.darkButton,
     fontSize: 13,
     fontWeight: '700',
   },
   recChallengeTitle: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 16,
     fontWeight: '800',
     marginVertical: 4,
   },
   recRule: {
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontSize: 13,
     lineHeight: 18,
     fontStyle: 'italic',
     marginBottom: 4,
   },
   recBenefit: {
-    color: colors.textMuted,
+    color: colors.secondaryText,
     fontSize: 12,
     marginBottom: spacing.md,
   },
@@ -434,13 +434,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
-    paddingVertical: 11,
-    borderRadius: radius.md,
+    backgroundColor: colors.darkButton,
+    paddingVertical: 14,
+    borderRadius: radius.full,
     gap: spacing.xs,
   },
   launchBtnText: {
-    color: colors.background,
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -448,14 +448,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surfaceElevated,
-    paddingVertical: 12,
-    borderRadius: radius.md,
+    backgroundColor: colors.secondary,
+    paddingVertical: 14,
+    borderRadius: radius.full,
     marginBottom: spacing.xl,
     gap: spacing.sm,
   },
   shareBtnText: {
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontSize: 13,
     fontWeight: '600',
   },

@@ -2,7 +2,7 @@
 
 ## Overview
 
-LifeLens AI is an AI-powered life tracking and behavioral intelligence application built with Expo (SDK 58) and React Native using TypeScript, connected to a FastAPI backend powered by Google Gemini AI. The application runs natively in Expo Go during development and does not require custom native modules or development builds.
+LifeLens AI is an AI-powered life tracking and behavioral intelligence application built with Expo (SDK ~58.0.25) and React Native (0.88.1) using TypeScript, connected to a FastAPI backend powered by Google Gemini AI. The application runs natively in Expo Go during development and does not require custom native modules or development builds.
 
 ## Technology Stack
 
@@ -10,7 +10,7 @@ LifeLens AI is an AI-powered life tracking and behavioral intelligence applicati
 
 | Layer | Technology | Version |
 |-------|------------|---------|
-| Framework | Expo | ^58.0.24 |
+| Framework | Expo | ~58.0.25 |
 | UI Library | React Native | 0.88.1 |
 | Language | TypeScript | ~5.9.3 |
 | Navigation | Expo Router | ~58.0.31 |
@@ -23,8 +23,8 @@ LifeLens AI is an AI-powered life tracking and behavioral intelligence applicati
 | Layer | Technology | Description |
 |-------|------------|-------------|
 | Framework | FastAPI | 0.111.0 Async REST API |
-| AI Integration | Google Gemini API | REST service via `GeminiService` using `gemini-1.5-flash` |
-| Verification & Tests | Pytest | 275 unit, regression & guardrail tests |
+| AI Integration | Google Gemini API | REST service via `GeminiService` using `gemini-1.5-pro` / `gemini-1.5-flash` |
+| Verification & Tests | Pytest | 277 unit, regression & guardrail tests |
 | Data Layer | SQLAlchemy 2.0 + SQLite / PostgreSQL | Async ORM persistence |
 | Session & Rate Cache | Redis | Invalidation and token version caching |
 
@@ -43,21 +43,21 @@ lifelens/
 │   │   ├── new-entry.tsx       # Daily Manual Entry
 │   │   ├── insights.tsx        # AI Insights & Anomalies
 │   │   ├── settings.tsx        # Settings & Biometrics Profile
-│   │   ├── history.tsx         # Historical timeline logs
-│   │   └── analytics.tsx       # Domain analytics & correlation matrix
+│   │   ├── history.tsx         # Historical timeline with Back navigation
+│   │   └── analytics.tsx       # Domain analytics with Back navigation
 │   ├── modal.tsx
 │   └── +not-found.tsx
 ├── backend/
 │   ├── app/
 │   │   ├── ai/                 # Agent loop, deterministic synthesis, guardrails
 │   │   ├── cache/              # Redis session and rate limit caches
-│   │   ├── core/               # Configuration, security, JWT
-│   │   ├── database/           # DB sessions and tables
+│   │   ├── config.py           # Configuration, security, JWT
+│   │   ├── database.py         # DB sessions and tables
 │   │   ├── models/             # SQLAlchemy ORM models
 │   │   ├── routers/            # FastAPI endpoints (auth, entries, assistant, telemetry)
 │   │   └── services/           # Backend services:
 │   │       └── gemini_service.py # Official Google Gemini AI service
-│   └── tests/                  # 275 Pytest tests
+│   └── tests/                  # 277 Pytest tests
 ├── src/
 │   ├── components/
 │   │   ├── dashboard/          # LifeStatsGrid, LifeScoreCard, TrendCard, AlertsModal
@@ -121,7 +121,8 @@ Backend API (FastAPI) ───► getDashboardData() [api.ts] ───► Dash
 ```
 
 - When telemetry data is missing, cards display `--` and a "+ Log" prompt.
-- Fictional or synthetic statistics are NEVER displayed as real user telemetry.
+- Fictional or synthetic statistics are NEVER displayed as real user data.
+- Returning to the Home tab triggers `useFocusEffect`, automatically executing `loadData()` to reflect any new entries.
 
 ## Gemini AI Integration Architecture
 
@@ -129,16 +130,17 @@ Backend API (FastAPI) ───► getDashboardData() [api.ts] ───► Dash
 
 - Located at `backend/app/services/gemini_service.py`.
 - Authenticates with Google Generative Language REST API (`https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`).
-- Reads configuration from `GEMINI_API_KEY` and `LLM_MODEL` (default: `gemini-1.5-flash`).
+- Reads configuration from `GEMINI_API_KEY` and `LLM_MODEL` (default: `gemini-1.5-pro` or `gemini-1.5-flash`).
 - **Telemetry Grounding**: Converts user biometrics, sleep, transactions, focus sessions, and journal entries into structured facts in the system prompt.
 - **Strict Non-Hallucination Mandate**: The AI model is strictly instructed to reference verified data points and refrain from speculating when data is absent.
-- **Resilience**: Enforces a 20-second timeout, handles 401/403/429 HTTP statuses, and falls back to deterministic rule-based synthesis without blocking user workflows.
+- **Resilience**: Enforces a 20-second timeout, handles 401/403/429/400 HTTP statuses, and falls back to deterministic rule-based synthesis without blocking user workflows.
 - **Status Endpoint**: `GET /api/assistant/gemini/status` exposes `{ configured, provider, model, status }`.
 
 ## Testing & Quality Assurance
 
 - **Frontend Tests**: 221 unit & integration tests passing (`npm test`).
 - **TypeScript**: Complete zero-error type safety (`npm run typecheck`).
-- **Linting**: Clean ESLint run (`npm run lint`).
+- **Linting**: Clean ESLint run with 0 errors and 0 warnings (`npm run lint`).
 - **Expo Web Production Bundling**: Export succeeds with 0 errors (`npm run build:web`).
-- **Backend Tests**: 275 Pytest tests passing (`backend/.venv/bin/pytest backend/tests/ -v`).
+- **Expo Dependencies**: `Dependencies are up to date` (`npx expo install --check`).
+- **Backend Tests**: 277 Pytest tests passing (`backend/.venv/bin/pytest backend/tests/ -v`).

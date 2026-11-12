@@ -20,7 +20,7 @@ export function LiveScoreCard({ breakdown }: LiveScoreCardProps) {
       <View style={styles.headerRow}>
         <View style={styles.titleCol}>
           <View style={styles.badgeRow}>
-            <Ionicons name="sparkles" size={14} color={colors.primary} />
+            <Ionicons name="sparkles" size={14} color="#66300C" />
             <Text style={styles.badgeText}>LIVE SCORE ESTIMATOR</Text>
           </View>
           <Text style={styles.title}>Projected Life Score</Text>
@@ -46,7 +46,7 @@ export function LiveScoreCard({ breakdown }: LiveScoreCardProps) {
             <View
               style={[
                 styles.progressFill,
-                { width: `${Math.min(100, sleep_score)}%`, backgroundColor: '#00D4AA' },
+                { width: `${Math.min(100, sleep_score)}%`, backgroundColor: '#7C3AED' },
               ]}
             />
           </View>
@@ -59,7 +59,7 @@ export function LiveScoreCard({ breakdown }: LiveScoreCardProps) {
             <View
               style={[
                 styles.progressFill,
-                { width: `${Math.min(100, productivity_score)}%`, backgroundColor: '#4A9EFF' },
+                { width: `${Math.min(100, productivity_score)}%`, backgroundColor: '#2563EB' },
               ]}
             />
           </View>
@@ -72,7 +72,7 @@ export function LiveScoreCard({ breakdown }: LiveScoreCardProps) {
             <View
               style={[
                 styles.progressFill,
-                { width: `${Math.min(100, health_score)}%`, backgroundColor: '#B8FF00' },
+                { width: `${Math.min(100, health_score)}%`, backgroundColor: '#15803D' },
               ]}
             />
           </View>
@@ -85,7 +85,7 @@ export function LiveScoreCard({ breakdown }: LiveScoreCardProps) {
             <View
               style={[
                 styles.progressFill,
-                { width: `${Math.min(100, finance_score)}%`, backgroundColor: '#FF9F43' },
+                { width: `${Math.min(100, finance_score)}%`, backgroundColor: '#C05621' },
               ]}
             />
           </View>
@@ -112,11 +112,16 @@ export function LiveScoreCard({ breakdown }: LiveScoreCardProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.xl,
+    borderRadius: radius.xxl,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(184, 255, 61, 0.25)',
+    borderColor: colors.border,
     marginBottom: spacing.lg,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   headerRow: {
     flexDirection: 'row',
@@ -134,13 +139,13 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 10,
     fontWeight: '800',
-    color: colors.primary,
+    color: '#66300C',
     letterSpacing: 0.8,
   },
   title: {
     fontSize: 18,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontWeight: '800',
+    color: colors.primaryText,
   },
   scoreContainer: {
     alignItems: 'flex-end',
@@ -177,17 +182,17 @@ const styles = StyleSheet.create({
   },
   metricLabel: {
     fontSize: 11,
-    color: colors.textMuted,
-    fontWeight: '500',
+    color: colors.secondaryText,
+    fontWeight: '600',
   },
   metricScore: {
     fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontWeight: '800',
+    color: colors.primaryText,
   },
   progressBar: {
-    height: 4,
-    backgroundColor: colors.surfaceElevated,
+    height: 6,
+    backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.full,
     overflow: 'hidden',
   },

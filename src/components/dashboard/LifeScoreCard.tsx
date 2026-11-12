@@ -17,10 +17,10 @@ interface LifeScoreCardProps {
 }
 
 const defaultCategories: CategoryScore[] = [
-  { name: 'Sleep', score: 82, color: '#00D4AA' },
-  { name: 'Productivity', score: 91, color: '#4A9EFF' },
-  { name: 'Health', score: 78, color: '#B8FF00' },
-  { name: 'Finance', score: 85, color: '#FF9F43' },
+  { name: 'Sleep', score: 82, color: '#7E699B' },
+  { name: 'Productivity', score: 91, color: '#50769A' },
+  { name: 'Health', score: 78, color: '#789938' },
+  { name: 'Finance', score: 85, color: '#A35C2B' },
 ];
 
 export default function LifeScoreCard({
@@ -30,15 +30,20 @@ export default function LifeScoreCard({
 }: LifeScoreCardProps) {
   return (
     <View style={styles.card}>
+      <Text style={styles.headerLabel}>DAILY LIFE SCORE</Text>
+
       <View style={styles.scoreContainer}>
         <Text style={styles.score}>{score.toFixed(1)}</Text>
         <Text style={styles.divider}>/100</Text>
       </View>
-      <View style={styles.changeContainer}>
-        <Text style={[styles.change, change >= 0 && styles.positive]}>
-          {change >= 0 ? '+' : ''}
-          {change.toFixed(1)} vs yesterday
-        </Text>
+
+      <View style={styles.changeBadgeWrap}>
+        <View style={[styles.changeBadge, change >= 0 ? styles.positiveBadge : styles.negativeBadge]}>
+          <Text style={[styles.changeText, change >= 0 ? styles.positiveText : styles.negativeText]}>
+            {change >= 0 ? '↑ +' : '↓ '}
+            {Math.abs(change).toFixed(1)} pts vs yesterday
+          </Text>
+        </View>
       </View>
 
       <View style={styles.categoriesGrid}>
@@ -49,7 +54,7 @@ export default function LifeScoreCard({
               <Text style={styles.categoryName}>{cat.name}</Text>
             </View>
             <Text style={[styles.categoryScore, { color: cat.color }]}>
-              {cat.score}
+              {Math.round(cat.score)}
             </Text>
           </View>
         ))}
@@ -61,65 +66,99 @@ export default function LifeScoreCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.md,
+    borderRadius: radius.xxl,
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.lg,
     padding: spacing.xl,
     alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    boxShadow: '0px 4px 16px rgba(102, 48, 12, 0.04)',
+    elevation: 3,
+  },
+  headerLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textMuted,
+    letterSpacing: 1.2,
+    marginBottom: spacing.xs,
   },
   scoreContainer: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: spacing.xs,
+    marginVertical: spacing.xs,
   },
   score: {
-    color: colors.text,
-    fontSize: 56,
+    color: colors.textPrimary,
+    fontSize: 54,
     fontWeight: '800',
+    letterSpacing: -1.5,
   },
   divider: {
     color: colors.textMuted,
-    fontSize: 20,
-    marginLeft: spacing.xs,
+    fontSize: 18,
+    fontWeight: '600',
+    marginLeft: 4,
   },
-  changeContainer: {
-    marginBottom: spacing.xl,
+  changeBadgeWrap: {
+    marginBottom: spacing.lg,
   },
-  change: {
-    color: colors.textSecondary,
-    fontSize: 13,
+  changeBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: radius.full,
   },
-  positive: {
-    color: '#00D4AA',
+  positiveBadge: {
+    backgroundColor: '#EDF5DC',
+  },
+  negativeBadge: {
+    backgroundColor: '#FCE3E3',
+  },
+  changeText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  positiveText: {
+    color: '#789938',
+  },
+  negativeText: {
+    color: '#A84545',
   },
   categoriesGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    justifyContent: 'space-between',
     width: '100%',
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+    gap: spacing.xs,
   },
   categoryItem: {
-    width: '50%',
-    padding: spacing.sm,
-    boxSizing: 'border-box',
+    alignItems: 'center',
+    flex: 1,
+    backgroundColor: colors.surfaceSoft,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: radius.md,
   },
   categoryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.xs,
+    gap: 4,
+    marginBottom: 2,
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   categoryName: {
+    fontSize: 11,
+    fontWeight: '600',
     color: colors.textSecondary,
-    fontSize: 12,
   },
   categoryScore: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginLeft: 16,
+    fontSize: 15,
+    fontWeight: '800',
   },
 });

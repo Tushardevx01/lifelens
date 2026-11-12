@@ -156,7 +156,7 @@ export function ExperimentHubModal({
                           onOpenCreate();
                         }}
                       >
-                        <Ionicons name="add" size={16} color={colors.background} />
+                        <Ionicons name="add" size={16} color="#FFFFFF" />
                         <Text style={styles.createActionText}>Start an Experiment</Text>
                       </Pressable>
                     </View>
@@ -193,7 +193,7 @@ export function ExperimentHubModal({
                           }}
                         >
                           <Text style={styles.evalItemBtnText}>Open Statistical Evaluation</Text>
-                          <Ionicons name="chevron-forward" size={14} color={colors.primary} />
+                          <Ionicons name="chevron-forward" size={14} color={colors.darkButton} />
                         </Pressable>
                       </View>
                     ))
@@ -224,7 +224,7 @@ export function ExperimentHubModal({
                         accessibilityRole="button"
                         accessibilityLabel={`Start challenge ${tpl.title}`}
                       >
-                        <Ionicons name="play" size={14} color={colors.background} />
+                        <Ionicons name="play" size={14} color="#FFFFFF" />
                         <Text style={styles.tplStartBtnText}>Start This 7-Day Challenge</Text>
                       </Pressable>
                     </View>
@@ -297,7 +297,7 @@ export function ExperimentHubModal({
               }}
               accessibilityRole="button"
             >
-              <Ionicons name="add-circle-outline" size={18} color={colors.background} />
+              <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
               <Text style={styles.newExpBtnText}>Create Custom Experiment</Text>
             </Pressable>
           </View>
@@ -310,13 +310,13 @@ export function ExperimentHubModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(36, 36, 36, 0.45)',
     justifyContent: 'flex-end',
   },
   container: {
     backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.xxl,
-    borderTopRightRadius: radius.xxl,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
     maxHeight: '94%',
     paddingTop: spacing.lg,
   },
@@ -332,18 +332,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     marginTop: 2,
   },
   closeBtn: {
     width: 32,
     height: 32,
     borderRadius: radius.full,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -361,15 +361,15 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabBtnActive: {
-    borderBottomColor: colors.primary,
+    borderBottomColor: colors.darkButton,
   },
   tabText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.textMuted,
+    color: colors.secondaryText,
   },
   tabTextActive: {
-    color: colors.primary,
+    color: colors.darkButton,
     fontWeight: '700',
   },
   centerBox: {
@@ -391,11 +391,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   emptySub: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: spacing.lg,
@@ -404,23 +404,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.darkButton,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    borderRadius: radius.md,
+    borderRadius: radius.full,
     marginTop: spacing.md,
   },
   createActionText: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.background,
+    color: '#FFFFFF',
   },
   activeExpItem: {
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(0, 229, 255, 0.25)',
+    borderColor: colors.border,
     gap: spacing.xs,
   },
   expItemHeader: {
@@ -431,11 +431,11 @@ const styles = StyleSheet.create({
   expItemTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
     flex: 1,
   },
   expDayTag: {
-    backgroundColor: 'rgba(0, 229, 255, 0.12)',
+    backgroundColor: '#FFEDE1',
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: radius.full,
@@ -443,11 +443,11 @@ const styles = StyleSheet.create({
   expDayTagText: {
     fontSize: 11,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.darkButton,
   },
   expItemRule: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   expStatsRow: {
     flexDirection: 'row',
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
   },
   expStatItem: {
     fontSize: 11,
-    color: colors.textMuted,
+    color: colors.secondaryText,
   },
   evalItemBtn: {
     flexDirection: 'row',
@@ -470,14 +470,14 @@ const styles = StyleSheet.create({
   evalItemBtnText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.primary,
+    color: colors.darkButton,
   },
   templateList: {
     gap: spacing.md,
   },
   templateListItem: {
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.lg,
+    backgroundColor: colors.secondary,
+    borderRadius: radius.xl,
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tplCategoryPill: {
-    backgroundColor: 'rgba(0, 229, 255, 0.08)',
+    backgroundColor: '#EFF5FA',
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: radius.full,
@@ -497,24 +497,24 @@ const styles = StyleSheet.create({
   tplCategoryText: {
     fontSize: 10,
     fontWeight: '600',
-    color: colors.primary,
+    color: '#1D4ED8',
   },
   tplDuration: {
     fontSize: 11,
-    color: colors.textMuted,
+    color: colors.secondaryText,
   },
   tplTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   tplRule: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   tplRationale: {
     fontSize: 11,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     fontStyle: 'italic',
     lineHeight: 15,
   },
@@ -523,19 +523,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.darkButton,
     paddingVertical: spacing.sm,
-    borderRadius: radius.md,
+    borderRadius: radius.full,
     marginTop: spacing.xs,
   },
   tplStartBtnText: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.background,
+    color: '#FFFFFF',
   },
   historyCard: {
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.lg,
+    backgroundColor: colors.secondary,
+    borderRadius: radius.xl,
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
   historyTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
     flex: 1,
   },
   verdictBadge: {
@@ -558,26 +558,26 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
   },
   verdictSuccess: {
-    backgroundColor: 'rgba(0, 230, 153, 0.15)',
+    backgroundColor: '#EDF5DC',
   },
   verdictPartial: {
-    backgroundColor: 'rgba(0, 229, 255, 0.15)',
+    backgroundColor: '#FFEDE1',
   },
   verdictNoEffect: {
-    backgroundColor: 'rgba(150, 150, 150, 0.15)',
+    backgroundColor: '#F1E8E3',
   },
   verdictBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   historyDates: {
     fontSize: 11,
-    color: colors.textMuted,
+    color: colors.secondaryText,
   },
   historySummary: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     lineHeight: 16,
     marginVertical: 2,
   },
@@ -590,7 +590,7 @@ const styles = StyleSheet.create({
   historyDelta: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.primary,
+    color: colors.darkButton,
   },
   habitBadge: {
     flexDirection: 'row',
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
   },
   habitBadgeText: {
     fontSize: 11,
-    color: colors.green,
+    color: '#2E7D32',
     fontWeight: '600',
   },
   footer: {
@@ -612,13 +612,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.darkButton,
     paddingVertical: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.full,
   },
   newExpBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.background,
+    color: '#FFFFFF',
   },
 });

@@ -31,7 +31,7 @@ export default function InsightsList({ insights = defaultInsights }: InsightsLis
       {insights.map((item, index) => (
         <Pressable key={item.id} style={[styles.row, index === insights.length - 1 && styles.lastRow]}>
           <View style={styles.iconContainer}>
-            <Ionicons name={item.icon as React.ComponentProps<typeof Ionicons>['name']} size={18} color={colors.primary} />
+            <Ionicons name={item.icon as React.ComponentProps<typeof Ionicons>['name']} size={18} color="#66300C" />
           </View>
           <View style={styles.content}>
             <Text style={styles.itemTitle}>{item.title}</Text>
@@ -47,15 +47,22 @@ export default function InsightsList({ insights = defaultInsights }: InsightsLis
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xxl,
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
     padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   title: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     marginBottom: spacing.md,
   },
   row: {
@@ -70,9 +77,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: colors.surfaceSecondary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -81,12 +88,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemTitle: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   itemSubtitle: {
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontSize: 12,
     marginTop: 2,
   },

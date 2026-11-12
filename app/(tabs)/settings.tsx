@@ -222,7 +222,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       <ScrollView
         style={styles.scrollView}
@@ -275,7 +275,7 @@ export default function SettingsScreen() {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.profileStatItem}>
-              <Text style={[styles.profileStatValue, { color: colors.primary }]}>
+              <Text style={[styles.profileStatValue, { color: '#C05621' }]}>
                 {entries.length >= 30 ? 'Top 5%' : entries.length >= 14 ? 'Top 15%' : 'Growing'}
               </Text>
               <Text style={styles.profileStatLabel}>Consistency</Text>
@@ -295,8 +295,8 @@ export default function SettingsScreen() {
               accessibilityLabel="Load 45-day demo data"
             >
               <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: 'rgba(184, 255, 61, 0.15)' }]}>
-                  <Ionicons name="sparkles" size={18} color={colors.primary} />
+                <View style={[styles.settingIconWrap, { backgroundColor: '#FFEAE0' }]}>
+                  <Ionicons name="sparkles" size={18} color="#66300C" />
                 </View>
                 <View style={styles.settingTextCol}>
                   <Text style={styles.settingTitle}>Load 45-Day Demo Data</Text>
@@ -306,9 +306,9 @@ export default function SettingsScreen() {
                 </View>
               </View>
               {actionLoading ? (
-                <ActivityIndicator size="small" color={colors.primary} />
+                <ActivityIndicator size="small" color="#66300C" />
               ) : (
-                <Ionicons name="cloud-download-outline" size={20} color={colors.primary} />
+                <Ionicons name="cloud-download-outline" size={20} color="#66300C" />
               )}
             </Pressable>
 
@@ -321,8 +321,8 @@ export default function SettingsScreen() {
               accessibilityLabel="Export historical entries as CSV"
             >
               <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: colors.surfaceElevated }]}>
-                  <Ionicons name="document-text-outline" size={18} color={colors.textPrimary} />
+                <View style={[styles.settingIconWrap, { backgroundColor: colors.surfaceSecondary }]}>
+                  <Ionicons name="document-text-outline" size={18} color={colors.primaryText} />
                 </View>
                 <View style={styles.settingTextCol}>
                   <Text style={styles.settingTitle}>Export Historical CSV</Text>
@@ -344,7 +344,7 @@ export default function SettingsScreen() {
               accessibilityLabel="Clear all personal data"
             >
               <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: 'rgba(255, 99, 109, 0.15)' }]}>
+                <View style={[styles.settingIconWrap, { backgroundColor: '#FDE8E8' }]}>
                   <Ionicons name="trash-outline" size={18} color={colors.error} />
                 </View>
                 <View style={styles.settingTextCol}>
@@ -359,7 +359,7 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Automated Data Connectors (Phase 5) */}
+        {/* Automated Data Connectors */}
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>DATA SOURCES & CONNECTORS</Text>
           <View style={styles.card}>
@@ -370,14 +370,14 @@ export default function SettingsScreen() {
               accessibilityLabel="Open automated data connectors hub"
             >
               <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: 'rgba(184, 255, 61, 0.15)' }]}>
-                  <Ionicons name="hardware-chip" size={18} color={colors.primary} />
+                <View style={[styles.settingIconWrap, { backgroundColor: '#EFF5FA' }]}>
+                  <Ionicons name="hardware-chip" size={18} color="#2563EB" />
                 </View>
                 <View style={styles.settingTextCol}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Text style={styles.settingTitle}>Automated Device Connectors</Text>
-                    <View style={{ backgroundColor: '#1E252B', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: '#344047' }}>
-                      <Text style={{ fontSize: 9, fontWeight: '700', color: '#4A9EFF' }}>AUTO-SYNC</Text>
+                    <View style={{ backgroundColor: '#F5ECE6', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: colors.border }}>
+                      <Text style={{ fontSize: 9, fontWeight: '700', color: '#66300C' }}>AUTO-SYNC</Text>
                     </View>
                   </View>
                   <Text style={styles.settingDesc}>
@@ -396,8 +396,8 @@ export default function SettingsScreen() {
           <View style={styles.card}>
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: 'rgba(184, 255, 61, 0.15)' }]}>
-                  <Ionicons name="sparkles" size={18} color={colors.primary} />
+                <View style={[styles.settingIconWrap, { backgroundColor: '#F3EDF9' }]}>
+                  <Ionicons name="sparkles" size={18} color="#7C3AED" />
                 </View>
                 <View style={styles.settingTextCol}>
                   <Text style={styles.settingTitle}>Daily AI Synthesis</Text>
@@ -411,8 +411,8 @@ export default function SettingsScreen() {
                 onValueChange={(val) =>
                   saveToggle(STORAGE_KEYS.DAILY_INSIGHTS, val, setDailyInsights)
                 }
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={colors.white}
+                trackColor={{ false: colors.border, true: colors.darkButton }}
+                thumbColor="#FFFFFF"
               />
             </View>
 
@@ -420,8 +420,8 @@ export default function SettingsScreen() {
 
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: 'rgba(255, 159, 74, 0.15)' }]}>
-                  <Ionicons name="warning" size={18} color="#FF9F4A" />
+                <View style={[styles.settingIconWrap, { backgroundColor: '#FCF6E5' }]}>
+                  <Ionicons name="warning" size={18} color="#D97706" />
                 </View>
                 <View style={styles.settingTextCol}>
                   <Text style={styles.settingTitle}>Anomaly Alerts</Text>
@@ -435,8 +435,8 @@ export default function SettingsScreen() {
                 onValueChange={(val) =>
                   saveToggle(STORAGE_KEYS.ANOMALY_ALERTS, val, setAnomalyAlerts)
                 }
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={colors.white}
+                trackColor={{ false: colors.border, true: colors.darkButton }}
+                thumbColor="#FFFFFF"
               />
             </View>
 
@@ -444,8 +444,8 @@ export default function SettingsScreen() {
 
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: 'rgba(93, 169, 255, 0.15)' }]}>
-                  <Ionicons name="bulb-outline" size={18} color={colors.blue} />
+                <View style={[styles.settingIconWrap, { backgroundColor: '#EFF5FA' }]}>
+                  <Ionicons name="bulb-outline" size={18} color="#2563EB" />
                 </View>
                 <View style={styles.settingTextCol}>
                   <Text style={styles.settingTitle}>Deep Work Optimization</Text>
@@ -459,8 +459,8 @@ export default function SettingsScreen() {
                 onValueChange={(val) =>
                   saveToggle(STORAGE_KEYS.FOCUS_TRACKING, val, setFocusTracking)
                 }
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={colors.white}
+                trackColor={{ false: colors.border, true: colors.darkButton }}
+                thumbColor="#FFFFFF"
               />
             </View>
           </View>
@@ -472,8 +472,8 @@ export default function SettingsScreen() {
           <View style={styles.card}>
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: 'rgba(66, 215, 122, 0.15)' }]}>
-                  <Ionicons name="cloud-done-outline" size={18} color={colors.green} />
+                <View style={[styles.settingIconWrap, { backgroundColor: '#EDF5DC' }]}>
+                  <Ionicons name="cloud-done-outline" size={18} color="#15803D" />
                 </View>
                 <View style={styles.settingTextCol}>
                   <Text style={styles.settingTitle}>LifeLens Cloud Sync</Text>
@@ -487,8 +487,8 @@ export default function SettingsScreen() {
                 onValueChange={(val) =>
                   saveToggle(STORAGE_KEYS.CLOUD_SYNC, val, setCloudSync)
                 }
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={colors.white}
+                trackColor={{ false: colors.border, true: colors.darkButton }}
+                thumbColor="#FFFFFF"
               />
             </View>
 
@@ -496,8 +496,8 @@ export default function SettingsScreen() {
 
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: colors.surfaceElevated }]}>
-                  <Ionicons name="finger-print-outline" size={18} color={colors.textPrimary} />
+                <View style={[styles.settingIconWrap, { backgroundColor: colors.surfaceSecondary }]}>
+                  <Ionicons name="finger-print-outline" size={18} color={colors.primaryText} />
                 </View>
                 <View style={styles.settingTextCol}>
                   <Text style={styles.settingTitle}>Haptic Feedback</Text>
@@ -511,8 +511,8 @@ export default function SettingsScreen() {
                 onValueChange={(val) =>
                   saveToggle(STORAGE_KEYS.HAPTICS, val, setHaptics)
                 }
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={colors.white}
+                trackColor={{ false: colors.border, true: colors.darkButton }}
+                thumbColor="#FFFFFF"
               />
             </View>
           </View>
@@ -532,7 +532,7 @@ export default function SettingsScreen() {
         {/* App Version Info */}
         <View style={styles.footer}>
           <Text style={styles.versionText}>LifeLens AI Mobile • Version 1.0.0</Text>
-          <Text style={styles.buildText}>Expo SDK 57 • Live API Connected</Text>
+          <Text style={styles.buildText}>Expo SDK 58 • Live API Connected</Text>
         </View>
       </ScrollView>
 
@@ -559,25 +559,30 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
-    color: colors.textPrimary,
+    color: colors.primaryText,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     lineHeight: 20,
   },
   profileCard: {
     backgroundColor: colors.surface,
-    borderRadius: radius.xl,
+    borderRadius: radius.xxl,
     marginHorizontal: spacing.lg,
     marginTop: spacing.sm,
     marginBottom: spacing.lg,
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   profileTopRow: {
     flexDirection: 'row',
@@ -588,9 +593,9 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: '#FFEAE0',
     borderWidth: 2,
-    borderColor: colors.primary,
+    borderColor: '#F8D2BD',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -598,7 +603,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 20,
     fontWeight: '800',
-    color: colors.textPrimary,
+    color: '#66300C',
   },
   onlineBadge: {
     position: 'absolute',
@@ -607,7 +612,7 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: colors.green,
+    backgroundColor: '#16A34A',
     borderWidth: 2,
     borderColor: colors.surface,
   },
@@ -621,25 +626,25 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: 18,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontWeight: '800',
+    color: colors.primaryText,
   },
   proBadge: {
-    backgroundColor: colors.primaryMuted,
+    backgroundColor: '#F5ECE6',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: 'rgba(184, 255, 61, 0.3)',
+    borderColor: colors.border,
   },
   proBadgeText: {
     fontSize: 10,
     fontWeight: '800',
-    color: colors.primary,
+    color: '#66300C',
   },
   profileEmail: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     marginTop: 2,
   },
   profileMeta: {
@@ -661,12 +666,12 @@ const styles = StyleSheet.create({
   },
   profileStatValue: {
     fontSize: 16,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontWeight: '800',
+    color: colors.primaryText,
   },
   profileStatLabel: {
     fontSize: 11,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     marginTop: 2,
   },
   statDivider: {
@@ -679,19 +684,24 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     fontSize: 12,
-    fontWeight: '700',
-    color: colors.textMuted,
+    fontWeight: '800',
+    color: colors.secondaryText,
     letterSpacing: 0.8,
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.xs,
   },
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xxl,
     marginHorizontal: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
     overflow: 'hidden',
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   settingRow: {
     flexDirection: 'row',
@@ -715,9 +725,9 @@ const styles = StyleSheet.create({
     paddingRight: spacing.md,
   },
   settingIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -726,12 +736,12 @@ const styles = StyleSheet.create({
   },
   settingTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
+    fontWeight: '700',
+    color: colors.primaryText,
   },
   settingDesc: {
     fontSize: 12,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     marginTop: 2,
   },
   rowDivider: {
@@ -744,13 +754,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: 'rgba(255, 99, 109, 0.10)',
-    borderRadius: radius.lg,
+    backgroundColor: '#FDE8E8',
+    borderRadius: radius.full,
     marginHorizontal: spacing.lg,
     marginTop: spacing.sm,
     paddingVertical: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 99, 109, 0.25)',
+    borderColor: '#FCA5A5',
   },
   logoutText: {
     fontSize: 14,

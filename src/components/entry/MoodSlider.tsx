@@ -87,20 +87,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: colors.surfaceElevated,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    backgroundColor: '#FFEAE0',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#F8D2BD',
   },
   emojiText: {
     fontSize: 14,
   },
   feedbackText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: colors.primary,
+    fontWeight: '700',
+    color: '#66300C',
   },
   buttonsTrack: {
     flexDirection: 'row',
@@ -110,16 +110,16 @@ const styles = StyleSheet.create({
   numberPill: {
     width: 38,
     height: 38,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceElevated,
+    borderRadius: radius.full,
+    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
     borderColor: colors.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
   selectedPill: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.darkButton,
+    borderColor: colors.darkButton,
   },
   pressedPill: {
     opacity: 0.8,
@@ -127,10 +127,10 @@ const styles = StyleSheet.create({
   numberText: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   selectedNumberText: {
-    color: colors.background,
+    color: '#FFFFFF',
   },
 });
 

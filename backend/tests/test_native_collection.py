@@ -82,7 +82,7 @@ class TestNativeTelemetryAndCollection:
 
     async def test_create_workout_session_and_consistency(self, client: AsyncClient, auth_headers: dict):
         headers = auth_headers
-        today_str = str(date.today())
+        today_str = str(datetime.now(timezone.utc).date())
 
         start_time = datetime.now(timezone.utc) - timedelta(minutes=45)
         end_time = datetime.now(timezone.utc)
@@ -181,7 +181,7 @@ class TestNativeTelemetryAndCollection:
 
     async def test_focus_and_transaction_rollups(self, client: AsyncClient, auth_headers: dict):
         headers = auth_headers
-        today_str = str(date.today())
+        today_str = str(datetime.now(timezone.utc).date())
 
         # Log focus session
         f_start = datetime.now(timezone.utc) - timedelta(minutes=120)

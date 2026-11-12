@@ -1,58 +1,77 @@
 /**
  * LifeLens AI – Design Token: Colors
  *
- * Premium dark color system inspired by high-end fintech / productivity apps.
- * Use these tokens everywhere; never scatter raw hex values across components.
+ * Warm, minimal, premium aesthetic inspired by soft editorial & wellness design:
+ * Soft off-white canvas, light cream/beige surfaces, warm peach accents,
+ * and dark charcoal typography.
  */
 
 export const colors = {
-  // ─── Backgrounds ─────────────────────────────────────────────
-  background: '#111214',
-  backgroundAlt: '#1E2023',
+  // ─── Canvas & Backgrounds ─────────────────────────────────────
+  background: '#F7F1EF',              // Soft warm off-white canvas
+  backgroundAlt: '#F1E8E3',           // Light cream & subtle beige surface
+  canvas: '#F7F1EF',                  // Canvas background alias
+  secondary: '#F1E8E3',               // Secondary surface alias
 
-  // ─── Surfaces (layered elevation system) ─────────────────────
-  surface: '#292C31',
-  surfaceElevated: '#3A3F45',
-  surfaceSoft: '#242627',
-  surfaceSecondary: '#1D1F20',   // alias used in Input / Card
-  surfaceHigh: '#292B2C',
-  surfaceTop: '#303233',
+  // ─── Surfaces (Layered Elevation) ─────────────────────────────
+  surface: '#FFFFFF',                 // Primary card surface
+  surfaceElevated: '#FFFFFF',         // Elevated cards with subtle border
+  surfaceSoft: '#F1E8E3',             // Subtle beige inset / pill track
+  surfaceSecondary: '#F1E8E3',        // Secondary card background
+  surfaceHigh: '#FFFFFF',             // Inset card surface
+  surfaceTop: '#FFFFFF',              // Floating modals & sheets
   surfaceLight: '#FFFFFF',
-  surfaceLightSecondary: '#F5F6F8',
+  surfaceLightSecondary: '#F1E8E3',
 
-  // ─── Text ─────────────────────────────────────────────────────
-  text: '#FFFFFF',               // alias – keeps old refs working
-  textPrimary: '#FFFFFF',
-  textSecondary: '#A8ACAE',
-  textMuted: '#6F7476',
-  textDark: '#1A1A1A',
-  textDarkSecondary: '#6B7280',
+  // ─── Typography (Dark Charcoal & Warm Grays) ──────────────────
+  text: '#242424',                    // Primary text alias
+  textPrimary: '#242424',             // Dark charcoal for high contrast
+  textSecondary: '#85817F',           // Warm medium gray
+  textMuted: '#AAA4A1',               // Soft muted gray
+  textDark: '#242424',
+  textDarkSecondary: '#85817F',
+  textLight: '#FFFFFF',
+  primaryText: '#242424',             // Primary typography alias
+  secondaryText: '#85817F',           // Secondary typography alias
 
-  // ─── Primary accent (LifeLens green) ──────────────────────────
-  primary: '#B8FF3D',
-  primaryMuted: 'rgba(184, 255, 61, 0.10)',
-  primaryGlow: 'rgba(184, 255, 61, 0.22)',
+  // ─── Primary & Action Accents ──────────────────────────────────
+  primary: '#FFB98E',                 // Warm peach primary accent
+  primaryAccent: '#FFB98E',
+  secondaryAccent: '#F5DCA6',         // Warm pastel yellow
+  darkButton: '#66300C',              // Signature warm dark button
+  darkButtonText: '#FFFFFF',
+  primaryMuted: 'rgba(255, 185, 142, 0.18)',
+  primaryGlow: 'rgba(255, 185, 142, 0.35)',
 
-  // ─── Semantic accents ─────────────────────────────────────────
-  green: '#42D77A',
-  blue: '#5DA9FF',
-  cyan: '#2DD4D8',
-  orange: '#FFB347',
-  yellow: '#FFC857',
-  red: '#FF636D',
-  purple: '#A77BFF',
+  // ─── Pastel Accent Cards & Pills ──────────────────────────────
+  softGreen: '#DCE9B5',               // Soft wellness green
+  softPink: '#F4D9E9',                // Soft pastel pink
+  softPurple: '#E8DDF4',              // Soft lilac / lavender
+  softYellow: '#F5DCA6',              // Warm buttercup yellow
+  softPeach: '#FFEDE1',               // Inset warm peach
+  softCream: '#FBF7F4',               // Lightest cream tint
 
-  // ─── Borders ──────────────────────────────────────────────────
-  border: '#2A2D2F',
-  borderLight: '#363A3C',
+  // ─── Semantic Accents ──────────────────────────────────────────
+  green: '#8FB351',                   // Movement / health
+  success: '#8FB351',                 // Success alias
+  blue: '#6E93B3',                    // Deep work / focus
+  cyan: '#6CAFA3',                    // Sleep / circadian
+  orange: '#FFB98E',                  // Expenses / finance
+  warning: '#E5C070',                 // Warning alias
+  yellow: '#E5C070',                  // Streaks / warnings
+  red: '#E05D5D',                     // Errors / limits
+  error: '#E05D5D',
+  purple: '#A692BF',                  // Insights / reflections
 
-  // ─── Error state (used in Input, Button) ──────────────────────
-  error: '#FF636D',
+  // ─── Borders & Dividers ────────────────────────────────────────
+  border: '#EEE8E5',                  // Subtle off-white card border
+  borderLight: '#F5EFEA',             // Featherlight divider
 
-  // ─── Utility ──────────────────────────────────────────────────
+  // ─── Utilities ─────────────────────────────────────────────────
   white: '#FFFFFF',
   black: '#000000',
-  overlay: 'rgba(0, 0, 0, 0.65)',
+  shadowWarm: 'rgba(102, 48, 12, 0.08)',
+  overlay: 'rgba(36, 36, 36, 0.45)', // Soft darkened backdrop
 } as const;
 
 export type ColorToken = keyof typeof colors;

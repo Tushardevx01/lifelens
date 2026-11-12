@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
@@ -95,7 +96,7 @@ export default function AnalyticsScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       <ScrollView
         style={styles.scrollView}
@@ -108,15 +109,26 @@ export default function AnalyticsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
+            tintColor={colors.darkButton}
+            colors={[colors.darkButton]}
           />
         }
       >
         {/* Screen Header */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <Text style={styles.headerTitle}>Analytics</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+              <Pressable
+                onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/home'))}
+                accessibilityRole="button"
+                accessibilityLabel="Back to Home"
+                hitSlop={8}
+                style={styles.backButton}
+              >
+                <Ionicons name="arrow-back" size={20} color={colors.primaryText} />
+              </Pressable>
+              <Text style={styles.headerTitle}>Analytics</Text>
+            </View>
             <View style={styles.timeframeRow}>
               {TIMEFRAMES.map((tf) => (
                 <Pressable
@@ -149,7 +161,7 @@ export default function AnalyticsScreen() {
 
         {loading && !refreshing ? (
           <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            <ActivityIndicator size="large" color={colors.darkButton} />
             <Text style={styles.loadingText}>Loading analytics telemetry...</Text>
           </View>
         ) : (
@@ -341,38 +353,48 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
+  backButton: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.full,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   timeframeRow: {
     flexDirection: 'row',
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.full,
     padding: 3,
     borderWidth: 1,
     borderColor: colors.border,
   },
   timeframeBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: radius.full,
   },
   timeframeBtnActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.darkButton,
   },
   timeframeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   timeframeTextActive: {
-    color: colors.background,
+    color: '#FFFFFF',
   },
   headerSubtitle: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     lineHeight: 20,
   },
   sectionTitleRow: {
@@ -382,12 +404,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontWeight: '800',
+    color: colors.primaryText,
   },
   sectionSubtitle: {
     fontSize: 12,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     marginTop: 2,
   },
   section: {
@@ -400,10 +422,15 @@ const styles = StyleSheet.create({
   },
   corrCard: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
     gap: 4,
   },
   corrTop: {
@@ -414,7 +441,7 @@ const styles = StyleSheet.create({
   corrPair: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   rBadge: {
     paddingHorizontal: 8,
@@ -427,17 +454,22 @@ const styles = StyleSheet.create({
   },
   corrInsight: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     lineHeight: 16,
   },
   diagnosticCard: {
     backgroundColor: colors.surface,
-    borderRadius: radius.xl,
+    borderRadius: radius.xxl,
     marginHorizontal: spacing.xl,
     marginTop: spacing.lg,
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -453,10 +485,10 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   efficiencyBadge: {
-    backgroundColor: colors.primaryMuted,
+    backgroundColor: colors.softGreen,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: radius.full,
@@ -464,7 +496,7 @@ const styles = StyleSheet.create({
   efficiencyText: {
     fontSize: 11,
     fontWeight: '700',
-    color: colors.primary,
+    color: '#15803D',
   },
   diagGrid: {
     flexDirection: 'row',

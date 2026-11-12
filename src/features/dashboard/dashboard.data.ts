@@ -21,10 +21,10 @@ export const mockDashboardData: DashboardData = {
     type: 'daily',
   },
   scoreBreakdown: [
-    { category: 'sleep', score: 88, weight: 30, color: '#00D4AA' },
-    { category: 'productivity', score: 85, weight: 25, color: '#4A9EFF' },
-    { category: 'health', score: 82, weight: 25, color: '#B8FF00' },
-    { category: 'finance', score: 80, weight: 20, color: '#FF9F43' },
+    { category: 'sleep', score: 88, weight: 30, color: '#7C3AED' },
+    { category: 'productivity', score: 85, weight: 25, color: '#2563EB' },
+    { category: 'health', score: 82, weight: 25, color: '#16A34A' },
+    { category: 'finance', score: 80, weight: 20, color: '#EA580C' },
   ],
   trendData: [
     { date: 'Aug 1', lifeScore: 78, sleep: 82, productivity: 75 },

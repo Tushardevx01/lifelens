@@ -31,13 +31,13 @@ export const ConnectorCard: React.FC<ConnectorCardProps> = ({
   isSyncing,
 }) => {
   const isConnected = isEnabled && connector?.status !== 'DISCONNECTED';
-  const statusColor = isConnected ? colors.primary : colors.textMuted;
+  const statusColor = isConnected ? '#2E7D32' : colors.textMuted;
   const statusLabel = isConnected ? 'Active' : 'Disabled';
 
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
-        <View style={[styles.iconWrapper, { backgroundColor: `${iconColor}15` }]}>
+        <View style={[styles.iconWrapper, { backgroundColor: `${iconColor}18` }]}>
           <Ionicons name={iconName} size={22} color={iconColor} />
         </View>
         <View style={styles.titleContainer}>
@@ -54,8 +54,8 @@ export const ConnectorCard: React.FC<ConnectorCardProps> = ({
         <Switch
           value={isEnabled}
           onValueChange={onToggle}
-          trackColor={{ false: '#26292B', true: `${colors.primary}60` }}
-          thumbColor={isEnabled ? colors.primary : '#606466'}
+          trackColor={{ false: colors.border, true: '#FFEDE1' }}
+          thumbColor={isEnabled ? colors.darkButton : colors.textMuted}
         />
       </View>
 
@@ -79,7 +79,7 @@ export const ConnectorCard: React.FC<ConnectorCardProps> = ({
             <Ionicons
               name={isSyncing ? 'sync' : 'refresh-outline'}
               size={14}
-              color={colors.primary}
+              color={colors.darkButton}
             />
             <Text style={styles.syncBtnText}>{isSyncing ? 'Syncing...' : 'Sync Now'}</Text>
           </TouchableOpacity>
@@ -91,12 +91,12 @@ export const ConnectorCard: React.FC<ConnectorCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#17191A',
-    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#26292B',
+    borderColor: colors.border,
   },
   headerRow: {
     flexDirection: 'row',
@@ -123,25 +123,25 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.primaryText,
   },
   badge: {
-    backgroundColor: '#1E252B',
+    backgroundColor: '#EFF5FA',
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 8,
+    borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: '#344047',
+    borderColor: '#D0E4F5',
   },
   badgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#4A9EFF',
+    color: '#1D4ED8',
     letterSpacing: 0.3,
   },
   subtitle: {
     fontSize: 12,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     lineHeight: 16,
   },
   footerRow: {
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#202324',
+    borderTopColor: colors.border,
   },
   statusIndicator: {
     flexDirection: 'row',
@@ -169,23 +169,23 @@ const styles = StyleSheet.create({
   },
   recordsText: {
     fontSize: 12,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     marginLeft: 4,
   },
   syncBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1B2418',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
+    backgroundColor: colors.secondary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: `${colors.primary}40`,
+    borderColor: colors.border,
     gap: 4,
   },
   syncBtnText: {
     fontSize: 11,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.darkButton,
   },
 });

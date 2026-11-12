@@ -62,7 +62,7 @@ export function ActiveExperimentCard({
       {/* Top Banner */}
       <View style={styles.headerRow}>
         <View style={styles.badge}>
-          <Ionicons name="flask" size={13} color={colors.primary} />
+          <Ionicons name="flask" size={13} color={colors.darkButton} />
           <Text style={styles.badgeText}>CORE EXPERIMENT</Text>
         </View>
         <View style={styles.dayPill}>
@@ -75,7 +75,7 @@ export function ActiveExperimentCard({
       {/* Title & Intervention Rule */}
       <Text style={styles.title}>{exp.title}</Text>
       <View style={styles.ruleBox}>
-        <Ionicons name="checkbox-outline" size={15} color={colors.primary} style={styles.ruleIcon} />
+        <Ionicons name="checkbox-outline" size={15} color={colors.darkButton} style={styles.ruleIcon} />
         <Text style={styles.ruleText}>
           <Text style={styles.ruleLabel}>Rule: </Text>
           {exp.intervention_rule}
@@ -180,10 +180,10 @@ export function ActiveExperimentCard({
               accessibilityLabel="Confirm rule followed today"
             >
               {submitting ? (
-                <ActivityIndicator size="small" color={colors.background} />
+                <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <>
-                  <Ionicons name="checkmark-sharp" size={16} color={colors.background} />
+                  <Ionicons name="checkmark-sharp" size={16} color="#FFFFFF" />
                   <Text style={styles.btnTextSuccess}>I Followed the Rule</Text>
                 </>
               )}
@@ -196,7 +196,7 @@ export function ActiveExperimentCard({
               accessibilityRole="button"
               accessibilityLabel="Mark rule missed today"
             >
-              <Ionicons name="close-sharp" size={15} color={colors.textSecondary} />
+              <Ionicons name="close-sharp" size={15} color={colors.secondaryText} />
               <Text style={styles.btnTextMissed}>Missed</Text>
             </Pressable>
           </View>
@@ -215,7 +215,7 @@ export function ActiveExperimentCard({
             ? '★ View Final Statistical Evaluation'
             : 'View Live Statistical Evaluation & Delta'}
         </Text>
-        <Ionicons name="chevron-forward" size={15} color={colors.primary} />
+        <Ionicons name="chevron-forward" size={15} color={colors.darkButton} />
       </Pressable>
     </View>
   );
@@ -224,14 +224,14 @@ export function ActiveExperimentCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.xxl,
+    borderRadius: radius.xl,
     marginHorizontal: spacing.xl,
     marginBottom: spacing.lg,
     padding: spacing.xl,
     borderWidth: 1,
-    borderColor: 'rgba(0, 229, 255, 0.25)',
-    borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
+    borderColor: colors.border,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.darkButton,
   },
   headerRow: {
     flexDirection: 'row',
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: 'rgba(0, 229, 255, 0.12)',
+    backgroundColor: '#FFEDE1',
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: radius.full,
@@ -251,11 +251,11 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.darkButton,
     letterSpacing: 0.6,
   },
   dayPill: {
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     paddingHorizontal: spacing.md,
     paddingVertical: 3,
     borderRadius: radius.full,
@@ -263,19 +263,19 @@ const styles = StyleSheet.create({
   dayPillText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   title: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
     lineHeight: 22,
     marginBottom: spacing.xs,
   },
   ruleBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     padding: spacing.sm,
     borderRadius: radius.md,
     marginBottom: spacing.md,
@@ -286,39 +286,39 @@ const styles = StyleSheet.create({
   },
   ruleText: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     lineHeight: 18,
     flex: 1,
   },
   ruleLabel: {
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   progressContainer: {
     marginBottom: spacing.md,
   },
   progressBarBg: {
     height: 6,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     borderRadius: radius.full,
     overflow: 'hidden',
     marginBottom: 4,
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.darkButton,
     borderRadius: radius.full,
   },
   progressText: {
     fontSize: 11,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     fontWeight: '500',
   },
   metricRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.secondary,
     padding: spacing.sm,
     borderRadius: radius.md,
     marginBottom: spacing.md,
@@ -328,14 +328,14 @@ const styles = StyleSheet.create({
   },
   metricEyebrow: {
     fontSize: 9,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
   metricVal: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
     marginTop: 2,
   },
   deltaBadge: {
@@ -347,10 +347,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
   },
   deltaBadgeSuccess: {
-    backgroundColor: 'rgba(0, 230, 153, 0.12)',
+    backgroundColor: '#EDF5DC',
   },
   deltaBadgeWarning: {
-    backgroundColor: 'rgba(255, 170, 0, 0.12)',
+    backgroundColor: '#FFF2E6',
   },
   deltaText: {
     fontSize: 12,
@@ -371,11 +371,11 @@ const styles = StyleSheet.create({
   checkinPrompt: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   adherenceRateText: {
     fontSize: 11,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     fontWeight: '500',
   },
   btnRow: {
@@ -387,35 +387,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    borderRadius: radius.md,
+    paddingVertical: 10,
+    borderRadius: radius.full,
     gap: spacing.xs,
   },
   adhereSuccess: {
     flex: 2,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.darkButton,
   },
   adhereMissed: {
     flex: 1,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     borderWidth: 1,
     borderColor: colors.border,
   },
   btnTextSuccess: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.background,
+    color: '#FFFFFF',
   },
   btnTextMissed: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   checkedInRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.md,
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
   checkedInText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   changeBtn: {
     paddingHorizontal: spacing.sm,
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
   },
   changeBtnText: {
     fontSize: 12,
-    color: colors.primary,
+    color: colors.darkButton,
     fontWeight: '600',
   },
   evaluationLink: {
@@ -450,6 +450,6 @@ const styles = StyleSheet.create({
   evaluationLinkText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.primary,
+    color: colors.darkButton,
   },
 });

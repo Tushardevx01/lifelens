@@ -1,8 +1,8 @@
 /**
  * DashboardHeader – LifeLens Dashboard Component
  *
- * Minimal header:
- *   [Avatar -> Profile]   Good morning, {name}      [🔔 Alerts]
+ * Warm, minimal header:
+ *   [Avatar -> Profile]   Good morning, {name}      [✨ Ask AI] [🔔 Alerts]
  */
 
 import React from 'react';
@@ -72,7 +72,7 @@ export default function DashboardHeader({
           accessibilityRole="button"
           hitSlop={8}
         >
-          <Ionicons name="sparkles" size={15} color={colors.primary} />
+          <Ionicons name="sparkles" size={14} color={colors.darkButton} />
           <Text style={styles.aiButtonText}>Ask AI</Text>
         </Pressable>
       )}
@@ -85,7 +85,7 @@ export default function DashboardHeader({
         accessibilityRole="button"
         hitSlop={8}
       >
-        <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
+        <Ionicons name="notifications-outline" size={19} color={colors.textPrimary} />
         {hasUnreadAlerts && <View style={styles.badgeDot} />}
       </Pressable>
     </View>
@@ -97,15 +97,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
     gap: spacing.md,
   },
   avatar: {
-    width: 42,
-    height: 42,
+    width: 44,
+    height: 44,
     borderRadius: radius.full,
-    backgroundColor: 'rgba(184, 255, 61, 0.12)',
+    backgroundColor: '#FFEDE1',
     borderWidth: 1.5,
     borderColor: colors.primary,
     justifyContent: 'center',
@@ -113,19 +113,19 @@ const styles = StyleSheet.create({
   },
   avatarPressed: {
     opacity: 0.8,
-    transform: [{ scale: 0.95 }],
+    transform: [{ scale: 0.96 }],
   },
   avatarInitial: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '800',
-    color: colors.primary,
+    color: colors.darkButton,
   },
   textBlock: {
     flex: 1,
     gap: 2,
   },
   greeting: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '700',
     color: colors.textPrimary,
     letterSpacing: -0.3,
@@ -135,41 +135,41 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontWeight: '500',
   },
+  aiButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#FFEDE1',
+    borderWidth: 1,
+    borderColor: '#FFD9C4',
+    borderRadius: radius.full,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  aiButtonPressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.96 }],
+  },
+  aiButtonText: {
+    color: colors.darkButton,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
   bell: {
     width: 40,
     height: 40,
     borderRadius: radius.full,
-    backgroundColor: colors.surfaceElevated,
-    borderWidth: 1,
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
     borderColor: colors.border,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
   },
   bellPressed: {
-    opacity: 0.75,
+    opacity: 0.8,
     transform: [{ scale: 0.94 }],
-  },
-  aiButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(184, 255, 61, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(184, 255, 61, 0.3)',
-    borderRadius: radius.full,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-  },
-  aiButtonPressed: {
-    opacity: 0.75,
-    transform: [{ scale: 0.95 }],
-  },
-  aiButtonText: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.2,
   },
   badgeDot: {
     position: 'absolute',
@@ -180,6 +180,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: colors.primary,
     borderWidth: 1.5,
-    borderColor: colors.surfaceElevated,
+    borderColor: colors.surface,
   },
 });

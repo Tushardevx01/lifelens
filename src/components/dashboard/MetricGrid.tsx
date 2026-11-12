@@ -24,10 +24,10 @@ interface MetricGridProps {
 }
 
 const defaultMetrics: Metric[] = [
-  { name: 'Sleep',        score: 88, color: colors.cyan   },
-  { name: 'Productivity', score: 85, color: colors.blue   },
-  { name: 'Health',       score: 82, color: colors.green  },
-  { name: 'Finance',      score: 80, color: colors.orange },
+  { name: 'Sleep',        score: 88, color: '#7C3AED' },
+  { name: 'Productivity', score: 85, color: '#2563EB' },
+  { name: 'Health',       score: 82, color: '#15803D' },
+  { name: 'Finance',      score: 80, color: '#C05621' },
 ];
 
 export default function MetricGrid({ metrics = defaultMetrics }: MetricGridProps) {
@@ -42,13 +42,13 @@ export default function MetricGrid({ metrics = defaultMetrics }: MetricGridProps
               size={36}
               progress={metric.score}
               color={metric.color}
-              strokeWidth={3}
-              backgroundColor={colors.surfaceHigh}
+              strokeWidth={4}
+              backgroundColor={colors.surfaceSecondary}
             />
           </View>
 
           {/* Large number */}
-          <Text style={[styles.score, { color: metric.color }]}>
+          <Text style={styles.score}>
             {metric.score}
           </Text>
           <Text style={styles.unit}>/100</Text>
@@ -67,37 +67,42 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   card: {
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.xl,
-    padding: spacing.xxl,
-    // Two-column: slightly less than half width accounting for gap
+    backgroundColor: colors.surface,
+    borderRadius: radius.xxl,
+    padding: spacing.xl,
     flex: 1,
     minWidth: '45%',
     borderWidth: 1,
     borderColor: colors.border,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   name: {
     fontSize: 12,
-    fontWeight: '500',
-    color: colors.textMuted,
+    fontWeight: '700',
+    color: colors.secondaryText,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   score: {
-    fontSize: 38,
+    fontSize: 36,
     fontWeight: '800',
     letterSpacing: -1,
-    lineHeight: 42,
+    lineHeight: 40,
+    color: colors.primaryText,
   },
   unit: {
     fontSize: 13,
-    fontWeight: '400',
+    fontWeight: '500',
     color: colors.textMuted,
     marginTop: 2,
   },

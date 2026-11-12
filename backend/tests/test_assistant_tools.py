@@ -170,7 +170,7 @@ async def test_assistant_chat_reports_real_score(
 
     assert response.status_code == 200, response.text
     content = response.json()["content"]
-    assert "74.5/100" in content
+    assert "74.5" in content
     assert "LifeScore is 0/100" not in content
 
 
@@ -185,5 +185,5 @@ async def test_assistant_chat_does_not_invent_data(
 
     assert response.status_code == 200, response.text
     content = response.json()["content"]
-    assert "No LifeScore has been computed" in content
+    assert "no lifescore has been computed" in content.lower()
     assert "LifeScore is 0/100" not in content

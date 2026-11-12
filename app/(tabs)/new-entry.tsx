@@ -194,7 +194,7 @@ export default function NewEntryScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       <ScrollView
         style={styles.scrollView}
@@ -226,7 +226,7 @@ export default function NewEntryScreen() {
               <Ionicons
                 name="today"
                 size={16}
-                color={date === todayStr ? colors.background : colors.textPrimary}
+                color={date === todayStr ? '#FFFFFF' : colors.primaryText}
               />
               <Text
                 style={[
@@ -248,7 +248,7 @@ export default function NewEntryScreen() {
               <Ionicons
                 name="time"
                 size={16}
-                color={date === yesterdayStr ? colors.background : colors.textPrimary}
+                color={date === yesterdayStr ? '#FFFFFF' : colors.primaryText}
               />
               <Text
                 style={[
@@ -270,8 +270,8 @@ export default function NewEntryScreen() {
         {/* SECTION 1: SLEEP */}
         <View style={styles.section}>
           <View style={styles.sectionTitleRow}>
-            <View style={[styles.sectionIconWrap, { backgroundColor: 'rgba(0, 212, 170, 0.15)' }]}>
-              <Ionicons name="moon" size={18} color="#00D4AA" />
+            <View style={[styles.sectionIconWrap, { backgroundColor: '#F3EDF9' }]}>
+              <Ionicons name="moon" size={18} color="#7C3AED" />
             </View>
             <View>
               <Text style={styles.sectionTitle}>Sleep & Recovery</Text>
@@ -332,8 +332,8 @@ export default function NewEntryScreen() {
         {/* SECTION 2: DIGITAL */}
         <View style={styles.section}>
           <View style={styles.sectionTitleRow}>
-            <View style={[styles.sectionIconWrap, { backgroundColor: 'rgba(74, 158, 255, 0.15)' }]}>
-              <Ionicons name="phone-portrait-outline" size={18} color="#4A9EFF" />
+            <View style={[styles.sectionIconWrap, { backgroundColor: '#EFF5FA' }]}>
+              <Ionicons name="phone-portrait-outline" size={18} color="#2563EB" />
             </View>
             <View>
               <Text style={styles.sectionTitle}>Digital & Distraction</Text>
@@ -382,8 +382,8 @@ export default function NewEntryScreen() {
         {/* SECTION 3: HEALTH */}
         <View style={styles.section}>
           <View style={styles.sectionTitleRow}>
-            <View style={[styles.sectionIconWrap, { backgroundColor: 'rgba(184, 255, 61, 0.15)' }]}>
-              <Ionicons name="fitness" size={18} color="#B8FF00" />
+            <View style={[styles.sectionIconWrap, { backgroundColor: '#EDF5DC' }]}>
+              <Ionicons name="fitness" size={18} color="#15803D" />
             </View>
             <View>
               <Text style={styles.sectionTitle}>Physical Activity</Text>
@@ -428,8 +428,8 @@ export default function NewEntryScreen() {
         {/* SECTION 4: PRODUCTIVITY */}
         <View style={styles.section}>
           <View style={styles.sectionTitleRow}>
-            <View style={[styles.sectionIconWrap, { backgroundColor: 'rgba(93, 169, 255, 0.15)' }]}>
-              <Ionicons name="briefcase" size={18} color="#5DA9FF" />
+            <View style={[styles.sectionIconWrap, { backgroundColor: '#EAF0F6' }]}>
+              <Ionicons name="briefcase" size={18} color="#2B6CB0" />
             </View>
             <View>
               <Text style={styles.sectionTitle}>Deep Work & Output</Text>
@@ -464,8 +464,8 @@ export default function NewEntryScreen() {
         {/* SECTION 5: FINANCE */}
         <View style={styles.section}>
           <View style={styles.sectionTitleRow}>
-            <View style={[styles.sectionIconWrap, { backgroundColor: 'rgba(255, 159, 67, 0.15)' }]}>
-              <Ionicons name="wallet" size={18} color="#FF9F43" />
+            <View style={[styles.sectionIconWrap, { backgroundColor: '#FFF1E8' }]}>
+              <Ionicons name="wallet" size={18} color="#C05621" />
             </View>
             <View>
               <Text style={styles.sectionTitle}>Financial Wellbeing</Text>
@@ -518,8 +518,8 @@ export default function NewEntryScreen() {
         {/* SECTION 6: SUBJECTIVE */}
         <View style={styles.section}>
           <View style={styles.sectionTitleRow}>
-            <View style={[styles.sectionIconWrap, { backgroundColor: 'rgba(255, 105, 180, 0.15)' }]}>
-              <Ionicons name="heart" size={18} color="#FF69B4" />
+            <View style={[styles.sectionIconWrap, { backgroundColor: '#FCF6E5' }]}>
+              <Ionicons name="heart" size={18} color="#D97706" />
             </View>
             <View>
               <Text style={styles.sectionTitle}>Mindset & Reflection</Text>
@@ -629,21 +629,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.full,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
     borderColor: colors.border,
   },
   datePillActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.darkButton,
+    borderColor: colors.darkButton,
   },
   datePillText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.secondaryText,
   },
   datePillTextActive: {
-    color: colors.background,
+    color: '#FFFFFF',
   },
   previewContainer: {
     paddingHorizontal: spacing.lg,
@@ -659,32 +659,37 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   sectionIconWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontWeight: '800',
+    color: colors.primaryText,
   },
   sectionDesc: {
     fontSize: 12,
-    color: colors.textMuted,
+    color: colors.secondaryText,
   },
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.xl,
+    borderRadius: radius.xxl,
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
+    fontWeight: '700',
+    color: colors.primaryText,
     marginBottom: spacing.xs,
   },
   bedtimeRow: {
@@ -694,13 +699,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   timeInput: {
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border,
-    color: colors.primary,
+    color: colors.primaryText,
     fontSize: 15,
     fontWeight: '700',
     width: 90,
@@ -717,21 +722,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: radius.full,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
     borderColor: colors.border,
   },
   categoryPillSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.darkButton,
+    borderColor: colors.darkButton,
   },
   categoryText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   categoryTextSelected: {
-    color: colors.background,
+    color: '#FFFFFF',
   },
   notesContainer: {
     marginTop: spacing.sm,
@@ -746,12 +751,12 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   notesInput: {
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
-    color: colors.textPrimary,
+    color: colors.primaryText,
     fontSize: 14,
     minHeight: 70,
     textAlignVertical: 'top',

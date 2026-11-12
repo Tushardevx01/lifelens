@@ -1,8 +1,8 @@
 /**
  * Input – LifeLens UI Primitive
  *
- * Premium dark-themed text input with optional left / right icons,
- * focus glow, and error state.
+ * Warm, minimal text input with optional left / right icons,
+ * soft focus ring, and clear validation states.
  */
 
 import { ReactNode, useState } from 'react';
@@ -27,7 +27,7 @@ type InputProps = TextInputProps & {
   rightIcon?:      ReactNode;
   error?:          string;
   containerStyle?: StyleProp<ViewStyle>;
-  variant?:        'dark' | 'light';
+  variant?:        'dark' | 'light' | 'default';
 };
 
 export function Input({
@@ -37,18 +37,17 @@ export function Input({
   error,
   containerStyle,
   style,
-  variant = 'dark',
+  variant = 'light',
   onFocus,
   onBlur,
   ...props
 }: InputProps) {
   const [focused, setFocused] = useState(false);
-  const isLight = variant === 'light';
 
   return (
     <View style={[styles.container, containerStyle]}>
       {label && (
-        <Text style={[styles.label, isLight && styles.labelLight]}>
+        <Text style={styles.label}>
           {label}
         </Text>
       )}
@@ -56,9 +55,8 @@ export function Input({
       <View
         style={[
           styles.inputWrapper,
-          isLight && styles.inputWrapperLight,
+          variant === 'dark' && { backgroundColor: colors.surfaceSoft },
           focused && styles.focused,
-          focused && isLight && styles.focusedLight,
           !!error  && styles.errorBorder,
         ]}
       >
@@ -67,12 +65,11 @@ export function Input({
         <TextInput
           style={[
             styles.input,
-            isLight && styles.inputLight,
             icon      ? styles.inputWithIcon      : undefined,
             rightIcon ? styles.inputWithRightIcon : undefined,
             style,
           ]}
-          placeholderTextColor={isLight ? colors.textDarkSecondary : colors.textMuted}
+          placeholderTextColor={colors.textMuted}
           onFocus={(e) => {
             setFocused(true);
             onFocus?.(e);
@@ -96,56 +93,44 @@ export function Input({
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
   label: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
     color: colors.textSecondary,
-    letterSpacing: 0.3,
-  },
-  labelLight: {
-    color: colors.textDarkSecondary,
+    letterSpacing: 0.1,
+    marginBottom: 2,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    borderWidth: 1,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    borderWidth: 1.5,
     borderColor: colors.border,
     minHeight: 52,
   },
-  inputWrapperLight: {
-    backgroundColor: colors.surfaceLightSecondary,
-    borderColor: 'transparent',
-  },
   focused: {
     borderColor: colors.primary,
-    boxShadow: `0px 0px 8px ${colors.primaryGlow}`,
-    elevation: 0,
-  },
-  focusedLight: {
-    borderColor: colors.primary,
-    borderWidth: 1,
+    backgroundColor: colors.surface,
+    boxShadow: `0px 0px 0px 3px rgba(255, 185, 142, 0.25)`,
   },
   errorBorder: {
     borderColor: colors.error,
   },
   iconContainer: {
-    paddingLeft: spacing.md,
+    paddingLeft: spacing.lg,
   },
   input: {
     flex: 1,
     height: 52,
     paddingHorizontal: spacing.lg,
     color: colors.textPrimary,
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: '500',
     backgroundColor: 'transparent',
     ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
-  },
-  inputLight: {
-    color: colors.textDark,
   },
   inputWithIcon: {
     paddingLeft: spacing.sm,
@@ -154,11 +139,13 @@ const styles = StyleSheet.create({
     paddingRight: spacing.sm,
   },
   rightIconContainer: {
-    paddingRight: spacing.md,
+    paddingRight: spacing.lg,
   },
   errorText: {
     fontSize: 12,
     color: colors.error,
-    marginLeft: spacing.xs,
+    fontWeight: '500',
+    marginLeft: spacing.sm,
+    marginTop: 2,
   },
 });

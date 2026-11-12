@@ -123,23 +123,28 @@ const styles = StyleSheet.create({
   controlRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.full,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: 4,
+    padding: 3,
   },
   stepButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.sm,
+    width: 38,
+    height: 38,
+    borderRadius: radius.full,
     backgroundColor: colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
   },
   buttonPressed: {
     opacity: 0.7,
-    backgroundColor: colors.surfaceHigh,
+    backgroundColor: '#EAE1DC',
   },
   buttonDisabled: {
     opacity: 0.35,
@@ -151,8 +156,8 @@ const styles = StyleSheet.create({
   },
   valueText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: colors.primary,
+    fontWeight: '800',
+    color: colors.primaryText,
   },
 });
 

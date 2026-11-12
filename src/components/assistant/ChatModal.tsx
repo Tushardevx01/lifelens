@@ -219,7 +219,7 @@ export function ChatModal({ visible, onClose, initialPrompt }: ChatModalProps) {
               onPress={() => setShowVoiceModeModal(true)}
               accessibilityLabel="Voice Mode"
             >
-              <Ionicons name="mic-outline" size={20} color={colors.primary} />
+              <Ionicons name="mic-outline" size={20} color="#66300C" />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -253,7 +253,7 @@ export function ChatModal({ visible, onClose, initialPrompt }: ChatModalProps) {
               </View>
 
               <TouchableOpacity style={styles.newChatRow} onPress={startNewConversation}>
-                <Ionicons name="add-circle" size={18} color={colors.primary} />
+                <Ionicons name="add-circle" size={18} color="#66300C" />
                 <Text style={styles.newChatText}>Start New Conversation</Text>
               </TouchableOpacity>
 
@@ -272,7 +272,7 @@ export function ChatModal({ visible, onClose, initialPrompt }: ChatModalProps) {
                     <Ionicons
                       name="chatbubble-ellipses-outline"
                       size={16}
-                      color={item.id === currentSessionId ? colors.primary : colors.textMuted}
+                      color={item.id === currentSessionId ? '#66300C' : colors.textMuted}
                     />
                     <View style={styles.sessionItemContent}>
                       <Text
@@ -329,7 +329,7 @@ export function ChatModal({ visible, onClose, initialPrompt }: ChatModalProps) {
             ListEmptyComponent={
               <View style={styles.emptyState}>
                 <View style={styles.emptyIconCircle}>
-                  <Ionicons name="sparkles" size={32} color={colors.primary} />
+                  <Ionicons name="sparkles" size={32} color="#66300C" />
                 </View>
                 <Text style={styles.emptyTitle}>LifeLens Companion</Text>
                 <Text style={styles.emptySubtitle}>
@@ -345,7 +345,7 @@ export function ChatModal({ visible, onClose, initialPrompt }: ChatModalProps) {
                       style={styles.starterPromptPill}
                       onPress={() => handleSendMessage(sp.prompt)}
                     >
-                      <Ionicons name={sp.icon as React.ComponentProps<typeof Ionicons>['name']} size={15} color={colors.primary} />
+                      <Ionicons name={sp.icon as React.ComponentProps<typeof Ionicons>['name']} size={15} color="#66300C" />
                       <Text style={styles.starterPromptText}>{sp.label}</Text>
                     </TouchableOpacity>
                   ))}
@@ -357,7 +357,7 @@ export function ChatModal({ visible, onClose, initialPrompt }: ChatModalProps) {
           {/* Thinking / Typing Indicator */}
           {isLoading ? (
             <View style={styles.typingIndicator}>
-              <ActivityIndicator size="small" color={colors.primary} />
+              <ActivityIndicator size="small" color="#66300C" />
               <Text style={styles.typingText}>LifeLens AI is analyzing your telemetry...</Text>
             </View>
           ) : null}
@@ -369,7 +369,7 @@ export function ChatModal({ visible, onClose, initialPrompt }: ChatModalProps) {
               onPress={() => setShowVoiceModeModal(true)}
               accessibilityLabel="Open Hands-Free Voice Companion"
             >
-              <Ionicons name="mic-outline" size={21} color={colors.primary} />
+              <Ionicons name="mic-outline" size={21} color="#66300C" />
             </TouchableOpacity>
 
             <TextInput
@@ -393,7 +393,7 @@ export function ChatModal({ visible, onClose, initialPrompt }: ChatModalProps) {
               <Ionicons
                 name="arrow-up"
                 size={20}
-                color={inputText.trim() && !isLoading ? colors.background : colors.textMuted}
+                color={inputText.trim() && !isLoading ? '#FFFFFF' : colors.textMuted}
               />
             </TouchableOpacity>
           </View>
@@ -438,14 +438,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-    backgroundColor: colors.surfaceSoft,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
   },
   headerBtn: {
     width: 38,
     height: 38,
     borderRadius: radius.full,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -457,16 +457,17 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.sm,
   },
   statusDot: {
-    width: 7,
-    height: 7,
+    width: 8,
+    height: 8,
     borderRadius: radius.full,
-    backgroundColor: colors.green,
+    backgroundColor: '#16A34A',
     marginRight: 6,
   },
   headerTitle: {
     ...typography.h3,
     fontSize: 16,
-    color: colors.textPrimary,
+    color: colors.primaryText,
+    fontWeight: '700',
   },
   headerRightActions: {
     flexDirection: 'row',
@@ -488,28 +489,29 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
   },
   emptyIconCircle: {
-    width: 64,
-    height: 64,
+    width: 68,
+    height: 68,
     borderRadius: radius.full,
-    backgroundColor: 'rgba(184, 255, 61, 0.12)',
+    backgroundColor: '#FFEAE0',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(184, 255, 61, 0.25)',
+    borderColor: '#F8D2BD',
   },
   emptyTitle: {
     ...typography.h2,
-    color: colors.textPrimary,
+    color: colors.primaryText,
     fontSize: 22,
+    fontWeight: '800',
     marginBottom: spacing.xs,
   },
   emptySubtitle: {
     ...typography.body,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     textAlign: 'center',
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 21,
     marginBottom: spacing.xl,
   },
   starterPromptsContainer: {
@@ -517,85 +519,96 @@ const styles = StyleSheet.create({
   },
   starterPromptsHeader: {
     ...typography.caption,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     textTransform: 'uppercase',
-    marginBottom: spacing.xs,
-    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
+    letterSpacing: 0.8,
+    fontWeight: '700',
+    fontSize: 11,
   },
   starterPromptPill: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.borderLight,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.xs,
-    gap: spacing.xs,
+    borderColor: colors.border,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 12,
+    marginBottom: spacing.sm,
+    gap: spacing.sm,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
   starterPromptText: {
     ...typography.secondary,
-    color: colors.textPrimary,
+    color: colors.primaryText,
     fontSize: 13,
+    fontWeight: '600',
     flex: 1,
   },
   typingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    backgroundColor: colors.surfaceSoft,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.surface,
     gap: spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
   typingText: {
     ...typography.caption,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontSize: 12,
+    fontWeight: '500',
   },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.xs,
-    backgroundColor: colors.surfaceSoft,
+    paddingTop: spacing.sm,
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
+    borderTopColor: colors.border,
     gap: spacing.xs,
   },
   micInputBtn: {
-    width: 40,
-    height: 40,
+    width: 42,
+    height: 42,
     borderRadius: radius.full,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   input: {
     flex: 1,
-    minHeight: 40,
+    minHeight: 42,
     maxHeight: 100,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.xl,
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.xs,
-    color: colors.textPrimary,
+    color: colors.primaryText,
     fontSize: 14,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.border,
   },
   sendBtn: {
-    width: 40,
-    height: 40,
+    width: 42,
+    height: 42,
     borderRadius: radius.full,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.darkButton,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sendBtnDisabled: {
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.surfaceSecondary,
   },
   drawerOverlay: {
     position: 'absolute',
@@ -606,12 +619,15 @@ const styles = StyleSheet.create({
   },
   drawerCard: {
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.xxl,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.border,
     padding: spacing.md,
     maxHeight: 380,
-    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.35)',
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
     elevation: 8,
   },
   drawerHeader: {
@@ -622,21 +638,23 @@ const styles = StyleSheet.create({
   },
   drawerTitle: {
     ...typography.cardTitle,
-    color: colors.textPrimary,
+    color: colors.primaryText,
     fontSize: 15,
+    fontWeight: '700',
   },
   newChatRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(184, 255, 61, 0.1)',
-    borderRadius: radius.sm,
-    padding: spacing.sm,
+    backgroundColor: '#FFEAE0',
+    borderRadius: radius.full,
+    paddingVertical: 10,
+    paddingHorizontal: spacing.md,
     gap: spacing.xs,
     marginBottom: spacing.sm,
   },
   newChatText: {
     ...typography.secondary,
-    color: colors.primary,
+    color: '#66300C',
     fontWeight: '700',
     fontSize: 13,
   },
@@ -646,30 +664,31 @@ const styles = StyleSheet.create({
   sessionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.xs,
-    borderRadius: radius.sm,
+    paddingVertical: 9,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.md,
     gap: spacing.xs,
   },
   sessionItemActive: {
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: '#F5ECE6',
   },
   sessionItemContent: {
     flex: 1,
   },
   sessionItemTitle: {
     ...typography.secondary,
-    color: colors.textSecondary,
+    color: colors.primaryText,
     fontSize: 13,
+    fontWeight: '500',
   },
   sessionItemTitleActive: {
-    color: colors.primary,
+    color: '#66300C',
     fontWeight: '700',
   },
   sessionItemSubtitle: {
     ...typography.caption,
-    color: colors.textMuted,
-    fontSize: 10,
+    color: colors.secondaryText,
+    fontSize: 11,
   },
   emptySessionsText: {
     ...typography.caption,
@@ -684,12 +703,13 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     paddingTop: spacing.xs,
     borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
+    borderTopColor: colors.border,
     gap: 4,
   },
   clearHistoryText: {
     ...typography.caption,
-    color: colors.red,
+    color: colors.error,
     fontSize: 11,
+    fontWeight: '600',
   },
 });

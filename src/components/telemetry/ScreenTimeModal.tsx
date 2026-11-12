@@ -173,7 +173,7 @@ export function ScreenTimeModal({ visible, onClose, onSuccess }: ScreenTimeModal
           <View style={styles.header}>
             <View style={styles.headerTitleRow}>
               <View style={styles.screenIcon}>
-                <Ionicons name="phone-portrait-outline" size={18} color="#4A9EFF" />
+                <Ionicons name="phone-portrait-outline" size={18} color={colors.darkButton} />
               </View>
               <View>
                 <Text style={styles.title}>Digital Habits & Screen Tracker</Text>
@@ -365,7 +365,7 @@ export function ScreenTimeModal({ visible, onClose, onSuccess }: ScreenTimeModal
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(36, 36, 36, 0.45)',
     justifyContent: 'flex-end',
   },
   sheetContainer: {
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceLight,
+    borderBottomColor: colors.border,
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(74, 158, 255, 0.15)',
+    backgroundColor: colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -418,9 +418,9 @@ const styles = StyleSheet.create({
   },
   metricCard: {
     flex: 1,
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: colors.secondary,
     padding: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     alignItems: 'center',
   },
   metricLabel: {
@@ -438,16 +438,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: 'rgba(255, 159, 67, 0.12)',
+    backgroundColor: '#FFF2E6',
     padding: spacing.sm,
-    borderRadius: radius.sm,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 159, 67, 0.3)',
+    borderColor: '#FFD9C0',
     marginBottom: spacing.md,
   },
   lateNightText: {
     flex: 1,
-    color: '#FF9F43',
+    color: colors.darkButton,
     fontSize: 11,
     lineHeight: 15,
   },
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: colors.secondary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.full,
@@ -477,8 +477,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   presetPillSelected: {
-    backgroundColor: '#4A9EFF',
-    borderColor: '#4A9EFF',
+    backgroundColor: colors.darkButton,
+    borderColor: colors.darkButton,
   },
   presetText: {
     color: colors.textPrimary,
@@ -486,12 +486,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   presetTextSelected: {
-    color: colors.background,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   inputField: {
-    backgroundColor: colors.surfaceLight,
-    borderRadius: radius.sm,
+    backgroundColor: colors.secondary,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
     color: colors.textPrimary,
@@ -510,13 +510,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: 6,
     borderRadius: radius.full,
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: colors.secondary,
     borderWidth: 1,
     borderColor: colors.border,
   },
   categoryPillSelected: {
-    borderColor: colors.primary,
-    backgroundColor: 'rgba(93, 169, 255, 0.15)',
+    borderColor: colors.darkButton,
+    backgroundColor: colors.darkButton,
   },
   categoryText: {
     color: colors.textSecondary,
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   categoryTextSelected: {
-    color: colors.primary,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   durationOptions: {
@@ -535,15 +535,15 @@ const styles = StyleSheet.create({
   durPill: {
     flex: 1,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surfaceLight,
-    borderRadius: radius.sm,
+    backgroundColor: colors.secondary,
+    borderRadius: radius.full,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.border,
   },
   durPillSelected: {
-    borderColor: colors.primary,
-    backgroundColor: 'rgba(93, 169, 255, 0.15)',
+    borderColor: colors.darkButton,
+    backgroundColor: colors.darkButton,
   },
   durText: {
     color: colors.textSecondary,
@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   durTextSelected: {
-    color: colors.primary,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   recentWrap: {
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceLight,
+    borderBottomColor: colors.border,
   },
   sessionMain: {},
   sessionName: {
@@ -584,7 +584,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   sessionLate: {
-    color: '#FF9F43',
+    color: colors.darkButton,
     fontSize: 10,
     fontWeight: '600',
   },

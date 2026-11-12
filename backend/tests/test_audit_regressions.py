@@ -83,7 +83,7 @@ async def test_delete_transaction_recomputes_daily_spend(client: AsyncClient, au
     )
     assert tx.status_code == 201, tx.text
 
-    today = date.today()
+    today = datetime.now(timezone.utc).date()
     before = await client.get(f"/api/entries/{today}", headers=auth_headers)
     assert before.status_code == 200, before.text
     assert before.json()["daily_spend"] == 321.0

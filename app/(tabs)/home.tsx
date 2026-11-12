@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -10,7 +10,7 @@ import {
   Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { colors } from '@/src/theme/colors';
@@ -20,6 +20,7 @@ import { DashboardData } from '@/src/features/dashboard/dashboard.types';
 import { getDashboardData, authApi, briefingsApi } from '@/src/services/api';
 
 import DashboardHeader from '@/src/components/dashboard/DashboardHeader';
+import WeeklyDateSelector from '@/src/components/dashboard/WeeklyDateSelector';
 import LifeScoreCard from '@/src/components/dashboard/LifeScoreCard';
 import LifeStatsGrid from '@/src/components/dashboard/LifeStatsGrid';
 import TrendCard from '@/src/components/dashboard/TrendCard';
@@ -87,9 +88,11 @@ export default function DashboardScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   if (loading) {
     return (
@@ -115,7 +118,7 @@ export default function DashboardScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={{ paddingBottom: 130, paddingTop: insets.top }}
@@ -129,6 +132,9 @@ export default function DashboardScreen() {
           onAiPress={() => router.push('/chat')}
           onBellPress={() => setShowAlertsModal(true)}
         />
+
+        {/* Weekly Date Selector Strip */}
+        <WeeklyDateSelector />
 
         {/* Daily Morning Briefing Card (if present) */}
         {data.morningBriefing && (
@@ -183,8 +189,8 @@ export default function DashboardScreen() {
               accessibilityRole="button"
               accessibilityLabel="Log today's entry"
             >
-              <View style={[styles.navIconWrap, { backgroundColor: 'rgba(184, 255, 61, 0.12)' }]}>
-                <Ionicons name="add-circle" size={20} color={colors.primary} />
+              <View style={[styles.navIconWrap, { backgroundColor: '#FFEAE0' }]}>
+                <Ionicons name="add-circle" size={20} color="#C05621" />
               </View>
               <Text style={styles.quickNavTitle}>Log Today</Text>
               <Text style={styles.quickNavSubtitle}>Record journal</Text>
@@ -196,8 +202,8 @@ export default function DashboardScreen() {
               accessibilityRole="button"
               accessibilityLabel="View comprehensive analytics"
             >
-              <View style={[styles.navIconWrap, { backgroundColor: 'rgba(96, 165, 250, 0.12)' }]}>
-                <Ionicons name="stats-chart" size={20} color="#60A5FA" />
+              <View style={[styles.navIconWrap, { backgroundColor: '#E9F3FB' }]}>
+                <Ionicons name="stats-chart" size={20} color="#2B6CB0" />
               </View>
               <Text style={styles.quickNavTitle}>Analytics</Text>
               <Text style={styles.quickNavSubtitle}>Correlations</Text>
@@ -209,8 +215,8 @@ export default function DashboardScreen() {
               accessibilityRole="button"
               accessibilityLabel="View behavioral insights"
             >
-              <View style={[styles.navIconWrap, { backgroundColor: 'rgba(167, 139, 250, 0.12)' }]}>
-                <Ionicons name="bulb" size={20} color="#A78BFA" />
+              <View style={[styles.navIconWrap, { backgroundColor: '#F3EBF9' }]}>
+                <Ionicons name="bulb" size={20} color="#6B46C1" />
               </View>
               <Text style={styles.quickNavTitle}>Insights</Text>
               <Text style={styles.quickNavSubtitle}>AI patterns</Text>
@@ -222,8 +228,8 @@ export default function DashboardScreen() {
               accessibilityRole="button"
               accessibilityLabel="View history timeline"
             >
-              <View style={[styles.navIconWrap, { backgroundColor: 'rgba(251, 146, 60, 0.12)' }]}>
-                <Ionicons name="calendar" size={20} color="#FB923C" />
+              <View style={[styles.navIconWrap, { backgroundColor: '#EFF6E6' }]}>
+                <Ionicons name="calendar" size={20} color="#486B2F" />
               </View>
               <Text style={styles.quickNavTitle}>History</Text>
               <Text style={styles.quickNavSubtitle}>All logs</Text>
@@ -321,15 +327,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   quickNavSection: {
-    marginHorizontal: spacing.xl,
+    marginHorizontal: spacing.lg,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
   },
   sectionTitle: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 1.2,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     marginBottom: spacing.md,
   },
   quickNavGrid: {
@@ -339,20 +345,26 @@ const styles = StyleSheet.create({
   quickNavCard: {
     flex: 1,
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xs,
     alignItems: 'center',
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardPressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.98 }],
+    opacity: 0.85,
+    transform: [{ scale: 0.97 }],
   },
   navIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.full,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.xs,

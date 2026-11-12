@@ -75,7 +75,7 @@ export default function InsightCard({
           <View style={[styles.expandedSection, styles.actionSection]}>
             <Text style={styles.expandedEyebrow}>Action</Text>
             <View style={styles.actionRow}>
-              <Ionicons name="arrow-forward-circle" size={18} color={colors.primary} />
+              <Ionicons name="arrow-forward-circle" size={18} color="#66300C" />
               <Text style={styles.actionText}>{action}</Text>
             </View>
             {onStartExperiment && (
@@ -85,7 +85,7 @@ export default function InsightCard({
                 accessibilityRole="button"
                 accessibilityLabel="Test this in a 7-day experiment"
               >
-                <Ionicons name="flask-outline" size={15} color={colors.background} />
+                <Ionicons name="flask-outline" size={15} color="#FFFFFF" />
                 <Text style={styles.experimentBtnText}>Test in a 7-Day Experiment</Text>
               </Pressable>
             )}
@@ -105,9 +105,13 @@ const styles = StyleSheet.create({
     padding: spacing.xxl,
     borderWidth: 1,
     borderColor: colors.border,
-    // Left accent glow
-    borderLeftWidth: 2,
-    borderLeftColor: colors.purple,
+    borderLeftWidth: 3,
+    borderLeftColor: '#FFB98E',
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   badgeRow: {
     flexDirection: 'row',
@@ -117,25 +121,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: 'rgba(167, 123, 255, 0.10)',
+    backgroundColor: '#FFEAE0',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: radius.full,
   },
   badgeStar: {
     fontSize: 12,
-    color: colors.purple,
+    color: '#C05621',
   },
   badgeText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: colors.purple,
+    fontWeight: '700',
+    color: '#66300C',
     letterSpacing: 0.3,
   },
   title: {
     fontSize: 17,
-    fontWeight: '600',
-    color: colors.textPrimary,
+    fontWeight: '700',
+    color: colors.primaryText,
     lineHeight: 24,
     marginBottom: spacing.sm,
     letterSpacing: -0.2,
@@ -143,7 +147,7 @@ const styles = StyleSheet.create({
   summary: {
     fontSize: 14,
     fontWeight: '400',
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     lineHeight: 21,
   },
   divider: {
@@ -158,8 +162,8 @@ const styles = StyleSheet.create({
   },
   expandLabel: {
     fontSize: 13,
-    fontWeight: '500',
-    color: colors.textMuted,
+    fontWeight: '600',
+    color: colors.secondaryText,
   },
   expandedContent: {
     marginTop: spacing.lg,
@@ -170,14 +174,14 @@ const styles = StyleSheet.create({
   },
   expandedEyebrow: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.textMuted,
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   expandedText: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     lineHeight: 19,
   },
   actionSection: {
@@ -192,7 +196,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 13,
-    color: colors.textPrimary,
+    color: colors.primaryText,
     lineHeight: 19,
     flex: 1,
   },
@@ -201,15 +205,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.md,
+    backgroundColor: colors.darkButton,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.full,
     marginTop: spacing.md,
   },
   experimentBtnText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
-    color: colors.background,
+    color: '#FFFFFF',
   },
 });

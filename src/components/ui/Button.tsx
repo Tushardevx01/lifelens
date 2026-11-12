@@ -1,7 +1,8 @@
 /**
  * Button – LifeLens UI Primitive
  *
- * Variants: primary | secondary | ghost
+ * Warm, pill-shaped action buttons with soft transitions.
+ * Variants: primary (#66300C) | secondary (#F1E8E3) | ghost | outline | destructive
  * Sizes:    sm | md | lg
  */
 
@@ -72,7 +73,7 @@ export function Button({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'primary' ? colors.background : colors.primary}
+          color={variant === 'primary' ? colors.white : colors.textPrimary}
           size="small"
         />
       ) : (
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radius.xl,
+    borderRadius: radius.full,
     gap: spacing.sm,
   },
   fullWidth: {
@@ -110,49 +111,47 @@ const styles = StyleSheet.create({
 
   // ─── Variants ─────────────────────────────────────────────────
   primary: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.darkButton, // #66300C Signature warm dark brown
   },
   secondary: {
-    backgroundColor: colors.surfaceElevated,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-  },
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 1.5,
-    borderColor: 'rgba(184, 255, 61, 0.4)',
-  },
-  destructive: {
-    backgroundColor: 'rgba(255, 99, 109, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 99, 109, 0.35)',
-  },
-  ghost: {
-    backgroundColor: colors.primaryMuted,
+    backgroundColor: colors.surfaceSoft, // #F1E8E3
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  outline: {
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+  },
+  destructive: {
+    backgroundColor: 'rgba(224, 93, 93, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(224, 93, 93, 0.25)',
+  },
+  ghost: {
+    backgroundColor: 'transparent',
   },
 
   // ─── Sizes ────────────────────────────────────────────────────
   size_sm: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    minHeight: 36,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    minHeight: 38,
   },
   size_md: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
+    paddingVertical: 12,
+    paddingHorizontal: 22,
     minHeight: 48,
   },
   size_lg: {
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xxl,
-    minHeight: 56,
+    paddingVertical: 16,
+    paddingHorizontal: 28,
+    minHeight: 54,
   },
 
   // ─── Press / disabled states ──────────────────────────────────
   pressed: {
-    opacity: 0.8,
+    opacity: 0.85,
     transform: [{ scale: 0.98 }],
   },
   disabled: {
@@ -164,7 +163,7 @@ const styles = StyleSheet.create({
     ...typography.button,
   },
   primaryText: {
-    color: colors.background,
+    color: colors.white,
     fontWeight: '700',
   },
   secondaryText: {
@@ -172,8 +171,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   outlineText: {
-    color: colors.primary,
-    fontWeight: '700',
+    color: colors.textPrimary,
+    fontWeight: '600',
   },
   destructiveText: {
     color: colors.error,
@@ -181,15 +180,16 @@ const styles = StyleSheet.create({
   },
   ghostText: {
     color: colors.textPrimary,
+    fontWeight: '600',
   },
   text_sm: {
-    fontSize: 14,
+    fontSize: 13,
   },
   text_md: {
-    fontSize: 16,
+    fontSize: 15,
   },
   text_lg: {
-    fontSize: 17,
+    fontSize: 16,
   },
   disabledText: {
     opacity: 0.7,

@@ -16,7 +16,6 @@ import { View, Text, StyleSheet } from 'react-native';
 import { colors }  from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius }  from '@/src/theme/radius';
-import { shadows } from '@/src/theme/shadows';
 import CircularProgress from './CircularProgress';
 
 interface LifeScoreHeroProps {
@@ -49,9 +48,9 @@ export default function LifeScoreHero({
         <CircularProgress
           size={108}
           progress={safeScore}
-          color={colors.primary}
+          color={colors.darkButton}
           strokeWidth={10}
-          backgroundColor={colors.surfaceHigh}
+          backgroundColor={colors.surfaceSecondary}
         >
           <Text style={styles.ringNumber}>{Math.round(safeScore)}</Text>
         </CircularProgress>
@@ -62,13 +61,13 @@ export default function LifeScoreHero({
         <View
           style={[
             styles.changePill,
-            { backgroundColor: isPositive ? 'rgba(66, 215, 122, 0.12)' : 'rgba(255, 99, 109, 0.12)' },
+            { backgroundColor: isPositive ? colors.softGreen : '#FDE8E8' },
           ]}
         >
           <Text
             style={[
               styles.changeText,
-              { color: isPositive ? colors.green : colors.red },
+              { color: isPositive ? '#15803D' : colors.error },
             ]}
           >
             {isPositive ? '↑' : '↓'} {changeSign}{safeChange.toFixed(1)} from yesterday
@@ -81,7 +80,7 @@ export default function LifeScoreHero({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.surface,
     borderRadius: radius.hero,
     marginHorizontal: spacing.xl,
     marginBottom: spacing.lg,
@@ -89,13 +88,17 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxl,
     paddingBottom: spacing.xl,
     borderWidth: 1,
-    borderColor: colors.borderLight,
-    ...shadows.lg,
+    borderColor: colors.border,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
   },
   eyebrow: {
     fontSize: 13,
-    fontWeight: '500',
-    color: colors.textMuted,
+    fontWeight: '700',
+    color: colors.secondaryText,
     letterSpacing: 0.3,
     marginBottom: spacing.md,
   },

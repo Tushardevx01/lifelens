@@ -2,10 +2,10 @@ import { ScoreCategory } from './dashboard.types';
 
 export const getCategoryColor = (category: ScoreCategory): string => {
   const colors: Record<ScoreCategory, string> = {
-    sleep: '#00D4AA',
-    productivity: '#4A9EFF',
-    health: '#B8FF00',
-    finance: '#FF9F43',
+    sleep: '#7C3AED',
+    productivity: '#2563EB',
+    health: '#16A34A',
+    finance: '#EA580C',
   };
   return colors[category];
 };
@@ -21,9 +21,9 @@ export const getCategoryLabel = (category: ScoreCategory): string => {
 };
 
 export const getScoreColor = (score: number): string => {
-  if (score >= 80) return '#00D4AA';
-  if (score >= 60) return '#FF9F43';
-  return '#FF4444';
+  if (score >= 80) return '#16A34A';
+  if (score >= 60) return '#D97706';
+  return '#DC2626';
 };
 
 export const getConfidenceLabel = (confidence: string): string => {

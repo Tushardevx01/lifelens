@@ -102,7 +102,7 @@ export function SignUpScreen({
           <View style={styles.branding}>
             <View style={styles.logoContainer}>
               <View style={styles.iconCircle}>
-                <Ionicons name="sparkles" size={26} color={colors.primary} />
+                <Ionicons name="sparkles" size={26} color="#66300C" />
               </View>
             </View>
             <View style={styles.titleRow}>
@@ -136,12 +136,12 @@ export function SignUpScreen({
           {/* Full Name */}
           <Input
             label="Full Name"
-            variant="dark"
+            variant="default"
             icon={
               <Ionicons
                 name="person-outline"
                 size={20}
-                color={nameFocused ? colors.primary : colors.textSecondary}
+                color={nameFocused ? '#66300C' : colors.textSecondary}
               />
             }
             placeholder="e.g. Priya Sharma"
@@ -157,12 +157,12 @@ export function SignUpScreen({
           {/* Email */}
           <Input
             label="Email Address"
-            variant="dark"
+            variant="default"
             icon={
               <Ionicons
                 name="mail-outline"
                 size={20}
-                color={emailFocused ? colors.primary : colors.textSecondary}
+                color={emailFocused ? '#66300C' : colors.textSecondary}
               />
             }
             placeholder="you@example.com"
@@ -179,12 +179,12 @@ export function SignUpScreen({
           {/* Password */}
           <Input
             label="Password"
-            variant="dark"
+            variant="default"
             icon={
               <Ionicons
                 name="lock-closed-outline"
                 size={20}
-                color={passwordFocused ? colors.primary : colors.textSecondary}
+                color={passwordFocused ? '#66300C' : colors.textSecondary}
               />
             }
             rightIcon={
@@ -213,13 +213,13 @@ export function SignUpScreen({
           {/* Confirm Password */}
           <Input
             label="Confirm Password"
-            variant="dark"
+            variant="default"
             error={passwordMismatch ? 'Passwords do not match' : undefined}
             icon={
               <Ionicons
                 name="shield-checkmark-outline"
                 size={20}
-                color={confirmPasswordFocused ? colors.primary : colors.textSecondary}
+                color={confirmPasswordFocused ? '#66300C' : colors.textSecondary}
               />
             }
             rightIcon={
@@ -296,12 +296,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   iconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(184, 255, 61, 0.12)',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFEAE0',
     borderWidth: 1.5,
-    borderColor: 'rgba(184, 255, 61, 0.35)',
+    borderColor: '#F8D2BD',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -313,38 +313,38 @@ const styles = StyleSheet.create({
   titleWhite: {
     fontSize: 32,
     fontWeight: '800',
-    color: colors.textPrimary,
+    color: colors.primaryText,
     letterSpacing: -0.8,
   },
   titleGreen: {
     fontSize: 32,
     fontWeight: '800',
-    color: colors.primary,
+    color: '#C05621',
     letterSpacing: -0.8,
   },
   aiBadge: {
     marginLeft: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: radius.sm,
-    backgroundColor: 'rgba(184, 255, 61, 0.16)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.full,
+    backgroundColor: '#F5ECE6',
     borderWidth: 1,
-    borderColor: 'rgba(184, 255, 61, 0.35)',
+    borderColor: colors.border,
   },
   aiBadgeText: {
     fontSize: 12,
     fontWeight: '800',
-    color: colors.primary,
+    color: '#66300C',
     letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     marginTop: spacing.xs,
     textAlign: 'center',
   },
   sheet: {
-    backgroundColor: '#181A1D',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: radius.hero,
     borderTopRightRadius: radius.hero,
     borderWidth: 1,
@@ -352,6 +352,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xxl,
     gap: spacing.lg,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 8,
   },
   welcomeSection: {
     gap: 4,
@@ -360,12 +365,12 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: colors.textPrimary,
+    color: colors.primaryText,
     letterSpacing: -0.4,
   },
   welcomeSubtitle: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     lineHeight: 20,
   },
   signInSection: {
@@ -376,11 +381,11 @@ const styles = StyleSheet.create({
   },
   signInText: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   signInLink: {
     fontSize: 14,
-    color: colors.primary,
-    fontWeight: '700',
+    color: '#66300C',
+    fontWeight: '800',
   },
 });

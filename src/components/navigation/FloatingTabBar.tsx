@@ -22,7 +22,6 @@ import { router, type Tabs } from 'expo-router';
 
 import { colors }  from '@/src/theme/colors';
 import { radius }  from '@/src/theme/radius';
-import { shadows } from '@/src/theme/shadows';
 import { spacing } from '@/src/theme/spacing';
 
 interface NavigationEmitEvent {
@@ -108,8 +107,8 @@ function TabBarButton({ route, isFocused, onPress }: TabBarButtonProps) {
   };
 
   const getIconColor = () => {
-    if (isNewEntry) return colors.background;
-    return isFocused ? colors.primary : colors.textMuted;
+    if (isNewEntry) return colors.white;
+    return isFocused ? colors.darkButton : colors.textMuted;
   };
 
   return (
@@ -223,15 +222,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    backgroundColor: '#181A1D',
+    backgroundColor: colors.surface,
     borderRadius: radius.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    ...shadows.float,
-    boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.75)',
-    elevation: 20,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    boxShadow: '0px 8px 24px rgba(102, 48, 12, 0.08)',
+    elevation: 10,
     gap: spacing.xs,
     maxWidth: 370,
     width: '100%',
@@ -249,18 +247,16 @@ const styles = StyleSheet.create({
     borderRadius: 22,
   },
   activeTabInner: {
-    backgroundColor: 'rgba(184, 255, 61, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(184, 255, 61, 0.35)',
+    backgroundColor: '#FFEDE1',
   },
   newEntryInner: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.darkButton,
     borderRadius: 22,
-    boxShadow: '0px 2px 8px rgba(184, 255, 61, 0.45)',
-    elevation: 8,
+    boxShadow: '0px 3px 10px rgba(102, 48, 12, 0.22)',
+    elevation: 6,
   },
   newEntryActiveInner: {
-    backgroundColor: colors.primary,
-    transform: [{ scale: 1.06 }],
+    backgroundColor: colors.darkButton,
+    transform: [{ scale: 1.05 }],
   },
 });

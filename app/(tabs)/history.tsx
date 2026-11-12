@@ -205,7 +205,7 @@ export default function HistoryScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       <ScrollView
         style={styles.scrollView}
@@ -218,15 +218,26 @@ export default function HistoryScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
+            tintColor={colors.darkButton}
+            colors={[colors.darkButton]}
           />
         }
       >
         {/* Screen Header */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <Text style={styles.headerTitle}>History</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+              <Pressable
+                onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/home'))}
+                accessibilityRole="button"
+                accessibilityLabel="Back to Home"
+                hitSlop={8}
+                style={styles.backButton}
+              >
+                <Ionicons name="arrow-back" size={20} color={colors.primaryText} />
+              </Pressable>
+              <Text style={styles.headerTitle}>History</Text>
+            </View>
             <View style={styles.streakBadge}>
               <Text style={styles.streakIcon}>🔥</Text>
               <Text style={styles.streakText}>
@@ -327,7 +338,7 @@ export default function HistoryScreen() {
               accessibilityRole="button"
               accessibilityLabel="Log your daily entry"
             >
-              <Ionicons name="add" size={18} color={colors.background} />
+              <Ionicons name="add" size={18} color="#FFFFFF" />
               <Text style={styles.logButtonText}>Log Your Day</Text>
             </Pressable>
           </View>
@@ -378,24 +389,24 @@ export default function HistoryScreen() {
                   {/* Metrics Tags Grid */}
                   <View style={styles.tagsGrid}>
                     <View style={styles.tagItem}>
-                      <Ionicons name="moon-outline" size={13} color="#00D4AA" />
+                      <Ionicons name="moon-outline" size={13} color="#7C3AED" />
                       <Text style={styles.tagLabel}>Sleep: {entry.sleep_hours}h</Text>
                     </View>
                     <View style={styles.tagItem}>
-                      <Ionicons name="briefcase-outline" size={13} color="#4A9EFF" />
+                      <Ionicons name="briefcase-outline" size={13} color="#2563EB" />
                       <Text style={styles.tagLabel}>Focus: {entry.deep_work_hours}h</Text>
                     </View>
                     <View style={styles.tagItem}>
-                      <Ionicons name="footsteps-outline" size={13} color="#B8FF00" />
+                      <Ionicons name="footsteps-outline" size={13} color="#15803D" />
                       <Text style={styles.tagLabel}>{entry.steps.toLocaleString()} steps</Text>
                     </View>
                     <View style={styles.tagItem}>
-                      <Ionicons name="wallet-outline" size={13} color="#FF9F43" />
+                      <Ionicons name="wallet-outline" size={13} color="#C05621" />
                       <Text style={styles.tagLabel}>${entry.daily_spend.toFixed(0)}</Text>
                     </View>
                     {entry.mood_score ? (
                       <View style={styles.tagItem}>
-                        <Ionicons name="happy-outline" size={13} color="#FF69B4" />
+                        <Ionicons name="happy-outline" size={13} color="#D946EF" />
                         <Text style={styles.tagLabel}>Mood: {entry.mood_score}/10</Text>
                       </View>
                     ) : null}
@@ -443,14 +454,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
+  backButton: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.full,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     lineHeight: 20,
     marginBottom: spacing.md,
   },
@@ -458,12 +479,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: '#FFEAE0',
     paddingHorizontal: spacing.md,
     paddingVertical: 6,
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: 'rgba(255, 159, 67, 0.3)',
+    borderColor: '#F8D2BD',
   },
   streakIcon: {
     fontSize: 14,
@@ -471,7 +492,7 @@ const styles = StyleSheet.create({
   streakText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#FF9F43',
+    color: '#66300C',
   },
   rangeRow: {
     flexDirection: 'row',
@@ -481,21 +502,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: 6,
     borderRadius: radius.full,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
     borderColor: colors.border,
   },
   rangePillActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.darkButton,
+    borderColor: colors.darkButton,
   },
   rangePillText: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   rangePillTextActive: {
-    color: colors.background,
+    color: '#FFFFFF',
   },
   trendSection: {
     marginVertical: spacing.xs,
@@ -511,21 +532,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: 6,
     borderRadius: radius.full,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
     borderColor: colors.border,
   },
   filterPillActive: {
-    backgroundColor: colors.surfaceLight,
-    borderColor: colors.surfaceLight,
+    backgroundColor: colors.darkButton,
+    borderColor: colors.darkButton,
   },
   filterText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.textMuted,
+    color: colors.secondaryText,
   },
   filterTextActive: {
-    color: colors.background,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   centerContainer: {
@@ -540,7 +561,7 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     backgroundColor: colors.surface,
-    borderRadius: radius.xl,
+    borderRadius: radius.xxl,
     padding: spacing.xl,
     marginHorizontal: spacing.lg,
     marginTop: spacing.md,
@@ -548,24 +569,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     gap: spacing.sm,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   emptyIconWrap: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.surfaceSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.xs,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontWeight: '800',
+    color: colors.primaryText,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: colors.textMuted,
+    color: colors.secondaryText,
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: spacing.md,
@@ -574,8 +600,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.darkButton,
+    paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
     borderRadius: radius.full,
     marginTop: spacing.md,
@@ -583,7 +609,7 @@ const styles = StyleSheet.create({
   logButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.background,
+    color: '#FFFFFF',
   },
   entriesList: {
     paddingHorizontal: spacing.lg,
@@ -592,11 +618,16 @@ const styles = StyleSheet.create({
   },
   entryCard: {
     backgroundColor: colors.surface,
-    borderRadius: radius.xl,
+    borderRadius: radius.xxl,
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
     gap: spacing.sm,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   entryTopRow: {
     flexDirection: 'row',
@@ -608,12 +639,12 @@ const styles = StyleSheet.create({
   },
   entryDay: {
     fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontWeight: '800',
+    color: colors.primaryText,
   },
   entryDate: {
     fontSize: 12,
-    color: colors.textMuted,
+    color: colors.secondaryText,
   },
   scoreContainer: {
     alignItems: 'flex-end',
@@ -624,8 +655,8 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   bandBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
     borderRadius: radius.full,
   },
   bandLabel: {
@@ -634,7 +665,7 @@ const styles = StyleSheet.create({
   },
   entryNotes: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontStyle: 'italic',
     lineHeight: 18,
   },
@@ -647,16 +678,16 @@ const styles = StyleSheet.create({
   tagItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: colors.surfaceElevated,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: radius.sm,
+    gap: 5,
+    backgroundColor: colors.surfaceSecondary,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.full,
   },
   tagLabel: {
     fontSize: 11,
-    color: colors.textSecondary,
-    fontWeight: '500',
+    color: colors.primaryText,
+    fontWeight: '600',
   },
   cardActionsRow: {
     flexDirection: 'row',
@@ -664,7 +695,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingTop: 6,
     borderTopWidth: 1,
-    borderTopColor: colors.surfaceElevated,
+    borderTopColor: colors.border,
   },
   deleteButton: {
     flexDirection: 'row',

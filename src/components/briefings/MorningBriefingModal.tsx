@@ -42,11 +42,11 @@ export function MorningBriefingModal({
 
   const tierColor =
     recTier === 'OPTIMAL'
-      ? colors.primary
+      ? '#2E7D32'
       : recTier === 'GOOD'
-        ? colors.blue
+        ? '#1D4ED8'
         : recTier === 'MODERATE'
-          ? colors.orange
+          ? '#D97706'
           : colors.error;
 
   const displayGreeting = briefing.greeting
@@ -79,7 +79,7 @@ export function MorningBriefingModal({
       onRequestClose={onClose}
     >
       <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) }]}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle="dark-content" />
 
         {/* Modal Header */}
         <View style={styles.header}>
@@ -97,7 +97,7 @@ export function MorningBriefingModal({
               <Ionicons
                 name={isPlayingAudio ? 'volume-high' : 'volume-medium-outline'}
                 size={20}
-                color={isPlayingAudio ? colors.primary : colors.textSecondary}
+                color={isPlayingAudio ? colors.darkButton : colors.textSecondary}
               />
             </Pressable>
             <IconButton
@@ -111,7 +111,7 @@ export function MorningBriefingModal({
 
         {isPlayingAudio && (
           <View style={styles.audioPlayingBar}>
-            <Ionicons name="mic" size={14} color={colors.primary} />
+            <Ionicons name="mic" size={14} color={colors.darkButton} />
             <Text style={styles.audioPlayingText}>
               Voice synthesis: reading executive summary and today's action...
             </Text>
@@ -141,7 +141,7 @@ export function MorningBriefingModal({
           {/* Section 2: Cognitive Focus Windows */}
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="sparkles" size={18} color={colors.primary} />
+              <Ionicons name="sparkles" size={18} color={colors.darkButton} />
               <Text style={styles.sectionTitle}>Ultradian Focus Windows</Text>
             </View>
             <View style={styles.focusWindowRow}>
@@ -211,7 +211,7 @@ export function MorningBriefingModal({
           {/* Section 5: Today's Action */}
           <View style={styles.actionCard}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="bulb-outline" size={18} color={colors.primary} />
+              <Ionicons name="bulb-outline" size={18} color={colors.darkButton} />
               <Text style={styles.sectionTitle}>Micro-Action for Today</Text>
             </View>
             <Text style={styles.actionBody}>{briefing.micro_action}</Text>
@@ -225,7 +225,7 @@ export function MorningBriefingModal({
               <Ionicons
                 name={isCommitted ? 'checkmark-circle' : 'flag-outline'}
                 size={18}
-                color={colors.background}
+                color="#FFFFFF"
               />
               <Text style={styles.commitBtnText}>
                 {isCommitted ? 'Committed for Today ✓' : 'Commit to This Micro-Action'}
@@ -241,7 +241,7 @@ export function MorningBriefingModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.canvas,
   },
   header: {
     flexDirection: 'row',
@@ -256,12 +256,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 18,
     fontWeight: '700',
   },
   headerSubtitle: {
-    color: colors.textMuted,
+    color: colors.secondaryText,
     fontSize: 12,
     marginTop: 2,
   },
@@ -274,31 +274,31 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   iconBtnActive: {
-    backgroundColor: 'rgba(184, 255, 61, 0.18)',
+    backgroundColor: '#FFEDE1',
   },
   closeBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   audioPlayingBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(184, 255, 61, 0.12)',
+    backgroundColor: '#FFEDE1',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.xs,
     gap: spacing.xs,
   },
   audioPlayingText: {
-    color: colors.primary,
+    color: colors.darkButton,
     fontSize: 11,
     fontWeight: '600',
   },
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   heroBox: {
     flexDirection: 'row',
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     padding: spacing.lg,
     marginBottom: spacing.md,
     justifyContent: 'space-between',
@@ -323,13 +323,13 @@ const styles = StyleSheet.create({
     paddingRight: spacing.md,
   },
   heroGreeting: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 18,
     fontWeight: '800',
     marginBottom: spacing.xs,
   },
   heroDesc: {
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontSize: 13,
     lineHeight: 19,
   },
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     height: 78,
     borderRadius: 39,
     borderWidth: 2.5,
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   },
   scoreUnit: {
     fontSize: 10,
-    color: colors.textMuted,
+    color: colors.secondaryText,
   },
   tierBadge: {
     fontSize: 8,
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   },
   sectionCard: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     padding: spacing.lg,
     marginBottom: spacing.md,
     borderWidth: 1,
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sectionTitle: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 15,
     fontWeight: '700',
     flex: 1,
@@ -380,31 +380,31 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   windowItem: {
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     padding: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
   },
   windowLabel: {
-    color: colors.primary,
+    color: colors.darkButton,
     fontSize: 12,
     fontWeight: '700',
     marginBottom: 2,
   },
   windowValue: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 17,
     fontWeight: '800',
     marginBottom: 4,
   },
   windowNote: {
-    color: colors.textMuted,
+    color: colors.secondaryText,
     fontSize: 11,
   },
   alertRow: {
     flexDirection: 'row',
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     padding: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     marginBottom: spacing.sm,
     gap: spacing.sm,
   },
@@ -415,38 +415,38 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   alertTitle: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 13,
     fontWeight: '700',
     marginBottom: 2,
   },
   alertMsg: {
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontSize: 12,
     lineHeight: 17,
   },
   experimentCard: {
-    borderColor: 'rgba(93, 169, 255, 0.3)',
+    borderColor: colors.border,
   },
   expPill: {
-    backgroundColor: 'rgba(93, 169, 255, 0.15)',
+    backgroundColor: '#E8DDF4',
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: radius.full,
   },
   expPillText: {
-    color: colors.blue,
+    color: '#6B21A8',
     fontSize: 11,
     fontWeight: '700',
   },
   expRuleText: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 6,
   },
   expMsgText: {
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontSize: 12,
     lineHeight: 18,
     marginBottom: spacing.sm,
@@ -454,29 +454,29 @@ const styles = StyleSheet.create({
   adherenceStatusRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.secondary,
     padding: spacing.sm,
-    borderRadius: radius.sm,
+    borderRadius: radius.md,
   },
   adherenceLabel: {
-    color: colors.textMuted,
+    color: colors.secondaryText,
     fontSize: 12,
   },
   adherenceValue: {
-    color: colors.primary,
+    color: colors.darkButton,
     fontSize: 12,
     fontWeight: '700',
   },
   actionCard: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     padding: spacing.lg,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(184, 255, 61, 0.25)',
+    borderColor: colors.border,
   },
   actionBody: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 14,
     lineHeight: 21,
     marginBottom: spacing.lg,
@@ -485,16 +485,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
-    paddingVertical: 12,
-    borderRadius: radius.md,
+    backgroundColor: colors.darkButton,
+    paddingVertical: 14,
+    borderRadius: radius.full,
     gap: spacing.sm,
   },
   commitBtnDone: {
-    backgroundColor: colors.green,
+    backgroundColor: '#2E7D32',
   },
   commitBtnText: {
-    color: colors.background,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
   },

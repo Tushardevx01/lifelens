@@ -1,8 +1,7 @@
 /**
  * TrendCard – LifeLens Dashboard Component
  *
- * 30-day Life Score trend with pill-style time filters and minimal bar chart.
- * The current score dominates; chart is a supporting visual.
+ * Warm, minimal score trend with pill-style time filters and clean bar chart.
  */
 
 import React, { useState } from 'react';
@@ -49,7 +48,7 @@ export default function TrendCard({
       {/* Header row */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.eyebrow}>30 Day Life Score</Text>
+          <Text style={styles.eyebrow}>Score Trajectory</Text>
           <View style={styles.scoreRow}>
             <Text style={styles.scoreNumber}>{latestScore.toFixed(1)}</Text>
             <View style={styles.changePill}>
@@ -91,7 +90,7 @@ export default function TrendCard({
                     styles.bar,
                     {
                       height: barH,
-                      backgroundColor: isLast ? colors.primary : colors.surfaceHigh,
+                      backgroundColor: isLast ? colors.primary : colors.surfaceSoft,
                     },
                   ]}
                 />
@@ -109,20 +108,23 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.xxl,
+    padding: spacing.xl,
     marginHorizontal: spacing.xl,
-    marginBottom: spacing.lg,
-    padding: spacing.xxl,
-    borderWidth: 1,
+    marginBottom: spacing.xl,
+    borderWidth: 1.5,
     borderColor: colors.border,
+    boxShadow: '0px 4px 16px rgba(102, 48, 12, 0.04)',
+    elevation: 3,
   },
   header: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   eyebrow: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '700',
     color: colors.textMuted,
-    letterSpacing: 0.3,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
     marginBottom: spacing.xs,
   },
   scoreRow: {
@@ -132,21 +134,21 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   scoreNumber: {
-    fontSize: 36,
+    fontSize: 34,
     fontWeight: '800',
     color: colors.textPrimary,
     letterSpacing: -1,
   },
   changePill: {
-    backgroundColor: 'rgba(66, 215, 122, 0.12)',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    backgroundColor: '#EDF5DC',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: radius.full,
   },
   changeText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: colors.green,
+    fontWeight: '700',
+    color: '#789938',
   },
   timeRow: {
     flexDirection: 'row',
@@ -154,21 +156,22 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   timePill: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     borderRadius: radius.full,
-    backgroundColor: colors.surfaceHigh,
+    backgroundColor: colors.surfaceSoft,
   },
   timePillActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.darkButton,
   },
   timePillText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.textMuted,
+    color: colors.textSecondary,
   },
   timePillTextActive: {
-    color: colors.background,
+    color: colors.white,
+    fontWeight: '700',
   },
   chart: {
     flexDirection: 'row',
@@ -186,7 +189,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   bar: {
-    width: '80%',
+    width: '75%',
     borderTopLeftRadius: radius.sm,
     borderTopRightRadius: radius.sm,
     minHeight: 4,
@@ -194,6 +197,6 @@ const styles = StyleSheet.create({
   dayLabel: {
     fontSize: 10,
     color: colors.textMuted,
-    fontWeight: '500',
+    fontWeight: '600',
   },
 });

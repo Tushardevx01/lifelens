@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str | None = None
     ANTHROPIC_API_KEY: str | None = None
     LLM_PROVIDER: str = "auto"
-    LLM_MODEL: str = "gemini-1.5-pro"
+    LLM_MODEL: str = "gemini-3.5-flash-lite"
 
     # Automated Ingestion & Webhooks
     FINANCIAL_WEBHOOK_SECRET: str = _DEV_WEBHOOK_SECRET

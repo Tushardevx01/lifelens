@@ -178,6 +178,40 @@ class TestGeminiApiExecution:
 
         assert result is None
 
+    async def test_gemini_invalid_key_400_returns_none(self, monkeypatch):
+        service = GeminiService()
+        monkeypatch.setattr(service._settings, "GEMINI_API_KEY", "AIzaSyInvalidKey123")
+
+        mock_response = MagicMock()
+        mock_response.status_code = 400
+        mock_response.text = '{"error": {"message": "API key not valid", "reason": "API_KEY_INVALID"}}'
+
+        with patch("httpx.AsyncClient.post", AsyncMock(return_value=mock_response)):
+            result = await service.generate_lifestyle_response(
+                system_prompt="Test",
+                user_query="My sleep",
+                telemetry_context=[],
+            )
+
+        assert result is None
+
+    async def test_gemini_server_error_500_returns_none(self, monkeypatch):
+        service = GeminiService()
+        monkeypatch.setattr(service._settings, "GEMINI_API_KEY", "AIzaSyValidTestKey123")
+
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+        mock_response.text = "Internal server error from Google"
+
+        with patch("httpx.AsyncClient.post", AsyncMock(return_value=mock_response)):
+            result = await service.generate_lifestyle_response(
+                system_prompt="Test",
+                user_query="My health",
+                telemetry_context=[],
+            )
+
+        assert result is None
+
 
 @pytest.mark.asyncio
 class TestGeminiStatusEndpoint:

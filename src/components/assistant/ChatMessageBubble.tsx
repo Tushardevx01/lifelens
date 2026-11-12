@@ -108,7 +108,7 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
     <View style={[styles.bubbleWrapper, styles.asstBubbleWrapper]}>
       <View style={styles.asstHeader}>
         <View style={styles.asstAvatar}>
-          <Ionicons name="sparkles" size={13} color={colors.primary} />
+          <Ionicons name="sparkles" size={12} color="#66300C" />
         </View>
         <Text style={styles.asstName}>LifeLens AI</Text>
         {timeString ? <Text style={styles.asstTimeText}>{timeString}</Text> : null}
@@ -120,7 +120,7 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
           <Ionicons
             name={isPlayingAudio ? 'volume-high' : 'volume-medium-outline'}
             size={14}
-            color={isPlayingAudio ? colors.primary : colors.textMuted}
+            color={isPlayingAudio ? '#66300C' : colors.textMuted}
           />
         </TouchableOpacity>
       </View>
@@ -131,7 +131,7 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
           <View style={styles.toolsWrapper}>
             {message.tool_calls.map((tc, idx) => (
               <View key={idx} style={styles.toolBadge}>
-                <Ionicons name="checkmark-circle" size={12} color={colors.primary} />
+                <Ionicons name="checkmark-circle" size={12} color="#15803D" />
                 <Text style={styles.toolBadgeText}>
                   Analyzed {tc.tool.replace('get_', '').replace('_', ' ')}
                 </Text>
@@ -178,24 +178,25 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   userBubble: {
-    backgroundColor: '#1E3B27',
+    backgroundColor: '#FFEAE0',
     borderWidth: 1,
-    borderColor: 'rgba(184, 255, 61, 0.3)',
-    borderRadius: radius.md,
-    borderBottomRightRadius: radius.sm,
+    borderColor: '#F8D2BD',
+    borderRadius: radius.xl,
+    borderBottomRightRadius: 6,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     maxWidth: '85%',
   },
   userMessageText: {
     ...typography.body,
-    color: colors.textPrimary,
+    color: '#242424',
     fontSize: 14,
     lineHeight: 20,
+    fontWeight: '500',
   },
   userTimeText: {
     ...typography.caption,
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: colors.secondaryText,
     fontSize: 10,
     alignSelf: 'flex-end',
     marginTop: 4,
@@ -207,19 +208,19 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   asstAvatar: {
-    width: 20,
-    height: 20,
-    borderRadius: radius.full,
-    backgroundColor: 'rgba(184, 255, 61, 0.15)',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#FFE5D3',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 6,
   },
   asstName: {
     ...typography.caption,
-    color: colors.primary,
-    fontWeight: '700',
-    fontSize: 11,
+    color: '#66300C',
+    fontWeight: '800',
+    fontSize: 12,
   },
   asstTimeText: {
     ...typography.caption,
@@ -233,14 +234,19 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   asstBubble: {
-    backgroundColor: colors.surfaceSoft,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: colors.borderLight,
-    borderRadius: radius.md,
-    borderTopLeftRadius: radius.sm,
+    borderColor: colors.border,
+    borderRadius: radius.xl,
+    borderTopLeftRadius: 6,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     maxWidth: '92%',
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   toolsWrapper: {
     flexDirection: 'row',
@@ -251,16 +257,17 @@ const styles = StyleSheet.create({
   toolBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surfaceElevated,
+    backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.full,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     gap: 4,
   },
   toolBadgeText: {
     ...typography.caption,
-    color: colors.textSecondary,
-    fontSize: 10,
+    color: colors.primaryText,
+    fontSize: 11,
+    fontWeight: '600',
     textTransform: 'capitalize',
   },
   contentWrapper: {
@@ -275,7 +282,7 @@ const styles = StyleSheet.create({
     paddingLeft: 4,
   },
   bulletDot: {
-    color: colors.primary,
+    color: '#C05621',
     fontSize: 13,
     marginRight: 6,
     lineHeight: 20,
@@ -287,19 +294,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   asstMessageText: {
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   boldText: {
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: colors.primaryText,
   },
   italicText: {
     fontStyle: 'italic',
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   divider: {
     height: 1,
-    backgroundColor: colors.borderLight,
+    backgroundColor: colors.border,
     marginVertical: spacing.xs,
   },
   cardsWrapper: {
@@ -311,13 +318,13 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     paddingTop: spacing.xs,
     borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
+    borderTopColor: colors.border,
     gap: 4,
   },
   disclaimerText: {
     ...typography.caption,
     color: colors.textMuted,
-    fontSize: 9,
+    fontSize: 10,
     flex: 1,
   },
 });

@@ -85,13 +85,13 @@ export default function AlertsModal({
   const getIcon = (type: AlertItem['type']) => {
     switch (type) {
       case 'anomaly':
-        return { name: 'warning-outline' as const, color: '#FF9F4A' };
+        return { name: 'warning-outline' as const, color: '#D97706' };
       case 'streak':
-        return { name: 'flame-outline' as const, color: colors.primary };
+        return { name: 'flame-outline' as const, color: '#C05621' };
       case 'insight':
-        return { name: 'bulb-outline' as const, color: '#4ADE80' };
+        return { name: 'bulb-outline' as const, color: '#15803D' };
       case 'system':
-        return { name: 'hardware-chip-outline' as const, color: '#60A5FA' };
+        return { name: 'hardware-chip-outline' as const, color: '#2563EB' };
     }
   };
 
@@ -110,7 +110,7 @@ export default function AlertsModal({
           <View style={styles.header}>
             <View style={styles.titleRow}>
               <View style={styles.iconCircle}>
-                <Ionicons name="notifications" size={18} color={colors.primary} />
+                <Ionicons name="notifications" size={18} color="#66300C" />
               </View>
               <Text style={styles.title}>Notifications & Alerts</Text>
               {unreadCount > 0 && (
@@ -208,12 +208,17 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 480,
     maxHeight: '85%',
-    backgroundColor: '#181A1D',
-    borderRadius: radius.xxl,
+    backgroundColor: colors.surface,
+    borderRadius: radius.hero,
     borderWidth: 1,
-    borderColor: '#2A2E33',
+    borderColor: colors.border,
     padding: spacing.lg,
     overflow: 'hidden',
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   header: {
     flexDirection: 'row',
@@ -227,28 +232,28 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   iconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(184, 255, 61, 0.12)',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FFEAE0',
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
     fontSize: 17,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontWeight: '800',
+    color: colors.primaryText,
   },
   unreadBadge: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 7,
+    backgroundColor: '#C05621',
+    paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: radius.full,
   },
   unreadText: {
     fontSize: 11,
     fontWeight: '800',
-    color: colors.background,
+    color: '#FFFFFF',
   },
   actionsBar: {
     flexDirection: 'row',
@@ -257,16 +262,16 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
     marginBottom: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: '#25282D',
+    borderBottomColor: colors.border,
   },
   actionsNote: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
   },
   markReadText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: colors.primary,
+    fontWeight: '700',
+    color: '#66300C',
   },
   list: {
     flexGrow: 0,
@@ -278,23 +283,29 @@ const styles = StyleSheet.create({
   alertItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#1C1F23',
-    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: '#262A2F',
+    borderColor: colors.border,
     padding: spacing.md,
     gap: spacing.sm,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   alertItemUnread: {
-    backgroundColor: '#1F2428',
-    borderColor: 'rgba(184, 255, 61, 0.25)',
+    backgroundColor: '#FFF8F4',
+    borderColor: '#F8D2BD',
   },
   typeIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#141618',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
+    borderColor: colors.border,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 2,
@@ -310,8 +321,8 @@ const styles = StyleSheet.create({
   },
   itemTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
+    fontWeight: '700',
+    color: colors.primaryText,
     flex: 1,
     marginRight: 6,
   },
@@ -321,8 +332,8 @@ const styles = StyleSheet.create({
   },
   itemDesc: {
     fontSize: 12,
-    color: colors.textSecondary,
-    lineHeight: 17,
+    color: colors.secondaryText,
+    lineHeight: 18,
   },
   dismissBtn: {
     padding: 4,
@@ -336,13 +347,13 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontWeight: '800',
+    color: colors.primaryText,
     marginTop: spacing.sm,
   },
   emptySubtitle: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     textAlign: 'center',
   },
 });

@@ -28,12 +28,21 @@ export function DailyBriefingCard({
 
   const tierColor =
     recTier === 'OPTIMAL'
-      ? colors.primary
+      ? colors.success
       : recTier === 'GOOD'
-        ? colors.blue
+        ? colors.primaryText
         : recTier === 'MODERATE'
-          ? colors.orange
+          ? colors.warning
           : colors.error;
+
+  const tierBg =
+    recTier === 'OPTIMAL'
+      ? colors.softGreen
+      : recTier === 'GOOD'
+        ? colors.softPurple
+        : recTier === 'MODERATE'
+          ? colors.softYellow
+          : '#FDE8E8';
 
   const displayGreeting = briefing.greeting
     ? briefing.greeting.replace(/Priya/gi, userName)
@@ -45,7 +54,7 @@ export function DailyBriefingCard({
       <View style={styles.topRow}>
         <View style={styles.greetingGroup}>
           <View style={styles.sunBadge}>
-            <Ionicons name="sunny" size={16} color="#FFD700" />
+            <Ionicons name="sunny" size={17} color="#D97706" />
           </View>
           <View>
             <Text style={styles.greetingText}>{displayGreeting}</Text>
@@ -54,7 +63,7 @@ export function DailyBriefingCard({
         </View>
 
         {/* Recovery Score Pill */}
-        <View style={[styles.recoveryBadge, { borderColor: tierColor }]}>
+        <View style={[styles.recoveryBadge, { backgroundColor: tierBg }]}>
           <Text style={[styles.recoveryScoreVal, { color: tierColor }]}>{recScore ?? '—'}</Text>
           <Text style={styles.recoveryScoreMax}>/100</Text>
           <Text style={[styles.recoveryTierText, { color: tierColor }]}>
@@ -71,14 +80,14 @@ export function DailyBriefingCard({
       {/* Quick Status Chips */}
       <View style={styles.chipsRow}>
         <View style={styles.chip}>
-          <Ionicons name="time-outline" size={14} color={colors.primary} />
+          <Ionicons name="time-outline" size={14} color={colors.primaryText} />
           <Text style={styles.chipText}>Peak: {briefing.optimal_focus_window}</Text>
         </View>
 
         {briefing.experiment_callout && (
           <View style={[styles.chip, styles.experimentChip]}>
-            <Ionicons name="flask-outline" size={14} color={colors.blue} />
-            <Text style={[styles.chipText, { color: colors.blue }]}>
+            <Ionicons name="flask-outline" size={14} color="#7C3AED" />
+            <Text style={[styles.chipText, { color: '#7C3AED' }]}>
               {briefing.experiment_callout.progress}
             </Text>
           </View>
@@ -93,7 +102,7 @@ export function DailyBriefingCard({
           accessibilityRole="button"
           accessibilityLabel="Read full morning briefing"
         >
-          <Ionicons name="newspaper-outline" size={15} color={colors.background} />
+          <Ionicons name="newspaper-outline" size={15} color="#FFFFFF" />
           <Text style={styles.primaryBtnText}>Read Briefing</Text>
         </Pressable>
 
@@ -103,7 +112,7 @@ export function DailyBriefingCard({
           accessibilityRole="button"
           accessibilityLabel="Open weekly review story"
         >
-          <Ionicons name="calendar-outline" size={15} color={colors.textSecondary} />
+          <Ionicons name="calendar-outline" size={15} color={colors.primaryText} />
           <Text style={styles.secondaryBtnText}>Weekly Story</Text>
         </Pressable>
       </View>
@@ -114,12 +123,17 @@ export function DailyBriefingCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xxl,
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(184, 255, 61, 0.18)',
+    borderColor: colors.border,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 2,
   },
   topRow: {
     flexDirection: 'row',
@@ -133,15 +147,15 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   sunBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(255, 215, 0, 0.15)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FEF3C7',
     justifyContent: 'center',
     alignItems: 'center',
   },
   greetingText: {
-    color: colors.text,
+    color: colors.primaryText,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -152,15 +166,15 @@ const styles = StyleSheet.create({
   recoveryBadge: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceElevated,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 5,
+    borderRadius: radius.full,
     borderWidth: 1,
+    borderColor: colors.border,
     gap: 2,
   },
   recoveryScoreVal: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
   },
   recoveryScoreMax: {
@@ -174,7 +188,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   summaryText: {
-    color: colors.textSecondary,
+    color: colors.secondaryText,
     fontSize: 13,
     lineHeight: 19,
     marginBottom: spacing.md,
@@ -188,18 +202,18 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surfaceElevated,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 5,
+    backgroundColor: colors.surfaceSecondary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
     borderRadius: radius.full,
-    gap: 4,
+    gap: 5,
   },
   experimentChip: {
-    backgroundColor: 'rgba(93, 169, 255, 0.12)',
+    backgroundColor: colors.softPurple,
   },
   chipText: {
-    color: colors.text,
-    fontSize: 11,
+    color: colors.primaryText,
+    fontSize: 12,
     fontWeight: '600',
   },
   actionRow: {
@@ -211,13 +225,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
-    paddingVertical: 9,
-    borderRadius: radius.md,
+    backgroundColor: colors.darkButton,
+    paddingVertical: 11,
+    borderRadius: radius.full,
     gap: 6,
   },
   primaryBtnText: {
-    color: colors.background,
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -226,13 +240,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surfaceElevated,
-    paddingVertical: 9,
-    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSecondary,
+    paddingVertical: 11,
+    borderRadius: radius.full,
     gap: 6,
   },
   secondaryBtnText: {
-    color: colors.textSecondary,
+    color: colors.primaryText,
     fontSize: 13,
     fontWeight: '600',
   },
