@@ -8,6 +8,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  type ScrollViewInstance,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,7 +47,7 @@ export function VoiceModeModal({
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(sessionId || null);
   const [statusMessage, setStatusMessage] = useState('Tap the orb to start speaking');
   const [isMuted, setIsMuted] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
 
   // Sync session ID from props
   useEffect(() => {

@@ -18,16 +18,34 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { Tabs } from 'expo-router';
+import { router, type Tabs } from 'expo-router';
 
 import { colors }  from '@/src/theme/colors';
 import { radius }  from '@/src/theme/radius';
 import { shadows } from '@/src/theme/shadows';
 import { spacing } from '@/src/theme/spacing';
 
+interface NavigationEmitEvent {
+  defaultPrevented?: boolean;
+}
+
+interface LegacyTabBarNavigation {
+  emit: (event: { type: string; target: string; canPreventDefault: boolean }) => NavigationEmitEvent;
+  navigate: (routeName: string) => void;
+}
+
+interface ModernTabBarProps {
+  emitter?: {
+    emit: (event: { type: string; target: string; canPreventDefault: boolean }) => NavigationEmitEvent;
+  };
+  navigateToTab?: (routeKey: string) => void;
+}
+
 export type FloatingTabBarProps = Parameters<
   NonNullable<React.ComponentProps<typeof Tabs>['tabBar']>
->[0];
+>[0] & {
+  navigation?: LegacyTabBarNavigation;
+};
 
 export type TabRoute = FloatingTabBarProps['state']['routes'][number];
 
@@ -121,7 +139,8 @@ function TabBarButton({ route, isFocused, onPress }: TabBarButtonProps) {
   );
 }
 
-export default function FloatingTabBar({ state, descriptors, navigation }: FloatingTabBarProps) {
+export default function FloatingTabBar(props: FloatingTabBarProps) {
+  const { state, descriptors, navigation } = props;
   const insets = useSafeAreaInsets();
 
   const visibleRoutes = state.routes.filter((route) => {
@@ -150,13 +169,29 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Float
           const isFocused = state.routes[state.index]?.key === route.key;
 
           const handlePress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
+            if (navigation?.emit) {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            } else {
+              const modernProps = props as unknown as ModernTabBarProps;
+              if (modernProps.navigateToTab) {
+                const event = modernProps.emitter?.emit({
+                  type: 'tabPress',
+                  target: route.key,
+                  canPreventDefault: true,
+                });
+                if (!isFocused && !event?.defaultPrevented) {
+                  modernProps.navigateToTab(route.key);
+                }
+              } else {
+                router.push(`/(tabs)/${route.name}` as Parameters<typeof router.push>[0]);
+              }
             }
           };
 
