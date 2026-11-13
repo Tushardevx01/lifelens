@@ -11,7 +11,7 @@ export {
 } from 'expo-router';
 
 export const unstable_settings = {
-  initialRouteName: 'login',
+  anchor: 'login',
 };
 
 if (Platform.OS !== 'web') {
