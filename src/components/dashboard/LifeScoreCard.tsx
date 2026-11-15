@@ -3,6 +3,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 interface CategoryScore {
   name: string;
@@ -28,13 +30,22 @@ export default function LifeScoreCard({
   change,
   categories = defaultCategories,
 }: LifeScoreCardProps) {
+  const overallClassification = getScoreClassification(score);
+
   return (
     <View style={styles.card}>
       <Text style={styles.headerLabel}>DAILY LIFE SCORE</Text>
 
       <View style={styles.scoreContainer}>
-        <Text style={styles.score}>{score.toFixed(1)}</Text>
+        <Text style={[styles.score, { color: overallClassification.color }]}>
+          {score.toFixed(1)}
+        </Text>
         <Text style={styles.divider}>/100</Text>
+      </View>
+
+      {/* Health Category Badge */}
+      <View style={styles.categoryBadgeWrap}>
+        <ScoreBadge score={score} size="md" />
       </View>
 
       <View style={styles.changeBadgeWrap}>
@@ -47,17 +58,21 @@ export default function LifeScoreCard({
       </View>
 
       <View style={styles.categoriesGrid}>
-        {categories.map((cat) => (
-          <View key={cat.name} style={styles.categoryItem}>
-            <View style={styles.categoryHeader}>
-              <View style={[styles.dot, { backgroundColor: cat.color }]} />
-              <Text style={styles.categoryName}>{cat.name}</Text>
+        {categories.map((cat) => {
+          const catClass = getScoreClassification(cat.score);
+          return (
+            <View key={cat.name} style={styles.categoryItem}>
+              <View style={styles.categoryHeader}>
+                <View style={[styles.dot, { backgroundColor: catClass.color }]} />
+                <Text style={styles.categoryName} numberOfLines={1}>{cat.name}</Text>
+              </View>
+              <Text style={[styles.categoryScore, { color: catClass.color }]}>
+                {Math.round(cat.score)}
+              </Text>
+              <ScoreBadge score={cat.score} size="xs" style={{ marginTop: 2 }} />
             </View>
-            <Text style={[styles.categoryScore, { color: cat.color }]}>
-              {Math.round(cat.score)}
-            </Text>
-          </View>
-        ))}
+          );
+        })}
       </View>
     </View>
   );
@@ -86,10 +101,13 @@ const styles = StyleSheet.create({
   scoreContainer: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginVertical: spacing.xs,
+    marginTop: spacing.xs,
+    marginBottom: 4,
+  },
+  categoryBadgeWrap: {
+    marginBottom: spacing.sm,
   },
   score: {
-    color: colors.textPrimary,
     fontSize: 54,
     fontWeight: '800',
     letterSpacing: -1.5,
@@ -101,7 +119,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   changeBadgeWrap: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   changeBadge: {
     paddingHorizontal: 12,

@@ -13,6 +13,8 @@ import { colors }  from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius }  from '@/src/theme/radius';
 import CircularProgress from './CircularProgress';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 interface ProductivityCardProps {
   predictedScore?:  number;
@@ -27,30 +29,40 @@ export default function ProductivityCard({
   recommendation = 'Schedule your most challenging task between 9:30 AM and 12:00 PM.',
   focusWindow    = '9:30 AM – 12:00 PM',
 }: ProductivityCardProps) {
+  const classification = getScoreClassification(predictedScore);
+
   return (
     <View style={styles.card}>
-      {/* Top row – label + badge */}
+      {/* Top row – label + category badge */}
       <View style={styles.topRow}>
-        <Text style={styles.eyebrow}>Tomorrow</Text>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>Prediction</Text>
+        <View style={styles.topLabelGroup}>
+          <Text style={styles.eyebrow}>Tomorrow</Text>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>Prediction</Text>
+          </View>
         </View>
+        <ScoreBadge score={predictedScore} size="sm" />
       </View>
 
       {/* Score + ring row */}
       <View style={styles.scoreRow}>
         <View>
-          <Text style={styles.scoreNumber}>{predictedScore}</Text>
-          <Text style={styles.scoreLabel}>Productivity</Text>
+          <View style={styles.scoreTextRow}>
+            <Text style={[styles.scoreNumber, { color: classification.color }]}>
+              {predictedScore}
+            </Text>
+            <Text style={styles.scoreOutOf}>/100</Text>
+          </View>
+          <Text style={styles.scoreLabel}>Productivity Score</Text>
         </View>
         <CircularProgress
           size={90}
           progress={predictedScore}
-          color={colors.blue}
+          color={classification.color}
           strokeWidth={8}
           backgroundColor={colors.surfaceHigh}
         >
-          <Ionicons name="trending-up" size={20} color={colors.blue} />
+          <Ionicons name="trending-up" size={20} color={classification.color} />
         </CircularProgress>
       </View>
 
@@ -92,6 +104,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.md,
+  },
+  topLabelGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  scoreTextRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  scoreOutOf: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textMuted,
+    marginLeft: 4,
   },
   eyebrow: {
     fontSize: 13,

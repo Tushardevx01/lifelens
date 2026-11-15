@@ -4,6 +4,8 @@ import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { colors } from '@/src/theme/colors';
 import { radius } from '@/src/theme/radius';
 import { spacing } from '@/src/theme/spacing';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 interface MoodSliderProps {
   label: string;
@@ -27,6 +29,7 @@ const MOOD_DATA: Record<number, { emoji: string; desc: string }> = {
 export function MoodSlider({ label, value, onChange }: MoodSliderProps) {
   const current = MOOD_DATA[value] ?? { emoji: '😐', desc: 'Neutral' };
   const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const scaledScore = value * 10;
 
   return (
     <View style={styles.container}>
@@ -35,6 +38,7 @@ export function MoodSlider({ label, value, onChange }: MoodSliderProps) {
         <View style={styles.feedbackBadge}>
           <Text style={styles.emojiText}>{current.emoji}</Text>
           <Text style={styles.feedbackText}>{value}/10 • {current.desc}</Text>
+          <ScoreBadge score={scaledScore} size="xs" />
         </View>
       </View>
 
@@ -45,13 +49,14 @@ export function MoodSlider({ label, value, onChange }: MoodSliderProps) {
       >
         {numbers.map((num) => {
           const isSelected = num === value;
+          const numClassification = getScoreClassification(num * 10);
           return (
             <Pressable
               key={num}
               onPress={() => onChange(num)}
               style={({ pressed }) => [
                 styles.numberPill,
-                isSelected && styles.selectedPill,
+                isSelected && [styles.selectedPill, { backgroundColor: numClassification.color }],
                 pressed && styles.pressedPill,
               ]}
               accessibilityLabel={`Mood score ${num}`}

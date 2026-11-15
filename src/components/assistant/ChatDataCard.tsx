@@ -6,6 +6,8 @@ import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
 import { typography } from '@/src/theme/typography';
 import type { ChatCardPayload } from '@/src/types/api.types';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 interface ChatDataCardProps {
   card: ChatCardPayload;
@@ -169,7 +171,23 @@ export function ChatDataCard({ card }: ChatDataCardProps) {
         </View>
       );
 
-    case 'lifescore_overview':
+    case 'lifescore_overview': {
+      const sleepScore = data.sleep_score != null ? Math.round(Number(data.sleep_score)) : null;
+      const prodScore = data.productivity_score != null ? Math.round(Number(data.productivity_score)) : null;
+      const healthScore = data.health_score != null ? Math.round(Number(data.health_score)) : null;
+      const financeScore = data.finance_score != null ? Math.round(Number(data.finance_score)) : null;
+
+      const sleepClass = getScoreClassification(sleepScore);
+      const prodClass = getScoreClassification(prodScore);
+      const healthClass = getScoreClassification(healthScore);
+      const financeClass = getScoreClassification(financeScore);
+
+      const overallScore = data.overall_score != null
+        ? Math.round(Number(data.overall_score))
+        : data.life_score != null
+          ? Math.round(Number(data.life_score))
+          : null;
+
       return (
         <View style={styles.cardContainer}>
           <View style={styles.cardHeader}>
@@ -177,28 +195,44 @@ export function ChatDataCard({ card }: ChatDataCardProps) {
               <Ionicons name="trending-up" size={16} color={colors.primary} />
             </View>
             <Text style={styles.cardTitle}>{title}</Text>
+            {overallScore != null && (
+              <ScoreBadge score={overallScore} size="xs" showScore={true} />
+            )}
           </View>
 
           <View style={styles.metricsRow}>
             <View style={styles.metricBox}>
-              <Text style={[styles.metricVal, { color: colors.cyan }]}>{data.sleep_score ?? 0}</Text>
+              <Text style={[styles.metricVal, sleepClass.isValid && { color: sleepClass.color }]}>
+                {sleepScore ?? '—'}
+              </Text>
+              <ScoreBadge score={sleepScore} size="xs" showScore={false} style={{ marginVertical: 2 }} />
               <Text style={styles.metricLbl}>Sleep</Text>
             </View>
             <View style={styles.metricBox}>
-              <Text style={[styles.metricVal, { color: colors.blue }]}>{data.productivity_score ?? 0}</Text>
+              <Text style={[styles.metricVal, prodClass.isValid && { color: prodClass.color }]}>
+                {prodScore ?? '—'}
+              </Text>
+              <ScoreBadge score={prodScore} size="xs" showScore={false} style={{ marginVertical: 2 }} />
               <Text style={styles.metricLbl}>Productivity</Text>
             </View>
             <View style={styles.metricBox}>
-              <Text style={[styles.metricVal, { color: colors.primary }]}>{data.health_score ?? 0}</Text>
+              <Text style={[styles.metricVal, healthClass.isValid && { color: healthClass.color }]}>
+                {healthScore ?? '—'}
+              </Text>
+              <ScoreBadge score={healthScore} size="xs" showScore={false} style={{ marginVertical: 2 }} />
               <Text style={styles.metricLbl}>Health</Text>
             </View>
             <View style={styles.metricBox}>
-              <Text style={[styles.metricVal, { color: colors.orange }]}>{data.finance_score ?? 0}</Text>
+              <Text style={[styles.metricVal, financeClass.isValid && { color: financeClass.color }]}>
+                {financeScore ?? '—'}
+              </Text>
+              <ScoreBadge score={financeScore} size="xs" showScore={false} style={{ marginVertical: 2 }} />
               <Text style={styles.metricLbl}>Finance</Text>
             </View>
           </View>
         </View>
       );
+    }
 
     default:
       return null;

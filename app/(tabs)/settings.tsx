@@ -22,6 +22,8 @@ import { authApi, entriesApi, getDashboardData, offlineSyncService } from '@/src
 import type { User, DailyEntry } from '@/src/types/api.types';
 import { seedDemoDataset } from '@/src/features/dashboard/demoData';
 import { ConnectorsHubModal } from '@/src/components/connectors/ConnectorsHubModal';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 const STORAGE_KEYS = {
   DAILY_INSIGHTS: '@lifelens_settings_daily_insights',
@@ -263,8 +265,11 @@ export default function SettingsScreen() {
           {/* Quick Stats Grid */}
           <View style={styles.profileStatsRow}>
             <View style={styles.profileStatItem}>
-              <Text style={styles.profileStatValue}>{lifeScore !== null ? lifeScore.toFixed(1) : '—'}</Text>
+              <Text style={[styles.profileStatValue, lifeScore !== null ? { color: getScoreClassification(lifeScore).color } : null]}>
+                {lifeScore !== null ? lifeScore.toFixed(1) : '—'}
+              </Text>
               <Text style={styles.profileStatLabel}>Life Score</Text>
+              <ScoreBadge score={lifeScore} size="xs" style={{ marginTop: 3 }} />
             </View>
             <View style={styles.statDivider} />
             <View style={styles.profileStatItem}>

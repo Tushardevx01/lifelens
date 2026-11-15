@@ -92,6 +92,35 @@ lifelens/
 | `textPrimary` | `#FFFFFF` | Primary headers and high-contrast labels |
 | `textSecondary` | `#A8ACAE` | Metric units, timestamps, subtitles |
 | `textMuted` | `#6F7476` | Inactive icons, subtle footnotes |
+| `scoreHealthy` | `#F4C542` | Healthy score band (0–30) |
+| `scoreModerate` | `#55B96B` | Moderate score band (31–50) |
+| `scoreUnhealthy` | `#315A91` | Unhealthy score band (51–70) |
+| `scoreSevere` | `#E55353` | Severe score band (71–100) |
+
+## Score Classification & Health Indicators System
+
+A standardized, centralized score classification system (`src/utils/scoreClassification.ts`) ensures uniform presentation of every 0–100 metric across the application.
+
+### Classification Rules & Color Mapping
+
+| Score Range | Category | Color Hex | Color Name | Meaning / Application |
+|---|---|---|---|---|
+| **0–30** | **Healthy** | `#F4C542` | Warm Yellow | Low risk, healthy baseline |
+| **31–50** | **Moderate** | `#55B96B` | Mint Green | Balanced, moderate level |
+| **51–70** | **Unhealthy** | `#315A91` | Navy Blue | Elevated stress/sub-optimal |
+| **71–100** | **Severe** | `#E55353` | Alert Red | High risk, acute focus needed |
+
+### Core System Principles
+
+1. **Deterministic Single Mapping:** Every integer score from 0 to 100 maps to exactly one category.
+2. **Mandatory Co-Display:** Numerical scores on a 0–100 scale must always be accompanied by their category name and matching category color. Numerical scores are never shown in isolation without their category label.
+3. **Safe Missing/Invalid Handling:** Values `< 0`, `> 100`, `null`, `undefined`, or `NaN` safely resolve to `Not available` with `category: null` and neutral gray `#8E8E93`. No category is ever assigned to missing or invalid data.
+4. **Boundary Rounding:** Decimals are rounded consistently via `Math.round()` at boundaries (e.g., 30.4 -> Healthy, 30.5 -> Moderate).
+5. **No Formula Modification:** The underlying mathematical calculation formulas for LifeScore and domain indices remain untouched; only presentation and classification are layered on top.
+6. **Reusable Visual Primitives:**
+   - `src/utils/scoreClassification.ts`: Central function `getScoreClassification(score)` returning `{ category, name, color, minScore, maxScore, isValid }`, along with `SCORE_COLORS`, `SCORE_CATEGORIES`, and `formatScoreWithCategory()`.
+   - `src/components/ui/ScoreBadge.tsx`: Reusable pill component rendering status dot, category name, matching color, and optional score prefix.
+   - Applied across: `LifeScoreCard`, `LifeScoreHero`, `ScoreBreakdown`, `MetricGrid`, `LiveScoreCard`, `ProductivityPrediction`, `ProductivityCard`, `TrendCard`, `LifeScoreTrend`, `MoodSlider`, `LifeStatsGrid`, `RiskForecastCards`, `ChatDataCard`, `DailyBriefingCard`, `MorningBriefingModal`, `WeeklyStoryModal`, `analytics.tsx`, `history.tsx`, and `settings.tsx`.
 
 ## Consolidated Life Dashboard Architecture
 
@@ -138,7 +167,7 @@ Backend API (FastAPI) ───► getDashboardData() [api.ts] ───► Dash
 
 ## Testing & Quality Assurance
 
-- **Frontend Tests**: 221 unit & integration tests passing (`npm test`).
+- **Frontend Tests**: 239 unit & integration tests passing (`npm test`, including 18 score classification tests).
 - **TypeScript**: Complete zero-error type safety (`npm run typecheck`).
 - **Linting**: Clean ESLint run with 0 errors and 0 warnings (`npm run lint`).
 - **Expo Web Production Bundling**: Export succeeds with 0 errors (`npm run build:web`).

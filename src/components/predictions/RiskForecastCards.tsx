@@ -5,6 +5,8 @@ import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
 import type { CompositeRiskForecastResponse } from '@/src/types/api.types';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 interface RiskForecastCardsProps {
   forecast?: CompositeRiskForecastResponse | null;
@@ -14,6 +16,9 @@ export function RiskForecastCards({ forecast }: RiskForecastCardsProps) {
   if (!forecast) return null;
 
   const { workout_skip, budget_overrun, circadian_drift, overall_risk_score } = forecast;
+
+  const roundedRisk = Math.round(overall_risk_score);
+  const riskClass = getScoreClassification(roundedRisk);
 
   const workoutProbPct = Math.round(workout_skip.probability * 100);
   const workoutColor =
@@ -53,7 +58,15 @@ export function RiskForecastCards({ forecast }: RiskForecastCardsProps) {
           </Text>
         </View>
         <View style={styles.compositeBadge}>
-          <Text style={styles.compositeScore}>{Math.round(overall_risk_score)}</Text>
+          <Text
+            style={[
+              styles.compositeScore,
+              riskClass.isValid && { color: riskClass.color },
+            ]}
+          >
+            {roundedRisk}
+          </Text>
+          <ScoreBadge score={roundedRisk} size="xs" showScore={false} style={{ marginVertical: 2 }} />
           <Text style={styles.compositeLabel}>Risk Index</Text>
         </View>
       </View>

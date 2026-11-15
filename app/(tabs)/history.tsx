@@ -20,6 +20,8 @@ import { radius } from '@/src/theme/radius';
 import { entriesApi } from '@/src/services/api';
 import type { DailyEntry } from '@/src/types/api.types';
 import { calculateEstimatedLifeScore } from '@/src/utils/lifeScore';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 import TrendCard from '@/src/components/dashboard/TrendCard';
 
 type TimeRange = '7D' | '30D' | '90D' | 'All';
@@ -346,7 +348,7 @@ export default function HistoryScreen() {
           <View style={styles.entriesList}>
             {filteredEntries.map((entry) => {
               const { formattedDate, dayOfWeek } = formatDate(entry.date);
-              const { life_score, band } = calculateEstimatedLifeScore({
+              const { life_score } = calculateEstimatedLifeScore({
                 sleep_hours: entry.sleep_hours,
                 sleep_quality: entry.sleep_quality,
                 screen_time_hours: entry.screen_time_hours,
@@ -368,14 +370,10 @@ export default function HistoryScreen() {
                     </View>
 
                     <View style={styles.scoreContainer}>
-                      <Text style={[styles.scoreNumber, { color: band.color }]}>
+                      <Text style={[styles.scoreNumber, { color: getScoreClassification(life_score).color }]}>
                         {life_score.toFixed(1)}
                       </Text>
-                      <View style={[styles.bandBadge, { backgroundColor: `${band.color}20` }]}>
-                        <Text style={[styles.bandLabel, { color: band.color }]}>
-                          {band.label}
-                        </Text>
-                      </View>
+                      <ScoreBadge score={life_score} size="xs" />
                     </View>
                   </View>
 
@@ -408,6 +406,7 @@ export default function HistoryScreen() {
                       <View style={styles.tagItem}>
                         <Ionicons name="happy-outline" size={13} color="#D946EF" />
                         <Text style={styles.tagLabel}>Mood: {entry.mood_score}/10</Text>
+                        <ScoreBadge score={entry.mood_score * 10} size="xs" />
                       </View>
                     ) : null}
                   </View>

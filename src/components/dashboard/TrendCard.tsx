@@ -1,7 +1,8 @@
 /**
  * TrendCard – LifeLens Dashboard Component
  *
- * Warm, minimal score trend with pill-style time filters and clean bar chart.
+ * Warm, minimal score trend with pill-style time filters, clean bar chart,
+ * and score classification health indicators.
  */
 
 import React, { useState } from 'react';
@@ -10,6 +11,8 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { colors }  from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius }  from '@/src/theme/radius';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification, SCORE_CATEGORIES } from '@/src/utils/scoreClassification';
 
 interface DataPoint {
   day:   string;
@@ -42,19 +45,25 @@ export default function TrendCard({
   const [selected, setSelected] = useState<string>('30D');
   const maxVal = 100;
   const chartH = 80;
+  const latestClass = getScoreClassification(latestScore);
 
   return (
     <View style={styles.card}>
       {/* Header row */}
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerLeft}>
           <Text style={styles.eyebrow}>Score Trajectory</Text>
           <View style={styles.scoreRow}>
-            <Text style={styles.scoreNumber}>{latestScore.toFixed(1)}</Text>
-            <View style={styles.changePill}>
-              <Text style={styles.changeText}>{monthChange} this month</Text>
-            </View>
+            <Text style={[styles.scoreNumber, { color: latestClass.color }]}>
+              {latestScore.toFixed(1)}
+            </Text>
+            <Text style={styles.scoreOutOf}>/100</Text>
+            <ScoreBadge score={latestScore} size="sm" />
           </View>
+        </View>
+
+        <View style={styles.changePill}>
+          <Text style={styles.changeText}>{monthChange} this month</Text>
         </View>
       </View>
 
@@ -77,11 +86,11 @@ export default function TrendCard({
         ))}
       </View>
 
-      {/* Bar chart */}
-      <View style={[styles.chart, { height: chartH + 20 }]}>
+      {/* Bar chart with category color-coded bars */}
+      <View style={[styles.chart, { height: chartH + 24 }]}>
         {data.map((point, i) => {
           const barH = (point.value / maxVal) * chartH;
-          const isLast = i === data.length - 1;
+          const pointClass = getScoreClassification(point.value);
           return (
             <View key={i} style={styles.barGroup}>
               <View style={[styles.barTrack, { height: chartH }]}>
@@ -90,7 +99,7 @@ export default function TrendCard({
                     styles.bar,
                     {
                       height: barH,
-                      backgroundColor: isLast ? colors.primary : colors.surfaceSoft,
+                      backgroundColor: pointClass.color,
                     },
                   ]}
                 />
@@ -100,6 +109,26 @@ export default function TrendCard({
           );
         })}
       </View>
+
+      {/* Color-Coded Health Category Legend */}
+      <View style={styles.legendRow}>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: SCORE_CATEGORIES.HEALTHY.color }]} />
+          <Text style={styles.legendText}>Healthy (0-30)</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: SCORE_CATEGORIES.MODERATE.color }]} />
+          <Text style={styles.legendText}>Moderate (31-50)</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: SCORE_CATEGORIES.UNHEALTHY.color }]} />
+          <Text style={styles.legendText}>Unhealthy (51-70)</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: SCORE_CATEGORIES.SEVERE.color }]} />
+          <Text style={styles.legendText}>Severe (71-100)</Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -108,16 +137,25 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.xxl,
-    padding: spacing.xl,
     marginHorizontal: spacing.xl,
-    marginBottom: spacing.xl,
-    borderWidth: 1.5,
+    marginBottom: spacing.lg,
+    padding: spacing.xl,
+    borderWidth: 1,
     borderColor: colors.border,
-    boxShadow: '0px 4px 16px rgba(102, 48, 12, 0.04)',
-    elevation: 3,
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: spacing.md,
+  },
+  headerLeft: {
+    flex: 1,
   },
   eyebrow: {
     fontSize: 12,
@@ -130,14 +168,19 @@ const styles = StyleSheet.create({
   scoreRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing.xs,
     flexWrap: 'wrap',
   },
   scoreNumber: {
     fontSize: 34,
     fontWeight: '800',
-    color: colors.textPrimary,
     letterSpacing: -1,
+  },
+  scoreOutOf: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textMuted,
+    marginRight: 4,
   },
   changePill: {
     backgroundColor: '#EDF5DC',
@@ -198,5 +241,30 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: colors.textMuted,
     fontWeight: '600',
+  },
+  legendRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: spacing.lg,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+    gap: spacing.xs,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  legendDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  legendText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
 });

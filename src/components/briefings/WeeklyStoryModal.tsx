@@ -16,6 +16,8 @@ import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
 import { IconButton } from '@/src/components/ui';
 import type { WeeklyReviewStory } from '@/src/types/api.types';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 interface WeeklyStoryModalProps {
   visible: boolean;
@@ -38,6 +40,7 @@ export function WeeklyStoryModal({
   const avgScore = Number.isFinite(story.avg_life_score)
     ? Math.round(story.avg_life_score)
     : null;
+  const avgClass = getScoreClassification(avgScore);
   const delta = story.life_score_trend_delta || 0;
   const deltaSign = delta >= 0 ? '+' : '';
 
@@ -111,7 +114,15 @@ export function WeeklyStoryModal({
               </Text>
             </View>
             <View style={styles.scoreBadge}>
-              <Text style={styles.scoreHeroValue}>{avgScore ?? '—'}</Text>
+              <Text
+                style={[
+                  styles.scoreHeroValue,
+                  avgClass.isValid && { color: avgClass.color },
+                ]}
+              >
+                {avgScore ?? '—'}
+              </Text>
+              <ScoreBadge score={avgScore} size="xs" showScore={false} style={{ marginVertical: 2 }} />
               <Text style={styles.scoreHeroDelta}>
                 {deltaSign}
                 {delta} pts

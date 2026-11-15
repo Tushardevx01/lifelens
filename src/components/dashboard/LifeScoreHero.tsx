@@ -17,6 +17,8 @@ import { colors }  from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius }  from '@/src/theme/radius';
 import CircularProgress from './CircularProgress';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 interface LifeScoreHeroProps {
   score?:  number;
@@ -31,16 +33,22 @@ export default function LifeScoreHero({
   const safeChange = typeof change === 'number' && !isNaN(change) ? change : 2.3;
   const isPositive = safeChange >= 0;
   const changeSign = isPositive ? '+' : '';
+  const classification = getScoreClassification(safeScore);
 
   return (
     <View style={styles.card}>
-      {/* Label */}
-      <Text style={styles.eyebrow}>Today's Life Score</Text>
+      {/* Label and Category badge */}
+      <View style={styles.topRow}>
+        <Text style={styles.eyebrow}>Today's Life Score</Text>
+        <ScoreBadge score={safeScore} size="sm" />
+      </View>
 
       {/* Score row */}
       <View style={styles.scoreRow}>
         <View style={styles.scoreTextBlock}>
-          <Text style={styles.scoreNumber}>{safeScore.toFixed(1)}</Text>
+          <Text style={[styles.scoreNumber, { color: classification.color }]}>
+            {safeScore.toFixed(1)}
+          </Text>
           <Text style={styles.scoreUnit}>/100</Text>
         </View>
 
@@ -48,11 +56,13 @@ export default function LifeScoreHero({
         <CircularProgress
           size={108}
           progress={safeScore}
-          color={colors.darkButton}
+          color={classification.color}
           strokeWidth={10}
           backgroundColor={colors.surfaceSecondary}
         >
-          <Text style={styles.ringNumber}>{Math.round(safeScore)}</Text>
+          <Text style={[styles.ringNumber, { color: classification.color }]}>
+            {Math.round(safeScore)}
+          </Text>
         </CircularProgress>
       </View>
 
@@ -95,12 +105,17 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
   eyebrow: {
     fontSize: 13,
     fontWeight: '700',
     color: colors.secondaryText,
     letterSpacing: 0.3,
-    marginBottom: spacing.md,
   },
   scoreRow: {
     flexDirection: 'row',

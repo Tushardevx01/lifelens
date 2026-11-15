@@ -6,14 +6,22 @@ import { colors } from '@/src/theme/colors';
 import { radius } from '@/src/theme/radius';
 import { spacing } from '@/src/theme/spacing';
 import type { LifeScoreBreakdown } from '@/src/utils/lifeScore';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 interface LiveScoreCardProps {
   breakdown: LifeScoreBreakdown;
 }
 
 export function LiveScoreCard({ breakdown }: LiveScoreCardProps) {
-  const { life_score, sleep_score, productivity_score, health_score, finance_score, mood_adjustment, band } =
+  const { life_score, sleep_score, productivity_score, health_score, finance_score, mood_adjustment } =
     breakdown;
+
+  const lifeClass = getScoreClassification(life_score);
+  const sleepClass = getScoreClassification(sleep_score);
+  const prodClass = getScoreClassification(productivity_score);
+  const healthClass = getScoreClassification(health_score);
+  const finClass = getScoreClassification(finance_score);
 
   return (
     <View style={styles.card}>
@@ -27,12 +35,10 @@ export function LiveScoreCard({ breakdown }: LiveScoreCardProps) {
         </View>
 
         <View style={styles.scoreContainer}>
-          <Text style={[styles.scoreValue, { color: band.color }]}>
+          <Text style={[styles.scoreValue, { color: lifeClass.color }]}>
             {life_score.toFixed(1)}
           </Text>
-          <View style={[styles.bandPill, { backgroundColor: `${band.color}20` }]}>
-            <Text style={[styles.bandText, { color: band.color }]}>{band.label}</Text>
-          </View>
+          <ScoreBadge score={life_score} size="sm" />
         </View>
       </View>
 
@@ -40,52 +46,72 @@ export function LiveScoreCard({ breakdown }: LiveScoreCardProps) {
 
       <View style={styles.metricsGrid}>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Sleep (30%)</Text>
-          <Text style={styles.metricScore}>{sleep_score.toFixed(0)}</Text>
+          <View style={styles.metricItemHeader}>
+            <Text style={styles.metricLabel}>Sleep (30%)</Text>
+            <ScoreBadge score={sleep_score} size="xs" />
+          </View>
+          <Text style={[styles.metricScore, { color: sleepClass.color }]}>
+            {sleep_score.toFixed(0)} <Text style={styles.metricOutOf}>/100</Text>
+          </Text>
           <View style={styles.progressBar}>
             <View
               style={[
                 styles.progressFill,
-                { width: `${Math.min(100, sleep_score)}%`, backgroundColor: '#7C3AED' },
+                { width: `${Math.min(100, sleep_score)}%`, backgroundColor: sleepClass.color },
               ]}
             />
           </View>
         </View>
 
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Productivity (25%)</Text>
-          <Text style={styles.metricScore}>{productivity_score.toFixed(0)}</Text>
+          <View style={styles.metricItemHeader}>
+            <Text style={styles.metricLabel}>Productivity (25%)</Text>
+            <ScoreBadge score={productivity_score} size="xs" />
+          </View>
+          <Text style={[styles.metricScore, { color: prodClass.color }]}>
+            {productivity_score.toFixed(0)} <Text style={styles.metricOutOf}>/100</Text>
+          </Text>
           <View style={styles.progressBar}>
             <View
               style={[
                 styles.progressFill,
-                { width: `${Math.min(100, productivity_score)}%`, backgroundColor: '#2563EB' },
+                { width: `${Math.min(100, productivity_score)}%`, backgroundColor: prodClass.color },
               ]}
             />
           </View>
         </View>
 
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Health (25%)</Text>
-          <Text style={styles.metricScore}>{health_score.toFixed(0)}</Text>
+          <View style={styles.metricItemHeader}>
+            <Text style={styles.metricLabel}>Health (25%)</Text>
+            <ScoreBadge score={health_score} size="xs" />
+          </View>
+          <Text style={[styles.metricScore, { color: healthClass.color }]}>
+            {health_score.toFixed(0)} <Text style={styles.metricOutOf}>/100</Text>
+          </Text>
           <View style={styles.progressBar}>
             <View
               style={[
                 styles.progressFill,
-                { width: `${Math.min(100, health_score)}%`, backgroundColor: '#15803D' },
+                { width: `${Math.min(100, health_score)}%`, backgroundColor: healthClass.color },
               ]}
             />
           </View>
         </View>
 
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Finance (20%)</Text>
-          <Text style={styles.metricScore}>{finance_score.toFixed(0)}</Text>
+          <View style={styles.metricItemHeader}>
+            <Text style={styles.metricLabel}>Finance (20%)</Text>
+            <ScoreBadge score={finance_score} size="xs" />
+          </View>
+          <Text style={[styles.metricScore, { color: finClass.color }]}>
+            {finance_score.toFixed(0)} <Text style={styles.metricOutOf}>/100</Text>
+          </Text>
           <View style={styles.progressBar}>
             <View
               style={[
                 styles.progressFill,
-                { width: `${Math.min(100, finance_score)}%`, backgroundColor: '#C05621' },
+                { width: `${Math.min(100, finance_score)}%`, backgroundColor: finClass.color },
               ]}
             />
           </View>
@@ -180,6 +206,12 @@ const styles = StyleSheet.create({
     minWidth: '45%',
     gap: 4,
   },
+  metricItemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 4,
+  },
   metricLabel: {
     fontSize: 11,
     color: colors.secondaryText,
@@ -188,7 +220,11 @@ const styles = StyleSheet.create({
   metricScore: {
     fontSize: 15,
     fontWeight: '800',
-    color: colors.primaryText,
+  },
+  metricOutOf: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: colors.textMuted,
   },
   progressBar: {
     height: 6,

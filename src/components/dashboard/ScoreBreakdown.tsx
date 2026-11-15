@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, Animated } from 'react-native';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 interface Category {
   name: string;
@@ -52,18 +54,32 @@ export default function ScoreBreakdown({
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Score Breakdown</Text>
-      {categories.map((cat) => (
-        <View key={cat.name} style={styles.row}>
-          <View style={styles.rowHeader}>
-            <Text style={styles.categoryName}>{cat.name}</Text>
-            <Text style={[styles.score, { color: cat.color }]}>{cat.score}</Text>
+      {categories.map((cat) => {
+        const catClass = getScoreClassification(cat.score);
+        return (
+          <View key={cat.name} style={styles.row}>
+            <View style={styles.rowHeader}>
+              <View style={styles.rowLabelGroup}>
+                <View style={[styles.dot, { backgroundColor: catClass.color }]} />
+                <Text style={styles.categoryName}>{cat.name}</Text>
+              </View>
+              <View style={styles.rowScoreGroup}>
+                <Text style={[styles.score, { color: catClass.color }]}>
+                  {cat.score}
+                  <Text style={styles.scoreOutOf}>/100</Text>
+                </Text>
+                <ScoreBadge score={cat.score} size="xs" />
+              </View>
+            </View>
+            <View style={styles.barRow}>
+              <AnimatedBar score={cat.score} color={catClass.color} />
+              <Text style={[styles.percentage, { color: catClass.color }]}>
+                {cat.score}%
+              </Text>
+            </View>
           </View>
-          <View style={styles.barRow}>
-            <AnimatedBar score={cat.score} color={cat.color} />
-            <Text style={styles.percentage}>{cat.score}%</Text>
-          </View>
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 }
@@ -98,36 +114,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.xs,
   },
+  rowLabelGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+  },
+  rowScoreGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   categoryName: {
-    color: colors.primaryText,
     fontSize: 14,
     fontWeight: '600',
+    color: colors.textPrimary,
   },
   score: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
+  },
+  scoreOutOf: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: colors.textMuted,
   },
   barRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.md,
   },
   barBackground: {
     flex: 1,
     height: 8,
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: 4,
+    borderRadius: radius.full,
     overflow: 'hidden',
   },
   barFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: radius.full,
   },
   percentage: {
-    color: colors.textMuted,
     fontSize: 12,
-    fontWeight: '600',
-    width: 36,
+    fontWeight: '700',
+    minWidth: 38,
     textAlign: 'right',
   },
 });

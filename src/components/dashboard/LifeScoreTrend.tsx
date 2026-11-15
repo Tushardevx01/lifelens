@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
+import { getScoreClassification, SCORE_CATEGORIES } from '@/src/utils/scoreClassification';
 
 interface DataPoint {
   day: string;
@@ -57,12 +58,16 @@ export default function LifeScoreTrend({ data = defaultData }: LifeScoreTrendPro
           const sleepHeight = (point.sleep / maxScore) * 120;
           const prodHeight = (point.productivity / maxScore) * 120;
 
+          const lifeColor = getScoreClassification(point.life).color;
+          const sleepColor = getScoreClassification(point.sleep).color;
+          const prodColor = getScoreClassification(point.productivity).color;
+
           return (
             <View key={i} style={styles.barGroup}>
               <View style={styles.bars}>
-                <View style={[styles.bar, { height: lifeHeight, backgroundColor: colors.darkButton }]} />
-                <View style={[styles.bar, { height: sleepHeight, backgroundColor: '#7C3AED' }]} />
-                <View style={[styles.bar, { height: prodHeight, backgroundColor: '#2563EB' }]} />
+                <View style={[styles.bar, { height: lifeHeight, backgroundColor: lifeColor }]} />
+                <View style={[styles.bar, { height: sleepHeight, backgroundColor: sleepColor }]} />
+                <View style={[styles.bar, { height: prodHeight, backgroundColor: prodColor }]} />
               </View>
               <Text style={styles.dayLabel}>{point.day}</Text>
             </View>
@@ -70,18 +75,34 @@ export default function LifeScoreTrend({ data = defaultData }: LifeScoreTrendPro
         })}
       </View>
 
-      <View style={styles.legend}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: colors.darkButton }]} />
-          <Text style={styles.legendText}>Life</Text>
+      {/* Metric Categories & Health Tier Legend */}
+      <View style={styles.legendContainer}>
+        <View style={styles.legend}>
+          <Text style={styles.legendHeader}>METRIC BARS (L → R):</Text>
+          <View style={styles.legendRow}>
+            <Text style={styles.legendSubtext}>Bar 1: Life</Text>
+            <Text style={styles.legendSubtext}>Bar 2: Sleep</Text>
+            <Text style={styles.legendSubtext}>Bar 3: Productivity</Text>
+          </View>
         </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#7C3AED' }]} />
-          <Text style={styles.legendText}>Sleep</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#2563EB' }]} />
-          <Text style={styles.legendText}>Productivity</Text>
+
+        <View style={styles.healthLegendRow}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: SCORE_CATEGORIES.HEALTHY.color }]} />
+            <Text style={styles.legendText}>Healthy (0-30)</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: SCORE_CATEGORIES.MODERATE.color }]} />
+            <Text style={styles.legendText}>Moderate (31-50)</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: SCORE_CATEGORIES.UNHEALTHY.color }]} />
+            <Text style={styles.legendText}>Unhealthy (51-70)</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: SCORE_CATEGORIES.SEVERE.color }]} />
+            <Text style={styles.legendText}>Severe (71-100)</Text>
+          </View>
         </View>
       </View>
     </View>
@@ -118,18 +139,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: radius.full,
-    backgroundColor: colors.surfaceSecondary,
+    backgroundColor: colors.surfaceSoft,
   },
   timeframeActive: {
     backgroundColor: colors.darkButton,
   },
   timeframeText: {
-    color: colors.secondaryText,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
+    color: colors.secondaryText,
   },
   timeframeTextActive: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
   chart: {
     flexDirection: 'row',
@@ -139,41 +160,70 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   barGroup: {
-    alignItems: 'center',
     flex: 1,
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   bars: {
     flexDirection: 'row',
-    gap: 2,
     alignItems: 'flex-end',
-    height: 120,
+    gap: 2,
   },
   bar: {
     width: 6,
-    borderRadius: 3,
+    borderRadius: radius.xs,
+    minHeight: 4,
   },
   dayLabel: {
+    fontSize: 11,
     color: colors.textMuted,
-    fontSize: 10,
-    marginTop: spacing.xs,
+    fontWeight: '600',
+  },
+  legendContainer: {
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+    paddingTop: spacing.sm,
+    gap: spacing.xs,
   },
   legend: {
+    marginBottom: 4,
+  },
+  legendHeader: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.textMuted,
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  legendRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.lg,
+    gap: spacing.md,
+  },
+  legendSubtext: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.secondaryText,
+  },
+  healthLegendRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingTop: 4,
+    gap: spacing.xs,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: 4,
   },
   legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   legendText: {
+    fontSize: 10,
+    fontWeight: '600',
     color: colors.textSecondary,
-    fontSize: 11,
   },
 });

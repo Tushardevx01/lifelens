@@ -52,6 +52,10 @@ export const colors = {
   softCream: '#FBF7F4',               // Lightest cream tint
 
   // ─── Semantic Accents ──────────────────────────────────────────
+  scoreHealthy: '#F4C542',            // 0–30: Healthy (Yellow)
+  scoreModerate: '#55B96B',           // 31–50: Moderate (Green)
+  scoreUnhealthy: '#315A91',          // 51–70: Unhealthy (Navy Blue)
+  scoreSevere: '#E55353',             // 71–100: Severe (Red)
   green: '#8FB351',                   // Movement / health
   success: '#8FB351',                 // Success alias
   blue: '#6E93B3',                    // Deep work / focus

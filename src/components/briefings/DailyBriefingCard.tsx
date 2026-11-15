@@ -5,6 +5,7 @@ import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
 import type { DailyMorningBriefing } from '@/src/types/api.types';
+import { getScoreClassification, getCategoryBadgeBg } from '@/src/utils/scoreClassification';
 
 interface DailyBriefingCardProps {
   briefing?: DailyMorningBriefing;
@@ -24,25 +25,9 @@ export function DailyBriefingCard({
   const recScore = Number.isFinite(briefing.recovery_score)
     ? Math.round(briefing.recovery_score)
     : null;
-  const recTier = briefing.recovery_tier || 'GOOD';
-
-  const tierColor =
-    recTier === 'OPTIMAL'
-      ? colors.success
-      : recTier === 'GOOD'
-        ? colors.primaryText
-        : recTier === 'MODERATE'
-          ? colors.warning
-          : colors.error;
-
-  const tierBg =
-    recTier === 'OPTIMAL'
-      ? colors.softGreen
-      : recTier === 'GOOD'
-        ? colors.softPurple
-        : recTier === 'MODERATE'
-          ? colors.softYellow
-          : '#FDE8E8';
+  const classification = getScoreClassification(recScore);
+  const tierColor = classification.color;
+  const tierBg = getCategoryBadgeBg(tierColor, 0.15);
 
   const displayGreeting = briefing.greeting
     ? briefing.greeting.replace(/Priya/gi, userName)
@@ -63,11 +48,11 @@ export function DailyBriefingCard({
         </View>
 
         {/* Recovery Score Pill */}
-        <View style={[styles.recoveryBadge, { backgroundColor: tierBg }]}>
+        <View style={[styles.recoveryBadge, { backgroundColor: tierBg, borderColor: getCategoryBadgeBg(tierColor, 0.35), borderWidth: 1 }]}>
           <Text style={[styles.recoveryScoreVal, { color: tierColor }]}>{recScore ?? '—'}</Text>
           <Text style={styles.recoveryScoreMax}>/100</Text>
           <Text style={[styles.recoveryTierText, { color: tierColor }]}>
-            {recTier.replace('_', ' ')}
+            {classification.name}
           </Text>
         </View>
       </View>

@@ -15,6 +15,7 @@ import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
 import { IconButton } from '@/src/components/ui';
 import type { DailyMorningBriefing } from '@/src/types/api.types';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 interface MorningBriefingModalProps {
   visible: boolean;
@@ -38,16 +39,9 @@ export function MorningBriefingModal({
   const recScore = Number.isFinite(briefing.recovery_score)
     ? Math.round(briefing.recovery_score)
     : null;
-  const recTier = briefing.recovery_tier || 'GOOD';
-
-  const tierColor =
-    recTier === 'OPTIMAL'
-      ? '#2E7D32'
-      : recTier === 'GOOD'
-        ? '#1D4ED8'
-        : recTier === 'MODERATE'
-          ? '#D97706'
-          : colors.error;
+  const classification = getScoreClassification(recScore);
+  const tierColor = classification.color;
+  const tierName = classification.name;
 
   const displayGreeting = briefing.greeting
     ? briefing.greeting.replace(/Priya/gi, userName)
@@ -133,7 +127,7 @@ export function MorningBriefingModal({
               <Text style={[styles.scoreNumber, { color: tierColor }]}>{recScore ?? '—'}</Text>
               <Text style={styles.scoreUnit}>/100</Text>
               <Text style={[styles.tierBadge, { color: tierColor }]}>
-                {recTier.replace('_', ' ')}
+                {tierName}
               </Text>
             </View>
           </View>

@@ -30,6 +30,31 @@
 - Text Secondary: `#A8ACAE`
 - Text Muted: `#6F7476`
 - Border: `#2A2D2F`
+- Score Classification Colors:
+  - Healthy (0–30): `#F4C542` (Yellow)
+  - Moderate (31–50): `#55B96B` (Green)
+  - Unhealthy (51–70): `#315A91` (Navy Blue)
+  - Severe (71–100): `#E55353` (Red)
+
+## Score Classification & Health Indicator Rules
+
+1. **Exact 4-Tier Scale (0–100):**
+   - `0–30`: Healthy (`#F4C542`)
+   - `31–50`: Moderate (`#55B96B`)
+   - `51–70`: Unhealthy (`#315A91`)
+   - `71–100`: Severe (`#E55353`)
+2. **Deterministic Coverage:** Every integer score from 0 to 100 must map to exactly one category.
+3. **Mandatory Co-Display:** Whenever a score appears on a 0–100 scale, display:
+   - Numerical score
+   - Category name
+   - Matching category color
+   - *Never display a numerical score without its category label and matching color.*
+4. **Missing / Invalid Values:**
+   - Values `< 0`, `> 100`, `null`, `undefined`, or `NaN` must display `Not available` with neutral gray `#8E8E93`.
+   - *Never assign a category to missing or invalid data.*
+5. **Centralized Logic:** Always import and use `src/utils/scoreClassification.ts` (`getScoreClassification`) and `<ScoreBadge />` from `src/components/ui`. Never duplicate conditional threshold logic.
+6. **No Formula Changes:** Never alter underlying score calculation formulas; only implement presentation and classification indicators.
+7. **Subtle Indicator Aesthetic:** Keep the warm pastel visual design intact. Use classification colors as meaningful indicators (badges, dots, progress rings, bar fills), not as full-screen backgrounds.
 
 ### Design Principles
 - Modern, minimal, premium fintech / health tech aesthetic.

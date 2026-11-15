@@ -8,16 +8,22 @@ The application MUST remain runnable directly through the Expo Go app during dev
 
 ## Current Status
 
-**Phase:** Complete UI/UX Redesign & Live Gemini Integration Verified  
-**Date:** 2026-11-13  
-**Version:** 1.0.0  
+**Phase:** Score Classification & Color-Coded Health Indicators Implementation  
+**Date:** 2026-11-15  
+**Version:** 1.1.0  
 **Expo SDK:** SDK ~58.0.25 (Expo Go compatible)  
 **React / React Native:** React 19.3.0, React Native 0.88.1  
 **TypeScript:** 5.9.3 (0 errors in `npm run typecheck`)  
 **Backend:** FastAPI 0.111.0, Python 3.12.16 (277/277 pytest tests passing)  
-**Frontend Tests:** 221/221 tests passing  
+**Frontend Tests:** 239/239 tests passing (18/18 score classification tests passing)  
 **Lint Status:** 0 errors, 0 warnings (`npm run lint`)  
 **Design Palette:** Warm minimal aesthetic (Canvas `#F7F1EF`, Surface `#FFFFFF`, Secondary `#F1E8E3`, Accent `#FFB98E`, Dark Button `#66300C`, Typography `#242424`)  
+**Score Classification System:**
+- 0–30: Healthy (Yellow `#F4C542`)
+- 31–50: Moderate (Green `#55B96B`)
+- 51–70: Unhealthy (Navy Blue `#315A91`)
+- 71–100: Severe (Red `#E55353`)
+- Missing / invalid: "Not available" (no category assigned)
 **Gemini Model:** `gemini-3.1-flash-lite` configured with resilient fallback loop in `backend/app/services/gemini_service.py`  
 **Expo Go Compatible:** Yes (SDK 58 compatible, tested with web build, expo-doctor, and unit tests)  
 
@@ -104,11 +110,18 @@ The home screen (`app/(tabs)/home.tsx`) serves as the single command center for 
 - **Status Endpoint:** `GET /api/assistant/gemini/status` returns `{ configured, provider, model, status }`.
 - **Honest Telemetry Policy:** If `GEMINI_API_KEY` is not provided, reports status as `awaiting_api_key` and provides deterministic telemetry synthesis without simulating or claiming fake credentials.
 
+## Score Classification System
+
+- **Centralized Logic:** `src/utils/scoreClassification.ts` provides `getScoreClassification()`, `classifyScore()`, `formatScoreWithCategory()`, `SCORE_COLORS`, and `SCORE_CATEGORIES`.
+- **Reusable Component:** `src/components/ui/ScoreBadge.tsx` displays matching status dot, category name, and color.
+- **Coverage:** Consistently implemented across Overall Life Score, Sleep score, Productivity score, Health score, Activity score, Mood & Energy scores, Analytics cards, Historical score summaries, Charts, Trends, and Assistant insight cards.
+- **Test Suite:** `test/score_classification.test.mjs` verifying exact ranges, boundary decimals, invalid/missing scores, and single-category assignment for all 0–100 integers.
+
 ## QA Verification Results
 
 - **TypeScript:** 0 errors (`npm run typecheck`)
 - **ESLint:** 0 errors, 0 warnings (`npm run lint`)
-- **Frontend Unit & Integration Tests:** 221 tests passing (`npm test`)
+- **Frontend Unit & Integration Tests:** 239 tests passing (`npm test`)
 - **Expo Web Production Export:** Build completed with 0 errors (`npm run build:web`)
 - **Expo Dependency Audit:** Dependencies up to date (`npx expo install --check`)
 - **Backend Test Suite:** 277 tests passing in 10.10s (`backend/.venv/bin/pytest backend/tests/ -v`)

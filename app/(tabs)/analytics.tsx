@@ -24,6 +24,8 @@ import LifeScoreHero from '@/src/components/dashboard/LifeScoreHero';
 import MetricGrid from '@/src/components/dashboard/MetricGrid';
 import ScoreBreakdown from '@/src/components/dashboard/ScoreBreakdown';
 import LifeScoreTrend from '@/src/components/dashboard/LifeScoreTrend';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 const TIMEFRAMES = ['7D', '14D', '30D', '90D'] as const;
 type Timeframe = (typeof TIMEFRAMES)[number];
@@ -256,11 +258,20 @@ export default function AnalyticsScreen() {
                 </View>
                 <View style={styles.diagItem}>
                   <Text style={styles.diagLabel}>Focus Stability</Text>
-                  <Text style={[styles.diagValue, { color: colors.cyan }]}>
-                    {dashboardData?.lifeScore?.productivity != null
-                      ? `${Math.round(dashboardData.lifeScore.productivity)}%`
-                      : '94%'}
-                  </Text>
+                  {(() => {
+                    const focusScore = dashboardData?.lifeScore?.productivity != null
+                      ? Math.round(dashboardData.lifeScore.productivity)
+                      : 94;
+                    const focusClass = getScoreClassification(focusScore);
+                    return (
+                      <>
+                        <Text style={[styles.diagValue, focusClass.isValid && { color: focusClass.color }]}>
+                          {focusScore}%
+                        </Text>
+                        <ScoreBadge score={focusScore} size="xs" showScore={false} style={{ marginVertical: 2 }} />
+                      </>
+                    );
+                  })()}
                   <Text style={styles.diagSub}>Flow sustained</Text>
                 </View>
                 <View style={styles.diagItem}>
@@ -291,29 +302,56 @@ export default function AnalyticsScreen() {
               <View style={styles.diagGrid}>
                 <View style={styles.diagItem}>
                   <Text style={styles.diagLabel}>Sleep Index</Text>
-                  <Text style={[styles.diagValue, { color: colors.primary }]}>
-                    {dashboardData?.lifeScore?.sleep != null
-                      ? `${Math.round(dashboardData.lifeScore.sleep)}%`
-                      : '85%'}
-                  </Text>
+                  {(() => {
+                    const sleepScore = dashboardData?.lifeScore?.sleep != null
+                      ? Math.round(dashboardData.lifeScore.sleep)
+                      : 85;
+                    const sleepClass = getScoreClassification(sleepScore);
+                    return (
+                      <>
+                        <Text style={[styles.diagValue, sleepClass.isValid && { color: sleepClass.color }]}>
+                          {sleepScore}%
+                        </Text>
+                        <ScoreBadge score={sleepScore} size="xs" showScore={false} style={{ marginVertical: 2 }} />
+                      </>
+                    );
+                  })()}
                   <Text style={styles.diagSub}>Recovery efficiency</Text>
                 </View>
                 <View style={styles.diagItem}>
                   <Text style={styles.diagLabel}>Health Index</Text>
-                  <Text style={[styles.diagValue, { color: colors.cyan }]}>
-                    {dashboardData?.lifeScore?.health != null
-                      ? `${Math.round(dashboardData.lifeScore.health)}%`
-                      : '80%'}
-                  </Text>
+                  {(() => {
+                    const healthScore = dashboardData?.lifeScore?.health != null
+                      ? Math.round(dashboardData.lifeScore.health)
+                      : 80;
+                    const healthClass = getScoreClassification(healthScore);
+                    return (
+                      <>
+                        <Text style={[styles.diagValue, healthClass.isValid && { color: healthClass.color }]}>
+                          {healthScore}%
+                        </Text>
+                        <ScoreBadge score={healthScore} size="xs" showScore={false} style={{ marginVertical: 2 }} />
+                      </>
+                    );
+                  })()}
                   <Text style={styles.diagSub}>Movement foundation</Text>
                 </View>
                 <View style={styles.diagItem}>
                   <Text style={styles.diagLabel}>Finance Index</Text>
-                  <Text style={[styles.diagValue, { color: colors.orange }]}>
-                    {dashboardData?.lifeScore?.finance != null
-                      ? `${Math.round(dashboardData.lifeScore.finance)}%`
-                      : '90%'}
-                  </Text>
+                  {(() => {
+                    const financeScore = dashboardData?.lifeScore?.finance != null
+                      ? Math.round(dashboardData.lifeScore.finance)
+                      : 90;
+                    const financeClass = getScoreClassification(financeScore);
+                    return (
+                      <>
+                        <Text style={[styles.diagValue, financeClass.isValid && { color: financeClass.color }]}>
+                          {financeScore}%
+                        </Text>
+                        <ScoreBadge score={financeScore} size="xs" showScore={false} style={{ marginVertical: 2 }} />
+                      </>
+                    );
+                  })()}
                   <Text style={styles.diagSub}>Budget discipline</Text>
                 </View>
                 <View style={styles.diagItem}>

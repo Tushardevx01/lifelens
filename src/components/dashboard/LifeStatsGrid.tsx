@@ -18,6 +18,8 @@ import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
 import type { DailyEntry } from '@/src/types/api.types';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 interface LifeStatsGridProps {
   entry?: DailyEntry | null;
@@ -87,6 +89,9 @@ export default function LifeStatsGrid({
               <Ionicons name="footsteps" size={17} color="#789938" />
             </View>
             <Text style={styles.cardDomainLabel}>Movement</Text>
+            {stepsProgress !== null && (
+              <ScoreBadge score={stepsProgress} size="xs" style={{ marginLeft: 'auto' }} />
+            )}
           </View>
 
           <View style={styles.metricRow}>
@@ -103,7 +108,7 @@ export default function LifeStatsGrid({
                 styles.progressBarFill,
                 {
                   width: `${stepsProgress ?? 0}%`,
-                  backgroundColor: '#8FB351',
+                  backgroundColor: stepsProgress !== null ? getScoreClassification(stepsProgress).color : '#8FB351',
                 },
               ]}
             />
@@ -141,10 +146,13 @@ export default function LifeStatsGrid({
           {/* Sleep Quality & Bedtime */}
           <View style={styles.tagRow}>
             {sleepQuality ? (
-              <View style={[styles.pillBadge, { backgroundColor: '#EBE3F5' }]}>
-                <Text style={[styles.pillBadgeText, { color: '#7E699B' }]}>
-                  {sleepQuality}/5 ★
-                </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <View style={[styles.pillBadge, { backgroundColor: '#EBE3F5' }]}>
+                  <Text style={[styles.pillBadgeText, { color: '#7E699B' }]}>
+                    {sleepQuality}/5 ★
+                  </Text>
+                </View>
+                <ScoreBadge score={sleepQuality * 20} size="xs" />
               </View>
             ) : null}
             {bedtime ? (
@@ -279,14 +287,20 @@ export default function LifeStatsGrid({
               {mood !== undefined && mood !== null ? `${mood}/10` : '--'}
             </Text>
             <Text style={styles.metricUnit}>mood</Text>
+            {mood !== undefined && mood !== null ? (
+              <ScoreBadge score={mood * 10} size="xs" style={{ marginLeft: 'auto' }} />
+            ) : null}
           </View>
 
           <View style={styles.tagRow}>
             {energy !== undefined && energy !== null ? (
-              <View style={[styles.pillBadge, { backgroundColor: '#F9F0D4' }]}>
-                <Text style={[styles.pillBadgeText, { color: '#9E7B28' }]}>
-                  ⚡ {energy}/5 energy
-                </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <View style={[styles.pillBadge, { backgroundColor: '#F9F0D4' }]}>
+                  <Text style={[styles.pillBadgeText, { color: '#9E7B28' }]}>
+                    ⚡ {energy}/5 energy
+                  </Text>
+                </View>
+                <ScoreBadge score={energy * 20} size="xs" />
               </View>
             ) : null}
           </View>

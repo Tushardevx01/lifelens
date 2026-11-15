@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 interface ProductivityPredictionProps {
   predictedScore?: number;
@@ -16,22 +18,24 @@ export default function ProductivityPrediction({
   keyDriver = 'Consistent morning routine',
   recommendation = 'Try starting work 30 minutes earlier tomorrow',
 }: ProductivityPredictionProps) {
+  const classification = getScoreClassification(predictedScore);
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.title}>Productivity Prediction</Text>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>Experimental</Text>
-        </View>
+        <ScoreBadge score={predictedScore} size="sm" />
       </View>
 
       <View style={styles.scoreRow}>
-        <Text style={styles.score}>{predictedScore}</Text>
+        <Text style={[styles.score, { color: classification.color }]}>
+          {predictedScore}
+        </Text>
         <Text style={styles.scoreTotal}>/100</Text>
       </View>
 
       <View style={styles.infoRow}>
-        <Ionicons name="trending-up" size={16} color={colors.primary} />
+        <Ionicons name="trending-up" size={16} color={classification.color} />
         <View style={styles.infoContent}>
           <Text style={styles.infoLabel}>Key Driver</Text>
           <Text style={styles.infoText}>{keyDriver}</Text>

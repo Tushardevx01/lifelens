@@ -12,6 +12,8 @@ import { colors }  from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius }  from '@/src/theme/radius';
 import CircularProgress from './CircularProgress';
+import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 interface Metric {
   name:  string;
@@ -33,27 +35,34 @@ const defaultMetrics: Metric[] = [
 export default function MetricGrid({ metrics = defaultMetrics }: MetricGridProps) {
   return (
     <View style={styles.container}>
-      {metrics.map((metric) => (
-        <View key={metric.name} style={styles.card}>
-          {/* Name + ring */}
-          <View style={styles.topRow}>
-            <Text style={styles.name}>{metric.name}</Text>
-            <CircularProgress
-              size={36}
-              progress={metric.score}
-              color={metric.color}
-              strokeWidth={4}
-              backgroundColor={colors.surfaceSecondary}
-            />
-          </View>
+      {metrics.map((metric) => {
+        const classification = getScoreClassification(metric.score);
+        return (
+          <View key={metric.name} style={styles.card}>
+            {/* Name + ring */}
+            <View style={styles.topRow}>
+              <Text style={styles.name}>{metric.name}</Text>
+              <CircularProgress
+                size={36}
+                progress={metric.score}
+                color={classification.color}
+                strokeWidth={4}
+                backgroundColor={colors.surfaceSecondary}
+              />
+            </View>
 
-          {/* Large number */}
-          <Text style={styles.score}>
-            {metric.score}
-          </Text>
-          <Text style={styles.unit}>/100</Text>
-        </View>
-      ))}
+            {/* Large number */}
+            <View style={styles.scoreRow}>
+              <Text style={[styles.score, { color: classification.color }]}>
+                {metric.score}
+              </Text>
+              <Text style={styles.unit}>/100</Text>
+            </View>
+
+            <ScoreBadge score={metric.score} size="xs" style={{ marginTop: 6 }} />
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -93,17 +102,20 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
   score: {
     fontSize: 36,
     fontWeight: '800',
     letterSpacing: -1,
     lineHeight: 40,
-    color: colors.primaryText,
   },
   unit: {
     fontSize: 13,
     fontWeight: '500',
     color: colors.textMuted,
-    marginTop: 2,
+    marginLeft: 4,
   },
 });
