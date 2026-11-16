@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Modal,
@@ -14,7 +14,8 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { LoginScreen } from '@/src/features/auth/LoginScreen';
-import { authApi } from '@/src/services/api';
+import { authApi, checkBackendHealth } from '@/src/services/api';
+import { CONFIG } from '@/src/config';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
@@ -27,13 +28,40 @@ export default function LoginRoute() {
   const [newPassword, setNewPassword] = useState('');
   const [submittingReset, setSubmittingReset] = useState(false);
 
+  useEffect(() => {
+    async function verifyBackend() {
+      const health = await checkBackendHealth();
+      if (!health.ok) {
+        Alert.alert(
+          'Backend Not Running',
+          `Without backend, no entry.\n\nThe LifeLens backend server is not running at ${CONFIG.API_URL}.\n\nPlease start the backend server to sign in.`
+        );
+      }
+    }
+    verifyBackend();
+  }, []);
+
   const handleLogin = async (email: string, password: string) => {
     try {
       await authApi.login(email, password);
       router.replace('/(tabs)/home');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed. Please try again.';
-      Alert.alert('Login failed', message);
+      const isNetwork =
+        message.includes('Network') ||
+        message.includes('Failed to fetch') ||
+        message.includes('fetch failed') ||
+        message.includes('timeout') ||
+        message.includes('ECONNREFUSED');
+
+      if (isNetwork) {
+        Alert.alert(
+          'Backend Not Running',
+          `Without backend, no entry.\n\nThe LifeLens backend server is not running or unreachable at ${CONFIG.API_URL}.\n\nPlease start the backend server to sign in.`
+        );
+      } else {
+        Alert.alert('Login failed', message);
+      }
     }
   };
 

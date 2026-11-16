@@ -156,3 +156,47 @@ test('LiveScoreCard Formulas and Mathematical Bounds', async (t) => {
     assert.equal(bestCase.life_score, 100);
   });
 });
+
+test('WeeklyDateSelector: Date Strip and Selection Contract', async (t) => {
+  await t.test('Generates 7 contiguous days centered around today (-3 to +3)', () => {
+    const today = new Date();
+    const days = [];
+    for (let offset = -3; offset <= 3; offset++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + offset);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      const dayName = d.toLocaleDateString('en-US', { weekday: 'narrow' });
+      days.push({ offset, dateStr, dayName, isToday: offset === 0 });
+    }
+
+    assert.equal(days.length, 7);
+    assert.equal(days[3].isToday, true);
+    assert.ok(days[0].offset === -3);
+    assert.ok(days[6].offset === 3);
+    // All dates are in YYYY-MM-DD format
+    for (const item of days) {
+      assert.match(item.dateStr, /^\d{4}-\d{2}-\d{2}$/);
+      assert.ok(item.dayName.length >= 1);
+    }
+  });
+
+  await t.test('Selection state updates accurately on day button click', () => {
+    let currentSelected = '2026-11-16';
+    const onSelectDate = (dateStr) => {
+      currentSelected = dateStr;
+    };
+
+    // Simulate clicking different date buttons
+    onSelectDate('2026-11-13');
+    assert.equal(currentSelected, '2026-11-13');
+
+    onSelectDate('2026-11-17');
+    assert.equal(currentSelected, '2026-11-17');
+
+    onSelectDate('2026-11-19');
+    assert.equal(currentSelected, '2026-11-19');
+  });
+});

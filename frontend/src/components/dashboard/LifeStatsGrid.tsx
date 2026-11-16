@@ -18,12 +18,12 @@ import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
 import type { DailyEntry } from '@/src/types/api.types';
-import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
-import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 interface LifeStatsGridProps {
   entry?: DailyEntry | null;
   stepGoal?: number;
+  dateLabel?: string;
+  isToday?: boolean;
   onOpenWorkout?: () => void;
   onOpenSleep?: () => void;
   onOpenFocus?: () => void;
@@ -35,6 +35,8 @@ interface LifeStatsGridProps {
 export default function LifeStatsGrid({
   entry,
   stepGoal = 10000,
+  dateLabel,
+  isToday = true,
   onOpenWorkout,
   onOpenSleep,
   onOpenFocus,
@@ -72,8 +74,12 @@ export default function LifeStatsGrid({
   return (
     <View style={styles.container}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Today's Overview</Text>
-        <Text style={styles.sectionSubtitle}>Tap card to log</Text>
+        <Text style={styles.sectionTitle}>
+          {isToday ? "Today's Overview" : `${dateLabel || 'Daily'} Overview`}
+        </Text>
+        <Text style={styles.sectionSubtitle}>
+          {entry ? 'Tap card to log' : 'No entry logged · Tap to add'}
+        </Text>
       </View>
 
       <View style={styles.grid}>
@@ -89,9 +95,11 @@ export default function LifeStatsGrid({
               <Ionicons name="footsteps" size={17} color="#789938" />
             </View>
             <Text style={styles.cardDomainLabel}>Movement</Text>
-            {stepsProgress !== null && (
-              <ScoreBadge score={stepsProgress} size="xs" style={{ marginLeft: 'auto' }} />
-            )}
+            {stepsProgress !== null ? (
+              <View style={[styles.pillBadge, styles.headerBadge, { backgroundColor: '#EDF5DC' }]}>
+                <Text style={[styles.pillBadgeText, { color: '#789938' }]}>{stepsProgress}%</Text>
+              </View>
+            ) : null}
           </View>
 
           <View style={styles.metricRow}>
@@ -108,7 +116,7 @@ export default function LifeStatsGrid({
                 styles.progressBarFill,
                 {
                   width: `${stepsProgress ?? 0}%`,
-                  backgroundColor: stepsProgress !== null ? getScoreClassification(stepsProgress).color : '#8FB351',
+                  backgroundColor: '#789938',
                 },
               ]}
             />
@@ -146,13 +154,10 @@ export default function LifeStatsGrid({
           {/* Sleep Quality & Bedtime */}
           <View style={styles.tagRow}>
             {sleepQuality ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <View style={[styles.pillBadge, { backgroundColor: '#EBE3F5' }]}>
-                  <Text style={[styles.pillBadgeText, { color: '#7E699B' }]}>
-                    {sleepQuality}/5 ★
-                  </Text>
-                </View>
-                <ScoreBadge score={sleepQuality * 20} size="xs" />
+              <View style={[styles.pillBadge, { backgroundColor: '#EBE3F5' }]}>
+                <Text style={[styles.pillBadgeText, { color: '#7E699B' }]}>
+                  {sleepQuality}/5 ★
+                </Text>
               </View>
             ) : null}
             {bedtime ? (
@@ -287,20 +292,14 @@ export default function LifeStatsGrid({
               {mood !== undefined && mood !== null ? `${mood}/10` : '--'}
             </Text>
             <Text style={styles.metricUnit}>mood</Text>
-            {mood !== undefined && mood !== null ? (
-              <ScoreBadge score={mood * 10} size="xs" style={{ marginLeft: 'auto' }} />
-            ) : null}
           </View>
 
           <View style={styles.tagRow}>
             {energy !== undefined && energy !== null ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <View style={[styles.pillBadge, { backgroundColor: '#F9F0D4' }]}>
-                  <Text style={[styles.pillBadgeText, { color: '#9E7B28' }]}>
-                    ⚡ {energy}/5 energy
-                  </Text>
-                </View>
-                <ScoreBadge score={energy * 20} size="xs" />
+              <View style={[styles.pillBadge, { backgroundColor: '#F9F0D4' }]}>
+                <Text style={[styles.pillBadgeText, { color: '#9E7B28' }]}>
+                  ⚡ {energy}/5 energy
+                </Text>
               </View>
             ) : null}
           </View>
@@ -344,12 +343,17 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
-    padding: spacing.lg,
+    padding: spacing.md,
     flex: 1,
     minWidth: '46%',
+    maxWidth: '49%',
     borderWidth: 1.5,
     borderColor: colors.border,
-    boxShadow: '0px 3px 10px rgba(102, 48, 12, 0.04)',
+    overflow: 'hidden',
+    shadowColor: colors.shadowWarm,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
     elevation: 2,
   },
   cardPressed: {
@@ -359,12 +363,12 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.xs,
     marginBottom: spacing.xs,
   },
   iconWrap: {
-    width: 30,
-    height: 30,
+    width: 28,
+    height: 28,
     borderRadius: radius.md,
     justifyContent: 'center',
     alignItems: 'center',
@@ -375,21 +379,27 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    flexShrink: 1,
+  },
+  headerBadge: {
+    marginLeft: 'auto',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
   metricRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 4,
-    marginVertical: 3,
+    marginVertical: 2,
   },
   primaryMetric: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '800',
     color: colors.textPrimary,
     letterSpacing: -0.5,
   },
   metricUnit: {
-    fontSize: 13,
+    fontSize: 12,
     color: colors.textSecondary,
     fontWeight: '500',
   },
@@ -407,6 +417,7 @@ const styles = StyleSheet.create({
   tagRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 6,
     marginVertical: 4,
     minHeight: 22,
@@ -426,7 +437,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   secondaryDetail: {
-    fontSize: 12,
+    fontSize: 11,
     color: colors.textSecondary,
     fontWeight: '500',
     marginTop: 2,

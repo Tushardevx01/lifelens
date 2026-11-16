@@ -8,6 +8,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   Pressable,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
+import { CONFIG } from '@/src/config';
 import { getDashboardData, experimentsApi } from '@/src/services/api';
 import type { DashboardData } from '@/src/features/dashboard/dashboard.types';
 import type { ExperimentCreate, ActiveExperimentProgress } from '@/src/types/api.types';
@@ -54,6 +56,11 @@ export default function InsightsScreen() {
       setActiveExperiments(active || []);
     } catch (err) {
       console.warn('[LifeLens] Failed to fetch live insights:', err);
+      Alert.alert(
+        'Backend Not Running',
+        `Without backend, no entry.\n\nCould not fetch insights telemetry from ${CONFIG.API_URL}.\n\nPlease ensure the backend server is running.`,
+        [{ text: 'Retry', onPress: () => fetchInsights() }]
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);

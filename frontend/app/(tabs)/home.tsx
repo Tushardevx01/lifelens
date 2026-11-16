@@ -16,8 +16,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
+import { CONFIG } from '@/src/config';
 import { DashboardData } from '@/src/features/dashboard/dashboard.types';
-import { getDashboardData, authApi, briefingsApi } from '@/src/services/api';
+import { getDashboardData, authApi, briefingsApi, entriesApi } from '@/src/services/api';
 
 import DashboardHeader from '@/src/components/dashboard/DashboardHeader';
 import WeeklyDateSelector from '@/src/components/dashboard/WeeklyDateSelector';
@@ -38,13 +39,45 @@ import {
   ScreenTimeModal,
   HabitsMatrix,
 } from '@/src/components/telemetry';
-import type { User, WeeklyReviewStory } from '@/src/types/api.types';
+import type { User, WeeklyReviewStory, DailyEntry } from '@/src/types/api.types';
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const [data, setData] = useState<DashboardData | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [backendOffline, setBackendOffline] = useState(false);
+
+  // Date selection state
+  const todayStr = React.useMemo(() => {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }, []);
+
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
+  const [selectedDateEntry, setSelectedDateEntry] = useState<DailyEntry | null>(null);
+
+  const selectedDateLabel = React.useMemo(() => {
+    if (selectedDate === todayStr) return "Today's";
+    try {
+      const [y, m, d] = selectedDate.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      return dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    } catch {
+      return selectedDate;
+    }
+  }, [selectedDate, todayStr]);
+
+  const trendPoints = React.useMemo(() => {
+    if (!data?.trendData) return [];
+    return data.trendData.map((t, index) => ({
+      day: t.date || `D${index + 1}`,
+      value: t.lifeScore,
+    }));
+  }, [data?.trendData]);
 
   // Modals state
   const [showMorningBriefingModal, setShowMorningBriefingModal] = useState(false);
@@ -59,6 +92,23 @@ export default function DashboardScreen() {
   const [showFocusModal, setShowFocusModal] = useState(false);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showScreenTimeModal, setShowScreenTimeModal] = useState(false);
+
+  const handleSelectDate = useCallback(
+    async (dateStr: string) => {
+      setSelectedDate(dateStr);
+      if (dateStr === todayStr && data?.latestEntry && data.latestEntry.date === todayStr) {
+        setSelectedDateEntry(data.latestEntry);
+        return;
+      }
+      try {
+        const entry = await entriesApi.getByDate(dateStr);
+        setSelectedDateEntry(entry);
+      } catch {
+        setSelectedDateEntry(null);
+      }
+    },
+    [todayStr, data?.latestEntry]
+  );
 
   const handleOpenWeeklyStory = async () => {
     try {
@@ -76,14 +126,28 @@ export default function DashboardScreen() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
+      setBackendOffline(false);
       const [fetchedData, user] = await Promise.all([
         getDashboardData(),
         authApi.me().catch(() => null),
       ]);
       setData(fetchedData);
       if (user) setCurrentUser(user);
-    } catch {
-      // Handled gracefully with fallback mock data inside getDashboardData
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn('[LifeLens] Failed to load dashboard data:', msg);
+      setBackendOffline(true);
+      setData(null);
+      Alert.alert(
+        'Backend Not Running',
+        `Without backend, no entry.\n\nCould not fetch dashboard telemetry from ${CONFIG.API_URL}.\n\nPlease ensure the backend server is running.`,
+        [
+          {
+            text: 'Retry Connection',
+            onPress: () => loadData(),
+          },
+        ]
+      );
     } finally {
       setLoading(false);
     }
@@ -103,19 +167,43 @@ export default function DashboardScreen() {
     );
   }
 
-  if (!data) {
+  if (backendOffline || !data) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.errorText}>No dashboard data found</Text>
+      <View style={[styles.container, styles.centerContent, { padding: spacing.xl }]}>
+        <Ionicons name="cloud-offline" size={54} color="#DC2626" style={{ marginBottom: spacing.md }} />
+        <Text style={[styles.sectionTitle, { color: '#DC2626', marginBottom: 4 }]}>
+          BACKEND SERVER OFFLINE
+        </Text>
+        <Text style={[styles.errorText, { textAlign: 'center', marginBottom: spacing.sm, fontWeight: '800', color: colors.primaryText }]}>
+          Without backend, no entry.
+        </Text>
+        <Text style={[styles.quickNavSubtitle, { textAlign: 'center', marginBottom: spacing.xl, maxWidth: 320, lineHeight: 18 }]}>
+          LifeLens strictly streams real data from your FastAPI backend server ({CONFIG.API_URL}). Start the backend server and tap retry.
+        </Text>
+        <Pressable
+          style={({ pressed }) => [
+            {
+              backgroundColor: colors.darkButton,
+              paddingHorizontal: spacing.xxl,
+              paddingVertical: 14,
+              borderRadius: radius.full,
+            },
+            pressed && { opacity: 0.85 },
+          ]}
+          onPress={loadData}
+          accessibilityRole="button"
+          accessibilityLabel="Retry backend connection"
+        >
+          <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 14 }}>Retry Connection</Text>
+        </Pressable>
       </View>
     );
   }
 
-  // Map trend data
-  const trendPoints = (data.trendData || []).map((t, index) => ({
-    day: t.date || `D${index + 1}`,
-    value: t.lifeScore,
-  }));
+  const activeEntry =
+    selectedDateEntry !== null
+      ? selectedDateEntry
+      : (selectedDate === todayStr ? data.latestEntry : null);
 
   return (
     <View style={styles.container}>
@@ -135,7 +223,10 @@ export default function DashboardScreen() {
         />
 
         {/* Weekly Date Selector Strip */}
-        <WeeklyDateSelector />
+        <WeeklyDateSelector
+          selectedDate={selectedDate}
+          onSelectDate={handleSelectDate}
+        />
 
         {/* Daily Morning Briefing Card (if present) */}
         {data.morningBriefing && (
@@ -162,14 +253,21 @@ export default function DashboardScreen() {
 
         {/* Consolidated Daily Life Stats Grid (Steps, Sleep, Focus, Expenses, Screen Time, Wellbeing) */}
         <LifeStatsGrid
-          entry={data.latestEntry}
+          entry={activeEntry}
           stepGoal={10000}
+          dateLabel={selectedDateLabel}
+          isToday={selectedDate === todayStr}
           onOpenWorkout={() => setShowWorkoutModal(true)}
           onOpenSleep={() => setShowSleepModal(true)}
           onOpenFocus={() => setShowFocusModal(true)}
           onOpenTransaction={() => setShowTransactionModal(true)}
           onOpenScreenTime={() => setShowScreenTimeModal(true)}
-          onOpenNewEntry={() => router.push('/(tabs)/new-entry')}
+          onOpenNewEntry={() =>
+            router.push({
+              pathname: '/(tabs)/new-entry',
+              params: { date: selectedDate },
+            })
+          }
         />
 
         {/* Daily Habits & Recurring Rituals */}

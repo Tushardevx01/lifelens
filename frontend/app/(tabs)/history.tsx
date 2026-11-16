@@ -17,6 +17,7 @@ import { router } from 'expo-router';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
+import { CONFIG } from '@/src/config';
 import { entriesApi } from '@/src/services/api';
 import type { DailyEntry } from '@/src/types/api.types';
 import { calculateEstimatedLifeScore } from '@/src/utils/lifeScore';
@@ -124,6 +125,11 @@ export default function HistoryScreen() {
     } catch (err) {
       console.warn('[LifeLens] Failed to load history entries:', err);
       setEntries([]);
+      Alert.alert(
+        'Backend Not Running',
+        `Without backend, no entry.\n\nCould not fetch history logs from ${CONFIG.API_URL}.\n\nPlease ensure the backend server is running.`,
+        [{ text: 'Retry', onPress: () => fetchEntries() }]
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);

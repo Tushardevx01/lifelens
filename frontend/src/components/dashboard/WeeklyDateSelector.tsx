@@ -6,8 +6,8 @@
  * with active day highlighted in warm peach / dark brown.
  */
 
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
 
 import { colors } from '@/src/theme/colors';
 import { radius } from '@/src/theme/radius';
@@ -21,7 +21,7 @@ interface DayItem {
   isToday: boolean;
 }
 
-interface WeeklyDateSelectorProps {
+export interface WeeklyDateSelectorProps {
   selectedDate?: string;
   onSelectDate?: (dateStr: string) => void;
 }
@@ -30,10 +30,10 @@ export default function WeeklyDateSelector({
   selectedDate,
   onSelectDate,
 }: WeeklyDateSelectorProps) {
-  const days: DayItem[] = React.useMemo(() => {
+  const days: DayItem[] = useMemo(() => {
     const list: DayItem[] = [];
     const today = new Date();
-    // Generate current week (Monday to Sunday, or 3 days back to 3 days forward)
+    // Generate 7 days centered on today (-3 to +3)
     for (let offset = -3; offset <= 3; offset++) {
       const d = new Date(today);
       d.setDate(today.getDate() + offset);
@@ -53,13 +53,28 @@ export default function WeeklyDateSelector({
     return list;
   }, []);
 
-  const currentSelected = selectedDate || days.find((d) => d.isToday)?.dateStr || days[3].dateStr;
+  const todayDateStr = useMemo(
+    () => days.find((d) => d.isToday)?.dateStr || days[3]?.dateStr || '',
+    [days]
+  );
+
+  // Maintain internal fallback state so pills are immediately interactive even uncontrolled
+  const [internalSelected, setInternalSelected] = useState<string>(todayDateStr);
+
+  const currentSelected = selectedDate !== undefined ? selectedDate : internalSelected;
+
+  const handleDayPress = (dateStr: string) => {
+    setInternalSelected(dateStr);
+    onSelectDate?.(dateStr);
+  };
 
   return (
     <View style={styles.container}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled={true}
         contentContainerStyle={styles.scrollContent}
       >
         {days.map((item) => {
@@ -72,15 +87,24 @@ export default function WeeklyDateSelector({
                 isSelected && styles.dayPillActive,
                 pressed && styles.dayPillPressed,
               ]}
-              onPress={() => onSelectDate?.(item.dateStr)}
+              onPress={() => handleDayPress(item.dateStr)}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+              pressRetentionOffset={{ top: 12, bottom: 12, left: 12, right: 12 }}
               accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
               accessibilityLabel={`${item.dayName} ${item.dayNumber}${isSelected ? ', selected' : ''}`}
             >
-              <Text style={[styles.dayName, isSelected && styles.dayNameActive]}>
+              <Text
+                style={[styles.dayName, isSelected && styles.dayNameActive]}
+                selectable={false}
+              >
                 {item.dayName}
               </Text>
               <View style={[styles.numberCircle, isSelected && styles.numberCircleActive]}>
-                <Text style={[styles.dayNumber, isSelected && styles.dayNumberActive]}>
+                <Text
+                  style={[styles.dayNumber, isSelected && styles.dayNumberActive]}
+                  selectable={false}
+                >
                   {item.dayNumber}
                 </Text>
               </View>
@@ -112,16 +136,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        userSelect: 'none',
+      },
+    }),
   },
   dayPillActive: {
     backgroundColor: colors.darkButton, // #66300C Signature warm dark brown
     borderColor: colors.darkButton,
-    boxShadow: '0px 4px 12px rgba(102, 48, 12, 0.20)',
+    shadowColor: colors.darkButton,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
     elevation: 4,
   },
   dayPillPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.96 }],
+    opacity: 0.8,
+    transform: [{ scale: 0.94 }],
   },
   dayName: {
     fontSize: 12,

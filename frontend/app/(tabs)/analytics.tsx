@@ -8,6 +8,7 @@ import {
   StatusBar,
   RefreshControl,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +17,7 @@ import { router } from 'expo-router';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
+import { CONFIG } from '@/src/config';
 import { analyticsApi, getDashboardData } from '@/src/services/api';
 import type { DashboardData } from '@/src/features/dashboard/dashboard.types';
 import type { LifeScoreHistoryPoint, CorrelationResponse } from '@/src/types/api.types';
@@ -59,6 +61,11 @@ export default function AnalyticsScreen() {
       setCorrelations(corrs || []);
     } catch (err) {
       console.warn('[LifeLens] Failed to load analytics:', err);
+      Alert.alert(
+        'Backend Not Running',
+        `Without backend, no entry.\n\nCould not fetch analytics telemetry from ${CONFIG.API_URL}.\n\nPlease ensure the backend server is running.`,
+        [{ text: 'Retry', onPress: () => fetchAnalytics() }]
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);

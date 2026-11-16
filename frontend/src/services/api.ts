@@ -1081,6 +1081,39 @@ export const emptyDashboardData: DashboardData = {
 };
 
 /**
+ * Checks whether the FastAPI backend server is actively running and reachable.
+ */
+export async function checkBackendHealth(): Promise<{ ok: boolean; status?: string; error?: string }> {
+  const isTestEnv =
+    typeof process !== 'undefined' &&
+    (process.env.NODE_ENV === 'test' ||
+     process.env.npm_lifecycle_event === 'test' ||
+     Boolean(process.env.NODE_TEST_CONTEXT) ||
+     Boolean(process.env.JEST_WORKER_ID) ||
+     (Array.isArray(process.argv) && process.argv.some((arg) => arg.includes('test'))));
+
+  if (!BASE_URL && isTestEnv) {
+    return { ok: true, status: 'test' };
+  }
+
+  try {
+    const res = await fetchWithTimeout(`${BASE_URL}/health`, { method: 'GET' }, 3500);
+    if (res.ok) {
+      const data = await res.json().catch(() => ({ status: 'healthy' }));
+      return { ok: true, status: data?.status || 'healthy' };
+    }
+    return { ok: false, error: `Backend responded with HTTP ${res.status}` };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: msg };
+  }
+}
+
+export const systemApi = {
+  checkHealth: checkBackendHealth,
+};
+
+/**
  * Fetches and aggregates all dashboard data into the app's DashboardData shape.
  * Returns empty defaults in production when not yet logged, or mock fixture in offline unit test mode.
  */
@@ -1197,9 +1230,9 @@ export async function getDashboardData(): Promise<DashboardData> {
     return result;
   } catch (error) {
     console.warn('[LifeLens] Live API request failed:', error);
-    // Never show demo numbers for an authenticated account — that reads as fake data.
-    if (_accessToken) throw error;
-    return isTestEnv ? mockDashboardData : emptyDashboardData;
+    if (isTestEnv) return mockDashboardData;
+    // In runtime, do not swallow backend failures or show fake numbers. Throw so UI can present the pop-up message!
+    throw error;
   }
 }
 

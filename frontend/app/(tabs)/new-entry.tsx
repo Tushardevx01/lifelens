@@ -17,6 +17,7 @@ import { router } from 'expo-router';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
+import { CONFIG } from '@/src/config';
 import { entriesApi } from '@/src/services/api';
 import type { DailyEntryCreate } from '@/src/types/api.types';
 import { calculateEstimatedLifeScore } from '@/src/utils/lifeScore';
@@ -162,7 +163,19 @@ export default function NewEntryScreen() {
       ]);
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
-      if (errMsg.includes('409') || errMsg.toLowerCase().includes('already exists')) {
+      const isNetwork =
+        errMsg.includes('Network') ||
+        errMsg.includes('Failed to fetch') ||
+        errMsg.includes('fetch failed') ||
+        errMsg.includes('timeout') ||
+        errMsg.includes('ECONNREFUSED');
+
+      if (isNetwork) {
+        Alert.alert(
+          'Backend Not Running',
+          `Without backend, no entry.\n\nCould not save daily log to the backend server at ${CONFIG.API_URL}.\n\nPlease ensure the backend is running.`
+        );
+      } else if (errMsg.includes('409') || errMsg.toLowerCase().includes('already exists')) {
         Alert.alert(
           'Entry Exists',
           `An entry for ${date} already exists. Do you want to update it?`,
