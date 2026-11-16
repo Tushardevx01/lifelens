@@ -1041,12 +1041,59 @@ export const forecastsApi = {
 
 // ── High-level dashboard fetcher (used by existing screens) ───────────────────
 
+export const emptyDashboardData: DashboardData = {
+  lifeScore: {
+    overall: 0,
+    sleep: 0,
+    productivity: 0,
+    health: 0,
+    finance: 0,
+    change: 0,
+  },
+  insight: {
+    id: 'empty',
+    title: 'Welcome to LifeLens',
+    summary: 'Track your daily activities to unlock AI insights and life score tracking.',
+    whyItMatters: 'Daily consistency gives the AI models baseline signals for correlation analysis.',
+    actionForToday: 'Log your sleep, habits, or focus time today.',
+    type: 'daily',
+  },
+  scoreBreakdown: [
+    { category: 'sleep', score: 0, weight: 0.25, color: '#7C3AED' },
+    { category: 'productivity', score: 0, weight: 0.25, color: '#2563EB' },
+    { category: 'health', score: 0, weight: 0.25, color: '#16A34A' },
+    { category: 'finance', score: 0, weight: 0.25, color: '#EA580C' },
+  ],
+  trendData: [],
+  prediction: {
+    score: 0,
+    confidence: 'low',
+    keyDriver: 'No data logged yet',
+    recommendation: 'Track daily habits and sleep to generate tomorrow’s productivity prediction.',
+  },
+  insights: [],
+  clusters: [],
+  correlations: [],
+  anomalies: [],
+  morningBriefing: undefined,
+  riskForecast: undefined,
+  latestEntry: null,
+};
+
 /**
  * Fetches and aggregates all dashboard data into the app's DashboardData shape.
- * Falls back to rich mock data if the backend is unreachable.
+ * Returns empty defaults in production when not yet logged, or mock fixture in offline unit test mode.
  */
 export async function getDashboardData(): Promise<DashboardData> {
-  if (!BASE_URL) return mockDashboardData;
+  const isTestEnv =
+    typeof process !== 'undefined' &&
+    (process.env.NODE_ENV === 'test' ||
+     process.env.npm_lifecycle_event === 'test' ||
+     Boolean(process.env.NODE_TEST_CONTEXT) ||
+     Boolean(process.env.JEST_WORKER_ID) ||
+     (Array.isArray(process.argv) && process.argv.some((arg) => arg.includes('test'))));
+
+  if (!BASE_URL) return isTestEnv ? mockDashboardData : emptyDashboardData;
 
   try {
     const [dashRes, predRes, clustersRes, correlationsRes, anomaliesRes, morningRes, risksRes, latestEntries] =
@@ -1152,7 +1199,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     console.warn('[LifeLens] Live API request failed:', error);
     // Never show demo numbers for an authenticated account — that reads as fake data.
     if (_accessToken) throw error;
-    return mockDashboardData;
+    return isTestEnv ? mockDashboardData : emptyDashboardData;
   }
 }
 

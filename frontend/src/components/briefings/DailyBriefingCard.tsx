@@ -16,7 +16,7 @@ interface DailyBriefingCardProps {
 
 export function DailyBriefingCard({
   briefing,
-  userName = 'Tushar',
+  userName = 'Member',
   onOpenMorningModal,
   onOpenWeeklyModal,
 }: DailyBriefingCardProps) {

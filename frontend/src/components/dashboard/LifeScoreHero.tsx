@@ -1,13 +1,7 @@
 /**
  * LifeScoreHero – LifeLens Dashboard Component
  *
- * Premium large hero card.  The number dominates visually.
- *
- * Layout:
- *   Today's Life Score
- *   84.5             ◯ ring
- *   /100
- *   ↑ 2.3 from yesterday
+ * Large hero card displaying today's real synthesized Life Score.
  */
 
 import React from 'react';
@@ -26,28 +20,36 @@ interface LifeScoreHeroProps {
 }
 
 export default function LifeScoreHero({
-  score  = 84.5,
-  change = 2.3,
+  score = 0,
+  change = 0,
 }: LifeScoreHeroProps) {
-  const safeScore = typeof score === 'number' && !isNaN(score) ? score : 84.5;
-  const safeChange = typeof change === 'number' && !isNaN(change) ? change : 2.3;
+  const hasScore = typeof score === 'number' && !isNaN(score) && score > 0;
+  const safeScore = hasScore ? score : 0;
+  const safeChange = typeof change === 'number' && !isNaN(change) ? change : 0;
   const isPositive = safeChange >= 0;
   const changeSign = isPositive ? '+' : '';
-  const classification = getScoreClassification(safeScore);
+  const classification = getScoreClassification(hasScore ? safeScore : null);
+  const scoreColor = hasScore ? classification.color : colors.textMuted;
 
   return (
     <View style={styles.card}>
       {/* Label and Category badge */}
       <View style={styles.topRow}>
         <Text style={styles.eyebrow}>Today's Life Score</Text>
-        <ScoreBadge score={safeScore} size="sm" />
+        {hasScore ? (
+          <ScoreBadge score={safeScore} size="sm" />
+        ) : (
+          <View style={styles.pendingBadge}>
+            <Text style={styles.pendingBadgeText}>Pending Today's Logs</Text>
+          </View>
+        )}
       </View>
 
       {/* Score row */}
       <View style={styles.scoreRow}>
         <View style={styles.scoreTextBlock}>
-          <Text style={[styles.scoreNumber, { color: classification.color }]}>
-            {safeScore.toFixed(1)}
+          <Text style={[styles.scoreNumber, { color: scoreColor }]}>
+            {hasScore ? safeScore.toFixed(1) : '--'}
           </Text>
           <Text style={styles.scoreUnit}>/100</Text>
         </View>
@@ -56,33 +58,39 @@ export default function LifeScoreHero({
         <CircularProgress
           size={108}
           progress={safeScore}
-          color={classification.color}
+          color={scoreColor}
           strokeWidth={10}
           backgroundColor={colors.surfaceSecondary}
         >
-          <Text style={[styles.ringNumber, { color: classification.color }]}>
-            {Math.round(safeScore)}
+          <Text style={[styles.ringNumber, { color: scoreColor }]}>
+            {hasScore ? Math.round(safeScore) : '--'}
           </Text>
         </CircularProgress>
       </View>
 
       {/* Change indicator */}
       <View style={styles.changeRow}>
-        <View
-          style={[
-            styles.changePill,
-            { backgroundColor: isPositive ? colors.softGreen : '#FDE8E8' },
-          ]}
-        >
-          <Text
+        {hasScore && Math.abs(safeChange) > 0 ? (
+          <View
             style={[
-              styles.changeText,
-              { color: isPositive ? '#15803D' : colors.error },
+              styles.changePill,
+              { backgroundColor: isPositive ? colors.softGreen : '#FDE8E8' },
             ]}
           >
-            {isPositive ? '↑' : '↓'} {changeSign}{safeChange.toFixed(1)} from yesterday
+            <Text
+              style={[
+                styles.changeText,
+                { color: isPositive ? '#15803D' : colors.error },
+              ]}
+            >
+              {isPositive ? '↑' : '↓'} {changeSign}{safeChange.toFixed(1)} from yesterday
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.emptyChangeText}>
+            {hasScore ? 'Baseline maintained vs yesterday' : 'Log sleep, focus, or workouts to calculate today\'s score'}
           </Text>
-        </View>
+        )}
       </View>
     </View>
   );
@@ -103,19 +111,31 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
-    elevation: 3,
+    elevation: 2,
   },
   topRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    justifyContent: 'space-between',
+    marginBottom: spacing.lg,
   },
   eyebrow: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
     color: colors.secondaryText,
-    letterSpacing: 0.3,
+  },
+  pendingBadge: {
+    backgroundColor: colors.surfaceSecondary,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: radius.full,
+  },
+  pendingBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textMuted,
   },
   scoreRow: {
     flexDirection: 'row',
@@ -124,37 +144,41 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   scoreTextBlock: {
-    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'baseline',
   },
   scoreNumber: {
-    fontSize: 64,
+    fontSize: 56,
     fontWeight: '800',
-    color: colors.textPrimary,
-    letterSpacing: -3,
-    lineHeight: 68,
+    letterSpacing: -1.5,
+    lineHeight: 62,
   },
   scoreUnit: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: colors.textMuted,
-    letterSpacing: -0.3,
-    marginTop: spacing.xs,
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.secondaryText,
+    marginLeft: spacing.xs,
   },
   ringNumber: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontSize: 18,
+    fontWeight: '800',
   },
   changeRow: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   changePill: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingVertical: 5,
     borderRadius: radius.full,
   },
   changeText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  emptyChangeText: {
+    fontSize: 12,
+    color: colors.secondaryText,
+    fontStyle: 'italic',
   },
 });

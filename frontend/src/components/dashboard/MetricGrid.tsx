@@ -2,7 +2,7 @@
  * MetricGrid – LifeLens Dashboard Component
  *
  * 2-column grid of compact metric cards (Sleep, Productivity, Health, Finance).
- * Each card shows a large score number and a small circular indicator.
+ * Each card shows a real score number and a circular indicator.
  */
 
 import React from 'react';
@@ -25,18 +25,22 @@ interface MetricGridProps {
   metrics?: Metric[];
 }
 
-const defaultMetrics: Metric[] = [
-  { name: 'Sleep',        score: 88, color: '#7C3AED' },
-  { name: 'Productivity', score: 85, color: '#2563EB' },
-  { name: 'Health',       score: 82, color: '#15803D' },
-  { name: 'Finance',      score: 80, color: '#C05621' },
-];
+export default function MetricGrid({ metrics = [] }: MetricGridProps) {
+  if (metrics.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No domain telemetry recorded yet. Log your first daily entry to generate scores.</Text>
+      </View>
+    );
+  }
 
-export default function MetricGrid({ metrics = defaultMetrics }: MetricGridProps) {
   return (
     <View style={styles.container}>
       {metrics.map((metric) => {
-        const classification = getScoreClassification(metric.score);
+        const hasScore = typeof metric.score === 'number' && metric.score > 0;
+        const classification = getScoreClassification(hasScore ? metric.score : null);
+        const scoreColor = hasScore ? classification.color : colors.textMuted;
+
         return (
           <View key={metric.name} style={styles.card}>
             {/* Name + ring */}
@@ -44,8 +48,8 @@ export default function MetricGrid({ metrics = defaultMetrics }: MetricGridProps
               <Text style={styles.name}>{metric.name}</Text>
               <CircularProgress
                 size={36}
-                progress={metric.score}
-                color={classification.color}
+                progress={hasScore ? metric.score : 0}
+                color={scoreColor}
                 strokeWidth={4}
                 backgroundColor={colors.surfaceSecondary}
               />
@@ -53,13 +57,17 @@ export default function MetricGrid({ metrics = defaultMetrics }: MetricGridProps
 
             {/* Large number */}
             <View style={styles.scoreRow}>
-              <Text style={[styles.score, { color: classification.color }]}>
-                {metric.score}
+              <Text style={[styles.score, { color: scoreColor }]}>
+                {hasScore ? Math.round(metric.score) : '--'}
               </Text>
               <Text style={styles.unit}>/100</Text>
             </View>
 
-            <ScoreBadge score={metric.score} size="xs" style={{ marginTop: 6 }} />
+            {hasScore ? (
+              <ScoreBadge score={metric.score} size="xs" style={{ marginTop: 6 }} />
+            ) : (
+              <Text style={styles.notLoggedText}>Not logged yet</Text>
+            )}
           </View>
         );
       })}
@@ -70,52 +78,68 @@ export default function MetricGrid({ metrics = defaultMetrics }: MetricGridProps
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-    marginHorizontal: spacing.xl,
-    marginBottom: spacing.lg,
+    flexWrap:      'wrap',
+    gap:           spacing.md,
+    marginHorizontal: spacing.lg,
+    marginBottom:  spacing.md,
   },
-  card: {
+  emptyContainer: {
     backgroundColor: colors.surface,
-    borderRadius: radius.xxl,
-    padding: spacing.xl,
-    flex: 1,
-    minWidth: '45%',
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    shadowColor: colors.shadowWarm,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 13,
+    color: colors.secondaryText,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  card: {
+    width:            '47.5%',
+    backgroundColor:  colors.surface,
+    borderRadius:     radius.xl,
+    padding:          spacing.lg,
+    borderWidth:      1,
+    borderColor:      colors.border,
+    shadowColor:      colors.shadowWarm,
+    shadowOffset:     { width: 0, height: 2 },
+    shadowOpacity:    0.04,
+    shadowRadius:     6,
+    elevation:        1,
   },
   topRow: {
-    flexDirection: 'row',
+    flexDirection:  'row',
+    alignItems:     'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom:   spacing.md,
   },
   name: {
-    fontSize: 12,
+    fontSize:   14,
     fontWeight: '700',
-    color: colors.secondaryText,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
+    color:      colors.primaryText,
   },
   scoreRow: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems:    'baseline',
   },
   score: {
-    fontSize: 36,
+    fontSize:   26,
     fontWeight: '800',
-    letterSpacing: -1,
-    lineHeight: 40,
   },
   unit: {
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize:   11,
+    color:      colors.secondaryText,
+    marginLeft: 3,
+    fontWeight: '600',
+  },
+  notLoggedText: {
+    fontSize: 11,
     color: colors.textMuted,
-    marginLeft: 4,
+    marginTop: 6,
   },
 });

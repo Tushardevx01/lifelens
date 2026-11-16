@@ -27,25 +27,29 @@ interface TrendCardProps {
 
 const TIMEFRAMES = ['7D', '14D', '30D', '90D'] as const;
 
-const defaultData: DataPoint[] = [
-  { day: 'W1', value: 78 },
-  { day: 'W2', value: 80 },
-  { day: 'W3', value: 76 },
-  { day: 'W4', value: 82 },
-  { day: 'W5', value: 81 },
-  { day: 'W6', value: 83 },
-  { day: 'W7', value: 84.5 },
-];
-
 export default function TrendCard({
-  data         = defaultData,
-  latestScore  = 84.5,
-  monthChange  = '+3.2%',
+  data         = [],
+  latestScore  = 0,
+  monthChange  = '0%',
 }: TrendCardProps) {
   const [selected, setSelected] = useState<string>('30D');
   const maxVal = 100;
   const chartH = 80;
+  const hasScore = latestScore > 0;
   const latestClass = getScoreClassification(latestScore);
+
+  if (data.length === 0) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.eyebrow}>Score Trajectory</Text>
+            <Text style={styles.emptyText}>No trend telemetry recorded yet.</Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.card}>
@@ -55,16 +59,18 @@ export default function TrendCard({
           <Text style={styles.eyebrow}>Score Trajectory</Text>
           <View style={styles.scoreRow}>
             <Text style={[styles.scoreNumber, { color: latestClass.color }]}>
-              {latestScore.toFixed(1)}
+              {hasScore ? latestScore.toFixed(1) : '—'}
             </Text>
             <Text style={styles.scoreOutOf}>/100</Text>
-            <ScoreBadge score={latestScore} size="sm" />
+            {hasScore && <ScoreBadge score={latestScore} size="sm" />}
           </View>
         </View>
 
-        <View style={styles.changePill}>
-          <Text style={styles.changeText}>{monthChange} this month</Text>
-        </View>
+        {monthChange !== '0%' && (
+          <View style={styles.changePill}>
+            <Text style={styles.changeText}>{monthChange} this month</Text>
+          </View>
+        )}
       </View>
 
       {/* Time filter pills */}
@@ -266,5 +272,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     color: colors.textSecondary,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 19,
+    marginTop: spacing.xs,
   },
 });

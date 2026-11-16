@@ -37,16 +37,6 @@ export default function LoginRoute() {
     }
   };
 
-  const handleDemo = async () => {
-    // Demo login uses seeded credentials from the backend
-    try {
-      await authApi.login('demo@lifelens.ai', 'Demo123456!');
-    } catch {
-      // If backend is offline the app falls back to mock data automatically
-    }
-    router.replace('/(tabs)/home');
-  };
-
   const handleRegister = () => {
     router.push('/signup');
   };
@@ -121,7 +111,6 @@ export default function LoginRoute() {
     <View style={{ flex: 1 }}>
       <LoginScreen
         onLogin={handleLogin}
-        onDemo={handleDemo}
         onRegister={handleRegister}
         onForgotPassword={handleOpenForgotPassword}
       />

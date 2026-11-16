@@ -18,19 +18,20 @@ interface LifeScoreTrendProps {
 
 const timeframes = ['7d', '14d', '30d', '90d'] as const;
 
-const defaultData: DataPoint[] = [
-  { day: 'Mon', life: 78, sleep: 80, productivity: 75 },
-  { day: 'Tue', life: 82, sleep: 85, productivity: 80 },
-  { day: 'Wed', life: 75, sleep: 70, productivity: 78 },
-  { day: 'Thu', life: 88, sleep: 90, productivity: 85 },
-  { day: 'Fri', life: 85, sleep: 82, productivity: 88 },
-  { day: 'Sat', life: 90, sleep: 92, productivity: 86 },
-  { day: 'Sun', life: 84, sleep: 88, productivity: 80 },
-];
-
-export default function LifeScoreTrend({ data = defaultData }: LifeScoreTrendProps) {
+export default function LifeScoreTrend({ data = [] }: LifeScoreTrendProps) {
   const [selected, setSelected] = useState<string>('7d');
   const maxScore = 100;
+
+  if (data.length === 0) {
+    return (
+      <View style={styles.card}>
+        <Text style={styles.title}>30-Day Life Score Trend</Text>
+        <Text style={styles.emptyText}>
+          No trend telemetry recorded yet. Continue logging daily entries to visualize your multidimensional trends.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.card}>
@@ -225,5 +226,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     color: colors.textSecondary,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 19,
+    marginTop: spacing.xs,
   },
 });

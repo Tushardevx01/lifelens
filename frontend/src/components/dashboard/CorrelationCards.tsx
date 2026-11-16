@@ -14,27 +14,19 @@ interface CorrelationCardsProps {
   correlations?: CorrelationItem[];
 }
 
-const defaultCorrelations: CorrelationItem[] = [
-  {
-    score: 0.87,
-    title: 'Sleep & Productivity',
-    description: 'Better sleep leads to 23% higher productivity',
-  },
-  {
-    score: -0.62,
-    title: 'Stress & Exercise',
-    description: 'Regular exercise reduces stress by 34%',
-  },
-  {
-    score: 0.71,
-    title: 'Meditation & Focus',
-    description: 'Meditation improves focus duration by 18%',
-  },
-];
-
 export default function CorrelationCards({
-  correlations = defaultCorrelations,
+  correlations = [],
 }: CorrelationCardsProps) {
+  if (correlations.length === 0) {
+    return (
+      <View style={[styles.card, { marginHorizontal: spacing.lg }]}>
+        <Text style={styles.emptyText}>
+          No correlations discovered yet (minimum 7 days of logs required to calculate multi-factor relationships).
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {correlations.map((item, index) => {
@@ -137,5 +129,10 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     borderRadius: 2,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 19,
   },
 });

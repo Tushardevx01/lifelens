@@ -29,11 +29,11 @@ interface DashboardHeaderProps {
 }
 
 export default function DashboardHeader({
-  name = 'Tushar',
+  name = 'Member',
   onBellPress,
   onAvatarPress,
   onAiPress,
-  hasUnreadAlerts = true,
+  hasUnreadAlerts = false,
 }: DashboardHeaderProps) {
   const today = new Date();
   const dateLabel = today.toLocaleDateString('en-US', {

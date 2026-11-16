@@ -14,27 +14,20 @@ interface CorrelationsProps {
   correlations?: CorrelationItem[];
 }
 
-const defaultCorrelations: CorrelationItem[] = [
-  {
-    score: 0.87,
-    title: 'Sleep & Productivity',
-    description: 'Better sleep leads to 23% higher productivity',
-  },
-  {
-    score: -0.62,
-    title: 'Stress & Exercise',
-    description: 'Regular exercise reduces stress by 34%',
-  },
-  {
-    score: 0.71,
-    title: 'Meditation & Focus',
-    description: 'Meditation improves focus duration by 18%',
-  },
-];
-
 export default function Correlations({
-  correlations = defaultCorrelations,
+  correlations = [],
 }: CorrelationsProps) {
+  if (correlations.length === 0) {
+    return (
+      <View style={styles.card}>
+        <Text style={styles.title}>Key Correlations</Text>
+        <Text style={styles.emptyText}>
+          No correlations discovered yet (minimum 7 days of logs required).
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Key Correlations</Text>
@@ -120,5 +113,10 @@ const styles = StyleSheet.create({
   itemDescription: {
     color: colors.textSecondary,
     fontSize: 12,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 19,
   },
 });

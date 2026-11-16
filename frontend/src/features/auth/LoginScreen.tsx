@@ -23,7 +23,6 @@ type LoginScreenProps = {
 
 export function LoginScreen({
   onLogin,
-  onDemo,
   onRegister,
   onForgotPassword,
 }: LoginScreenProps) {
@@ -75,10 +74,6 @@ export function LoginScreen({
     setLoading(false);
   };
 
-  const handleDemo = () => {
-    onDemo?.();
-  };
-
   return (
     <Screen keyboardAvoid scroll={true} style={{ backgroundColor: colors.background }}>
       <View style={[styles.container, { paddingTop: Math.max(insets.top, spacing.xl) }]}>
@@ -125,27 +120,6 @@ export function LoginScreen({
           <View style={styles.welcomeSection}>
             <Text style={styles.welcomeTitle}>Welcome Back</Text>
             <Text style={styles.welcomeSubtitle}>Sign in to access your daily telemetry and insights</Text>
-          </View>
-
-          {/* Quick Demo Access Button */}
-          <Pressable
-            onPress={handleDemo}
-            style={({ pressed }) => [
-              styles.demoButton,
-              pressed && styles.demoButtonPressed,
-            ]}
-            accessibilityLabel="Explore Live Demo"
-            accessibilityRole="button"
-          >
-            <Ionicons name="sparkles" size={16} color="#66300C" />
-            <Text style={styles.demoText}>Explore Live Demo (Bypass Login)</Text>
-          </Pressable>
-
-          {/* Divider */}
-          <View style={styles.dividerContainer}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR SIGN IN WITH ACCOUNT</Text>
-            <View style={styles.dividerLine} />
           </View>
 
           {/* Email Input */}

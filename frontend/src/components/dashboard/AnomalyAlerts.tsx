@@ -15,25 +15,21 @@ interface AnomalyAlertsProps {
   alerts?: Alert[];
 }
 
-const defaultAlerts: Alert[] = [
-  {
-    date: 'Today',
-    title: 'Unusual sleep pattern detected',
-    description: 'You slept 2 hours less than your average this week',
-  },
-  {
-    date: 'Yesterday',
-    title: 'Spike in screen time',
-    description: 'Screen time increased by 45% compared to your baseline',
-  },
-  {
-    date: 'Aug 24',
-    title: 'Missed workout streak',
-    description: 'Your 5-day workout streak was broken',
-  },
-];
+export default function AnomalyAlerts({ alerts = [] }: AnomalyAlertsProps) {
+  if (alerts.length === 0) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.header}>
+          <Ionicons name="checkmark-circle-outline" size={18} color={colors.green} />
+          <Text style={styles.title}>Anomaly Alerts</Text>
+        </View>
+        <Text style={styles.emptyText}>
+          No anomalies detected. Your behavioral patterns are consistent.
+        </Text>
+      </View>
+    );
+  }
 
-export default function AnomalyAlerts({ alerts = defaultAlerts }: AnomalyAlertsProps) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -113,5 +109,10 @@ const styles = StyleSheet.create({
   alertDescription: {
     color: colors.textSecondary,
     fontSize: 12,
+  },
+  emptyText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    lineHeight: 19,
   },
 });

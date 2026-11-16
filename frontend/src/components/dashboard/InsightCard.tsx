@@ -22,13 +22,30 @@ interface InsightCardProps {
 }
 
 export default function InsightCard({
-  title         = "Your sleep quality directly impacts next-day focus",
-  summary       = "Days with 7+ hours of sleep show 28% higher productivity scores.",
-  whyItMatters  = "Consistent sleep is your strongest predictor of daily performance.",
-  action        = "Aim for a consistent bedtime within a 30-minute window tonight.",
+  title         = "",
+  summary       = "Track more activities to unlock targeted daily insights.",
+  whyItMatters  = "Daily telemetry feeds our machine learning pipelines to detect correlations.",
+  action        = "Log your habits and sleep tonight to receive personalized recommendations.",
   onStartExperiment,
 }: InsightCardProps) {
   const [expanded, setExpanded] = useState(false);
+
+  if (!title) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.badgeRow}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeStar}>✦</Text>
+            <Text style={styles.badgeText}>AI Insight</Text>
+          </View>
+        </View>
+        <Text style={styles.title}>No Insights Available Yet</Text>
+        <Text style={styles.summary}>
+          Track your daily activities and biometrics to unlock personalized AI recommendations.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.card}>

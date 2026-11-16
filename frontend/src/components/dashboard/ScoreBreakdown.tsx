@@ -16,13 +16,6 @@ interface ScoreBreakdownProps {
   categories?: Category[];
 }
 
-const defaultCategories: Category[] = [
-  { name: 'Sleep', score: 82, color: '#7C3AED' },
-  { name: 'Productivity', score: 91, color: '#2563EB' },
-  { name: 'Health', score: 78, color: '#15803D' },
-  { name: 'Finance', score: 85, color: '#C05621' },
-];
-
 function AnimatedBar({ score, color }: { score: number; color: string }) {
   const width = useRef(new Animated.Value(0)).current;
 
@@ -49,8 +42,17 @@ function AnimatedBar({ score, color }: { score: number; color: string }) {
 }
 
 export default function ScoreBreakdown({
-  categories = defaultCategories,
+  categories = [],
 }: ScoreBreakdownProps) {
+  if (categories.length === 0) {
+    return (
+      <View style={styles.card}>
+        <Text style={styles.title}>Score Breakdown</Text>
+        <Text style={styles.emptyText}>No category scores logged yet.</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Score Breakdown</Text>
@@ -164,5 +166,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     minWidth: 38,
     textAlign: 'right',
+  },
+  emptyText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 19,
   },
 });

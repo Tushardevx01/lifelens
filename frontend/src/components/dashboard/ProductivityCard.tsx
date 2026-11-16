@@ -24,11 +24,12 @@ interface ProductivityCardProps {
 }
 
 export default function ProductivityCard({
-  predictedScore = 88,
-  keyDriver      = 'Sleep Quality (8.1 hrs) & Low Evening Screen Time',
-  recommendation = 'Schedule your most challenging task between 9:30 AM and 12:00 PM.',
-  focusWindow    = '9:30 AM – 12:00 PM',
+  predictedScore = 0,
+  keyDriver      = 'Pending historical data',
+  recommendation = 'Keep logging daily telemetry to unlock productivity predictions.',
+  focusWindow    = '—',
 }: ProductivityCardProps) {
+  const hasScore = predictedScore > 0;
   const classification = getScoreClassification(predictedScore);
 
   return (
@@ -41,7 +42,7 @@ export default function ProductivityCard({
             <Text style={styles.badgeText}>Prediction</Text>
           </View>
         </View>
-        <ScoreBadge score={predictedScore} size="sm" />
+        {hasScore && <ScoreBadge score={predictedScore} size="sm" />}
       </View>
 
       {/* Score + ring row */}
@@ -49,7 +50,7 @@ export default function ProductivityCard({
         <View>
           <View style={styles.scoreTextRow}>
             <Text style={[styles.scoreNumber, { color: classification.color }]}>
-              {predictedScore}
+              {hasScore ? predictedScore : '—'}
             </Text>
             <Text style={styles.scoreOutOf}>/100</Text>
           </View>

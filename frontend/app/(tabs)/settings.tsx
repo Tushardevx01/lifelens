@@ -24,7 +24,6 @@ import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
 import { authApi, entriesApi, getDashboardData, offlineSyncService } from '@/src/services/api';
 import type { User, DailyEntry } from '@/src/types/api.types';
-import { seedDemoDataset } from '@/src/features/dashboard/demoData';
 import { ConnectorsHubModal } from '@/src/components/connectors/ConnectorsHubModal';
 import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
 import { getScoreClassification } from '@/src/utils/scoreClassification';
@@ -133,36 +132,6 @@ export default function SettingsScreen() {
     // Do not leave another account's queued mutations on the device.
     await offlineSyncService.clearAll().catch(() => {});
     router.replace('/login');
-  };
-
-  const handleLoadDemoData = async () => {
-    setActionLoading(true);
-    try {
-      let success = 0;
-      let skipped = 0;
-      const res = await seedDemoDataset();
-      success = res.success;
-      skipped = res.skipped;
-      Alert.alert(
-        'Demo Data Loaded',
-        `Successfully loaded ${success} days of habit telemetry (${skipped} duplicates skipped). Your machine learning models, trends, and correlations are now fully unlocked!`,
-        [
-          {
-            text: 'View Analytics',
-            onPress: () => {
-              loadProfileData();
-              router.push('/(tabs)/analytics');
-            },
-          },
-          { text: 'OK', onPress: () => loadProfileData() },
-        ]
-      );
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Demo data import failed.';
-      Alert.alert('Import Failed', msg);
-    } finally {
-      setActionLoading(false);
-    }
   };
 
   const handleClearData = () => {
@@ -376,35 +345,8 @@ export default function SettingsScreen() {
 
         {/* DATA & INTELLIGENCE MANAGEMENT */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>DATA MANAGEMENT & TESTING</Text>
+          <Text style={styles.sectionHeader}>DATA MANAGEMENT</Text>
           <View style={styles.card}>
-            <Pressable
-              style={styles.actionRow}
-              onPress={handleLoadDemoData}
-              disabled={actionLoading}
-              accessibilityRole="button"
-              accessibilityLabel="Load 45-day demo data"
-            >
-              <View style={styles.settingLeft}>
-                <View style={[styles.settingIconWrap, { backgroundColor: '#FFEAE0' }]}>
-                  <Ionicons name="sparkles" size={18} color="#66300C" />
-                </View>
-                <View style={styles.settingTextCol}>
-                  <Text style={styles.settingTitle}>Load 45-Day Demo Data</Text>
-                  <Text style={styles.settingDesc}>
-                    Seed realistic historical telemetry to unlock all ML models
-                  </Text>
-                </View>
-              </View>
-              {actionLoading ? (
-                <ActivityIndicator size="small" color="#66300C" />
-              ) : (
-                <Ionicons name="cloud-download-outline" size={20} color="#66300C" />
-              )}
-            </Pressable>
-
-            <View style={styles.rowDivider} />
-
             <Pressable
               style={styles.actionRow}
               onPress={handleExportCsv}

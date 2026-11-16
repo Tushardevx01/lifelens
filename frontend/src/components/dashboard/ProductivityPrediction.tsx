@@ -14,22 +14,23 @@ interface ProductivityPredictionProps {
 }
 
 export default function ProductivityPrediction({
-  predictedScore = 88,
-  keyDriver = 'Consistent morning routine',
-  recommendation = 'Try starting work 30 minutes earlier tomorrow',
+  predictedScore = 0,
+  keyDriver = 'Pending data',
+  recommendation = 'Continue logging data to unlock predictions',
 }: ProductivityPredictionProps) {
+  const hasScore = predictedScore > 0;
   const classification = getScoreClassification(predictedScore);
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.title}>Productivity Prediction</Text>
-        <ScoreBadge score={predictedScore} size="sm" />
+        {hasScore && <ScoreBadge score={predictedScore} size="sm" />}
       </View>
 
       <View style={styles.scoreRow}>
         <Text style={[styles.score, { color: classification.color }]}>
-          {predictedScore}
+          {hasScore ? predictedScore : '—'}
         </Text>
         <Text style={styles.scoreTotal}>/100</Text>
       </View>

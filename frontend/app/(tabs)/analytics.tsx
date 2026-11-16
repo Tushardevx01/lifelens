@@ -181,7 +181,7 @@ export default function AnalyticsScreen() {
               <Text style={styles.sectionTitle}>Domain Breakdown</Text>
               <Text style={styles.sectionSubtitle}>Core life pillars evaluated</Text>
             </View>
-            <MetricGrid />
+            <MetricGrid metrics={categories} />
 
             {/* Weighted Category Progress */}
             {categories.length > 0 && (

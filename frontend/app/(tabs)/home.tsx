@@ -51,7 +51,7 @@ export default function DashboardScreen() {
   const [weeklyStory, setWeeklyStory] = useState<WeeklyReviewStory | null>(null);
   const [showWeeklyStoryModal, setShowWeeklyStoryModal] = useState(false);
   const [showAlertsModal, setShowAlertsModal] = useState(false);
-  const [unreadAlertCount, setUnreadAlertCount] = useState(2);
+  const [unreadAlertCount, setUnreadAlertCount] = useState(0);
 
   // Telemetry modals
   const [showWorkoutModal, setShowWorkoutModal] = useState(false);
@@ -267,7 +267,7 @@ export default function DashboardScreen() {
       {/* Telemetry Modals (Accessible directly from LifeStatsGrid) */}
       <WorkoutModal
         visible={showWorkoutModal}
-        initialSteps={data?.latestEntry?.steps ?? 8500}
+        initialSteps={data?.latestEntry?.steps ?? 0}
         onClose={() => setShowWorkoutModal(false)}
         onSuccess={() => {
           setShowWorkoutModal(false);

@@ -16,15 +16,18 @@ interface InsightsListProps {
   insights?: InsightItem[];
 }
 
-const defaultInsights: InsightItem[] = [
-  { id: '1', icon: 'moon', title: 'Sleep Pattern', subtitle: 'Your sleep improved by 12%' },
-  { id: '2', icon: 'fitness', title: 'Exercise Goal', subtitle: '3 days streak this week' },
-  { id: '3', icon: 'wallet', title: 'Spending Alert', subtitle: 'Unusual transaction detected' },
-  { id: '4', icon: 'trending-up', title: 'Productivity', subtitle: 'Peak hours: 9-11 AM' },
-  { id: '5', icon: 'heart', title: 'Health Score', subtitle: 'Meditation 5 days in a row' },
-];
+export default function InsightsList({ insights = [] }: InsightsListProps) {
+  if (insights.length === 0) {
+    return (
+      <View style={styles.card}>
+        <Text style={styles.title}>All Insights</Text>
+        <Text style={styles.emptyText}>
+          No insights available yet. Continue logging your daily activities to generate personalized insights.
+        </Text>
+      </View>
+    );
+  }
 
-export default function InsightsList({ insights = defaultInsights }: InsightsListProps) {
   return (
     <View style={styles.card}>
       <Text style={styles.title}>All Insights</Text>
@@ -96,5 +99,10 @@ const styles = StyleSheet.create({
     color: colors.secondaryText,
     fontSize: 12,
     marginTop: 2,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: colors.secondaryText,
+    lineHeight: 19,
   },
 });

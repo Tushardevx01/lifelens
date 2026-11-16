@@ -14,15 +14,20 @@ interface BehaviouralClustersProps {
   clusters?: Cluster[];
 }
 
-const defaultClusters: Cluster[] = [
-  { label: 'High Output & Active', color: '#00D4AA', active: true },
-  { label: 'Rest & Recovery', color: '#4A9EFF', active: false },
-  { label: 'Distracted & Low Energy', color: '#FF9F4A', active: false },
-];
-
 export default function BehaviouralClusters({
-  clusters = defaultClusters,
+  clusters = [],
 }: BehaviouralClustersProps) {
+  if (clusters.length === 0) {
+    return (
+      <View style={styles.card}>
+        <Text style={styles.title}>Behavioural Clusters</Text>
+        <Text style={styles.emptyText}>
+          No clusters detected yet (requires 7+ days of logged data).
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Behavioural Clusters</Text>
@@ -96,5 +101,10 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 13,
     fontWeight: '500',
+  },
+  emptyText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 19,
   },
 });

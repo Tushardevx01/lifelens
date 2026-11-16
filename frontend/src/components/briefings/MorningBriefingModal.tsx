@@ -32,7 +32,7 @@ interface MorningBriefingModalProps {
 export function MorningBriefingModal({
   visible,
   briefing,
-  userName = 'Tushar',
+  userName = 'Member',
   onClose,
 }: MorningBriefingModalProps) {
   const insets = useSafeAreaInsets();
