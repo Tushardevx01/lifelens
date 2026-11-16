@@ -8,6 +8,9 @@ import {
   Pressable,
   StatusBar,
   Share,
+  Alert,
+  Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +18,7 @@ import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
 import { IconButton } from '@/src/components/ui';
+import { briefingsApi } from '@/src/services/api';
 import type { WeeklyReviewStory } from '@/src/types/api.types';
 import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
 import { getScoreClassification } from '@/src/utils/scoreClassification';
@@ -34,6 +38,7 @@ export function WeeklyStoryModal({
 }: WeeklyStoryModalProps) {
   const insets = useSafeAreaInsets();
   const [exportedToast, setExportedToast] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   if (!story) return null;
 
@@ -44,17 +49,66 @@ export function WeeklyStoryModal({
   const delta = story.life_score_trend_delta || 0;
   const deltaSign = delta >= 0 ? '+' : '';
 
-  const handleShare = async () => {
+  const handleExportFormat = async (format: 'markdown' | 'html') => {
     try {
-      await Share.share({
-        title: story.title,
-        message: `${story.title}\nAverage LifeScore: ${avgScore ?? '—'}/100 (${deltaSign}${delta})\n\nTop Wins:\n${story.top_wins.map((w) => `• ${w}`).join('\n')}\n\nTracked with LifeLens AI.`,
-      });
+      setExporting(true);
+      const content =
+        format === 'markdown'
+          ? await briefingsApi.exportMarkdown('WEEKLY_REVIEW')
+          : await briefingsApi.exportHtml('WEEKLY_REVIEW');
+
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        const blob = new Blob([content], {
+          type: format === 'markdown' ? 'text/markdown' : 'text/html',
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `lifelens-weekly-review.${format === 'markdown' ? 'md' : 'html'}`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        await Share.share({
+          title: story.title,
+          message: content,
+        });
+      }
       setExportedToast(true);
       setTimeout(() => setExportedToast(false), 3000);
-    } catch {
-      // Handled gracefully
+      Alert.alert('Report Exported', `Weekly review report exported as ${format.toUpperCase()}.`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Failed to export weekly review.';
+      Alert.alert('Export Error', msg);
+    } finally {
+      setExporting(false);
     }
+  };
+
+  const handleShare = async () => {
+    Alert.alert(
+      'Export or Share Weekly Review',
+      'Download the deep weekly executive analysis or share a quick summary.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Quick Summary',
+          onPress: async () => {
+            try {
+              await Share.share({
+                title: story.title,
+                message: `${story.title}\nAverage LifeScore: ${avgScore ?? '—'}/100 (${deltaSign}${delta})\n\nTop Wins:\n${story.top_wins.map((w) => `• ${w}`).join('\n')}\n\nTracked with LifeLens AI.`,
+              });
+              setExportedToast(true);
+              setTimeout(() => setExportedToast(false), 3000);
+            } catch {
+              // Handled gracefully
+            }
+          },
+        },
+        { text: 'Markdown (.md)', onPress: () => handleExportFormat('markdown') },
+        { text: 'HTML (.html)', onPress: () => handleExportFormat('html') },
+      ]
+    );
   };
 
   return (
@@ -79,10 +133,15 @@ export function WeeklyStoryModal({
             <Pressable
               style={styles.iconBtn}
               onPress={handleShare}
+              disabled={exporting}
               accessibilityRole="button"
               accessibilityLabel="Share or export weekly review"
             >
-              <Ionicons name="share-outline" size={20} color={colors.textSecondary} />
+              {exporting ? (
+                <ActivityIndicator size="small" color={colors.darkButton} />
+              ) : (
+                <Ionicons name="share-outline" size={20} color={colors.textSecondary} />
+              )}
             </Pressable>
             <IconButton
               icon="close"

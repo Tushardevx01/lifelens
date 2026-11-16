@@ -7,6 +7,10 @@ import {
   ScrollView,
   Pressable,
   StatusBar,
+  Alert,
+  Platform,
+  Share,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,6 +18,7 @@ import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
 import { IconButton } from '@/src/components/ui';
+import { briefingsApi } from '@/src/services/api';
 import type { DailyMorningBriefing } from '@/src/types/api.types';
 import { getScoreClassification } from '@/src/utils/scoreClassification';
 
@@ -33,6 +38,52 @@ export function MorningBriefingModal({
   const insets = useSafeAreaInsets();
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isCommitted, setIsCommitted] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async (format: 'markdown' | 'html') => {
+    try {
+      setExporting(true);
+      const content =
+        format === 'markdown'
+          ? await briefingsApi.exportMarkdown('DAILY_MORNING')
+          : await briefingsApi.exportHtml('DAILY_MORNING');
+
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        const blob = new Blob([content], {
+          type: format === 'markdown' ? 'text/markdown' : 'text/html',
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `lifelens-morning-briefing.${format === 'markdown' ? 'md' : 'html'}`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        await Share.share({
+          title: 'LifeLens Morning Briefing',
+          message: content,
+        });
+      }
+      Alert.alert('Briefing Exported', `Executive summary exported as ${format.toUpperCase()}.`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Failed to export briefing.';
+      Alert.alert('Export Error', msg);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handlePromptExport = () => {
+    Alert.alert(
+      'Export Morning Briefing',
+      'Download or share your AI executive synthesis for today.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Markdown (.md)', onPress: () => handleExport('markdown') },
+        { text: 'HTML (.html)', onPress: () => handleExport('html') },
+      ]
+    );
+  };
 
   if (!briefing) return null;
 
@@ -82,6 +133,19 @@ export function MorningBriefingModal({
             <Text style={styles.headerSubtitle}>{formattedDate}</Text>
           </View>
           <View style={styles.headerActions}>
+            <Pressable
+              style={styles.iconBtn}
+              onPress={handlePromptExport}
+              disabled={exporting}
+              accessibilityRole="button"
+              accessibilityLabel="Export morning briefing"
+            >
+              {exporting ? (
+                <ActivityIndicator size="small" color={colors.darkButton} />
+              ) : (
+                <Ionicons name="download-outline" size={20} color={colors.textSecondary} />
+              )}
+            </Pressable>
             <Pressable
               style={[styles.iconBtn, isPlayingAudio && styles.iconBtnActive]}
               onPress={handleToggleAudio}

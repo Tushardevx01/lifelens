@@ -36,6 +36,7 @@ import {
   FocusTimerModal,
   TransactionModal,
   ScreenTimeModal,
+  HabitsMatrix,
 } from '@/src/components/telemetry';
 import type { User, WeeklyReviewStory } from '@/src/types/api.types';
 
@@ -170,6 +171,9 @@ export default function DashboardScreen() {
           onOpenScreenTime={() => setShowScreenTimeModal(true)}
           onOpenNewEntry={() => router.push('/(tabs)/new-entry')}
         />
+
+        {/* Daily Habits & Recurring Rituals */}
+        <HabitsMatrix onStreakUpdate={loadData} />
 
         {/* 7-Day / 30-Day Score Trend Card */}
         {trendPoints.length > 0 && (

@@ -9,6 +9,10 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
+  Modal,
+  TextInput,
+  Platform,
+  TouchableOpacity,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,6 +46,9 @@ export default function SettingsScreen() {
   const [lifeScore, setLifeScore] = useState<number | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [connectorsModalVisible, setConnectorsModalVisible] = useState(false);
+  const [bulkCsvModalVisible, setBulkCsvModalVisible] = useState(false);
+  const [bulkCsvText, setBulkCsvText] = useState('');
+  const [bulkImporting, setBulkImporting] = useState(false);
 
   // Settings state toggles
   const [dailyInsights, setDailyInsights] = useState(true);
@@ -206,6 +213,85 @@ export default function SettingsScreen() {
     );
   };
 
+  const handlePickBulkCsvFile = () => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.csv,text/csv';
+      input.onchange = (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        const file = target?.files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (re) => {
+            const text = re.target?.result as string;
+            if (text) setBulkCsvText(text);
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    } else {
+      Alert.alert(
+        'Upload File',
+        'On mobile, paste your CSV rows into the text box below.'
+      );
+    }
+  };
+
+  const handleExecuteBulkCsv = async () => {
+    if (!bulkCsvText.trim()) {
+      Alert.alert('Empty CSV', 'Please enter or select a CSV file with historical logs.');
+      return;
+    }
+    setBulkImporting(true);
+    try {
+      const blob = new Blob([bulkCsvText], { type: 'text/csv' });
+      const file = new File([blob], 'historical_entries.csv', { type: 'text/csv' });
+      const res = await entriesApi.uploadCsv(file);
+      Alert.alert(
+        'Bulk CSV Imported',
+        `Successfully imported ${res.imported} daily entries. (${res.errors.length} skipped).`
+      );
+      setBulkCsvText('');
+      setBulkCsvModalVisible(false);
+      loadProfileData();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Bulk CSV upload failed.';
+      Alert.alert('Import Failed', msg);
+    } finally {
+      setBulkImporting(false);
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account & Purge Vault',
+      'Are you completely sure? This will PERMANENTLY wipe your account, daily entries, habits, telemetry, and ML models. This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Permanently Delete Account',
+          style: 'destructive',
+          onPress: async () => {
+            setActionLoading(true);
+            try {
+              await authApi.deleteAccount();
+              await offlineSyncService.clearAll().catch(() => {});
+              Alert.alert('Account Deleted', 'Your account and data have been wiped from LifeLens.');
+              router.replace('/login');
+            } catch (err: unknown) {
+              const msg = err instanceof Error ? err.message : 'Failed to delete account.';
+              Alert.alert('Error', msg);
+            } finally {
+              setActionLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // Format member join date
   const memberSince = user?.created_at
     ? new Date(user.created_at).toLocaleDateString('en-US', {
@@ -337,6 +423,28 @@ export default function SettingsScreen() {
                 </View>
               </View>
               <Ionicons name="download-outline" size={18} color={colors.textMuted} />
+            </Pressable>
+
+            <View style={styles.rowDivider} />
+
+            <Pressable
+              style={styles.actionRow}
+              onPress={() => setBulkCsvModalVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Bulk import historical CSV daily logs"
+            >
+              <View style={styles.settingLeft}>
+                <View style={[styles.settingIconWrap, { backgroundColor: '#EFF5FA' }]}>
+                  <Ionicons name="cloud-upload-outline" size={18} color="#2563EB" />
+                </View>
+                <View style={styles.settingTextCol}>
+                  <Text style={styles.settingTitle}>Bulk Import CSV Logs</Text>
+                  <Text style={styles.settingDesc}>
+                    Upload multi-day habit, sleep & spending spreadsheet
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </Pressable>
 
             <View style={styles.rowDivider} />
@@ -523,6 +631,35 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Account Security & GDPR Erasure */}
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>ACCOUNT PRIVACY & SECURITY</Text>
+          <View style={styles.card}>
+            <Pressable
+              style={styles.actionRow}
+              onPress={handleDeleteAccount}
+              disabled={actionLoading}
+              accessibilityRole="button"
+              accessibilityLabel="Permanently delete account and purge all data"
+            >
+              <View style={styles.settingLeft}>
+                <View style={[styles.settingIconWrap, { backgroundColor: '#FDE8E8' }]}>
+                  <Ionicons name="trash" size={18} color={colors.error} />
+                </View>
+                <View style={styles.settingTextCol}>
+                  <Text style={[styles.settingTitle, { color: colors.error, fontWeight: '700' }]}>
+                    Delete Account & Purge Vault
+                  </Text>
+                  <Text style={styles.settingDesc}>
+                    GDPR Article 17 erasure: permanently wipe account and all habit records
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.error} />
+            </Pressable>
+          </View>
+        </View>
+
         {/* Logout Button */}
         <Pressable
           style={styles.logoutButton}
@@ -546,6 +683,71 @@ export default function SettingsScreen() {
         onClose={() => setConnectorsModalVisible(false)}
         onSyncComplete={loadProfileData}
       />
+
+      {/* Bulk CSV Import Modal */}
+      <Modal
+        visible={bulkCsvModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setBulkCsvModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeaderRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Ionicons name="cloud-upload" size={18} color="#2563EB" />
+                <Text style={styles.modalTitle}>Bulk Import Life Logs</Text>
+              </View>
+              <Pressable onPress={() => setBulkCsvModalVisible(false)} hitSlop={8}>
+                <Ionicons name="close" size={20} color={colors.textSecondary} />
+              </Pressable>
+            </View>
+            <Text style={styles.modalSubtitle}>
+              Paste CSV records or pick a file with columns: date, sleep_hours, sleep_quality, screen_time_hours, steps, deep_work_hours, daily_spend
+            </Text>
+
+            <TextInput
+              style={styles.csvInput}
+              multiline
+              placeholder="date,sleep_hours,sleep_quality,screen_time_hours,steps,deep_work_hours,daily_spend&#10;2026-11-10,7.5,4,4.2,9500,5.0,35.00"
+              placeholderTextColor={colors.textMuted}
+              value={bulkCsvText}
+              onChangeText={setBulkCsvText}
+            />
+
+            <View style={styles.modalActionRow}>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TouchableOpacity style={styles.modalBtnSecondary} onPress={handlePickBulkCsvFile}>
+                  <Ionicons name="attach" size={16} color={colors.darkButton} />
+                  <Text style={styles.modalBtnSecondaryText}>File</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.modalBtnSecondary}
+                  onPress={() => {
+                    setBulkCsvText(
+                      `date,sleep_hours,sleep_quality,screen_time_hours,steps,deep_work_hours,daily_spend\n2026-11-10,7.8,4,3.8,9200,5.5,45.00\n2026-11-11,8.0,5,2.9,10500,6.0,22.50\n2026-11-12,6.5,3,5.1,7200,4.0,68.00\n2026-11-13,7.2,4,4.0,8800,5.0,31.00`
+                    );
+                  }}
+                >
+                  <Text style={styles.modalBtnSecondaryText}>Sample</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={styles.modalBtnPrimary}
+                onPress={handleExecuteBulkCsv}
+                disabled={bulkImporting}
+              >
+                {bulkImporting ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.modalBtnPrimaryText}>Upload & Process</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -785,5 +987,80 @@ const styles = StyleSheet.create({
   buildText: {
     fontSize: 11,
     color: colors.textMuted,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(36, 36, 36, 0.45)',
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  modalCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.primaryText,
+  },
+  modalSubtitle: {
+    fontSize: 12,
+    color: colors.secondaryText,
+    lineHeight: 16,
+    marginBottom: spacing.md,
+  },
+  csvInput: {
+    backgroundColor: colors.secondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    color: colors.primaryText,
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    padding: spacing.md,
+    height: 140,
+    textAlignVertical: 'top',
+    marginBottom: spacing.md,
+  },
+  modalActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalBtnSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  modalBtnSecondaryText: {
+    fontSize: 13,
+    color: colors.darkButton,
+    fontWeight: '600',
+  },
+  modalBtnPrimary: {
+    backgroundColor: colors.darkButton,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: radius.full,
+  },
+  modalBtnPrimaryText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

@@ -166,27 +166,70 @@ export function ChatModal({ visible, onClose, initialPrompt }: ChatModalProps) {
     setInputText('');
     setIsLoading(true);
 
+    const assistantMsgId = `stream-${Date.now()}`;
+    const initialAssistantMsg: ChatMessage = {
+      id: assistantMsgId,
+      session_id: currentSessionId || 'pending',
+      sender: 'ASSISTANT',
+      content: '',
+      cards: [],
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, initialAssistantMsg]);
+
     try {
-      const response = await assistantApi.sendMessage(text, currentSessionId);
-      if (response.session_id) {
-        setCurrentSessionId(response.session_id);
-      }
-      setMessages((prev) => {
-        // Replace temp or append
-        return [...prev, response];
-      });
+      await assistantApi.streamMessage(
+        text,
+        currentSessionId,
+        (token) => {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMsgId ? { ...msg, content: msg.content + token } : msg
+            )
+          );
+          flatListRef.current?.scrollToEnd({ animated: true });
+        },
+        (card) => {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMsgId
+                ? { ...msg, cards: [...(msg.cards || []), card] }
+                : msg
+            )
+          );
+        },
+        (info) => {
+          if (info.session_id) {
+            setCurrentSessionId(info.session_id);
+          }
+        }
+      );
       // Refresh sessions in background
       assistantApi.listSessions(1, 10).then(setSessions).catch(() => {});
     } catch {
-      const failedMsg: ChatMessage = {
-        id: `err-${Date.now()}`,
-        session_id: currentSessionId || 'offline',
-        sender: 'ASSISTANT',
-        content:
-          "I couldn't reach LifeLens AI, so no analysis was generated. Check your connection and try again.",
-        created_at: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, failedMsg]);
+      // Fallback to standard non-streaming POST if SSE stream fails or is unsupported
+      try {
+        const response = await assistantApi.sendMessage(text, currentSessionId);
+        if (response.session_id) {
+          setCurrentSessionId(response.session_id);
+        }
+        setMessages((prev) =>
+          prev.map((msg) => (msg.id === assistantMsgId ? response : msg))
+        );
+        assistantApi.listSessions(1, 10).then(setSessions).catch(() => {});
+      } catch {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMsgId
+              ? {
+                  ...msg,
+                  content:
+                    "I couldn't reach LifeLens AI, so no analysis was generated. Check your connection and try again.",
+                }
+              : msg
+          )
+        );
+      }
     } finally {
       setIsLoading(false);
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);

@@ -27,6 +27,8 @@ import {
 import { syncHealthMetrics } from '@/src/services/healthSyncService';
 import { syncDeviceUsage } from '@/src/services/deviceUsageService';
 import { uploadAndIngestStatement } from '@/src/services/statementParserService';
+import { ingestionApi } from '@/src/services/api';
+import { CONFIG } from '@/src/config';
 import type { DataConnector, DataConnectorType } from '@/src/types/api.types';
 
 interface ConnectorsHubModalProps {
@@ -48,6 +50,8 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
   const [statementModalVisible, setStatementModalVisible] = useState(false);
   const [statementCsv, setStatementCsv] = useState('');
   const [importingStatement, setImportingStatement] = useState(false);
+  const [webhookModalVisible, setWebhookModalVisible] = useState(false);
+  const [testingWebhook, setTestingWebhook] = useState(false);
   const [recentLogs, setRecentLogs] = useState<string[]>([]);
 
   useEffect(() => {
@@ -190,6 +194,65 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
     setStatementCsv(sample);
   };
 
+  const handlePickCsvFile = () => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.csv,text/csv';
+      input.onchange = (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        const file = target?.files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (re) => {
+            const text = re.target?.result as string;
+            if (text) setStatementCsv(text);
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    } else {
+      Alert.alert(
+        'Upload Statement File',
+        'On mobile devices, paste bank CSV rows into the box below or copy from your banking app.'
+      );
+    }
+  };
+
+  const handleSendTestWebhook = async () => {
+    setTestingWebhook(true);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const res = await ingestionApi.testWebhook({
+        provider: 'PLAID',
+        event_type: 'TRANSACTIONS_SYNC',
+        transactions: [
+          {
+            amount: 450.0,
+            merchant_name: 'Test Swiggy / Dining',
+            date: today,
+            category: 'Food & Dining',
+          },
+        ],
+      });
+      setRecentLogs((prev) => [
+        `Received webhook event from PLAID (${res.records_ingested} records) • Just now`,
+        ...prev.slice(0, 4),
+      ]);
+      Alert.alert(
+        'Webhook Verified (200 OK)',
+        `FastAPI webhook receiver validated and processed payload. Ingested ${res.records_ingested} records (${res.records_deduplicated} duplicates).`
+      );
+      if (onSyncComplete) onSyncComplete();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Webhook ping failed.';
+      Alert.alert('Webhook Notice', msg);
+    } finally {
+      setTestingWebhook(false);
+    }
+  };
+
   const getConnector = (type: string) => connectors.find((c) => c.connector_type === type);
   const isEnabled = (type: string) => getConnector(type)?.is_enabled ?? true;
 
@@ -200,7 +263,7 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
         <View style={styles.header}>
           <View>
             <Text style={styles.headerTitle}>Data Sources</Text>
-            <Text style={styles.headerSubtitle}>Automated Device Connectors (Phase 5)</Text>
+            <Text style={styles.headerSubtitle}>Automated Device Connectors</Text>
           </View>
           <IconButton
             icon="close"
@@ -317,14 +380,28 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
             </>
           )}
 
-          {/* Quick Statement Upload CTA */}
-          <TouchableOpacity
-            style={styles.uploadStatementCta}
-            onPress={() => setStatementModalVisible(true)}
-          >
-            <Ionicons name="document-text-outline" size={18} color={colors.darkButton} />
-            <Text style={styles.uploadStatementText}>Import Bank Statement (CSV / JSON)</Text>
-          </TouchableOpacity>
+          {/* Quick Statement Upload & Webhooks CTA */}
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
+            <TouchableOpacity
+              style={[styles.uploadStatementCta, { flex: 1, marginTop: 0 }]}
+              onPress={() => setStatementModalVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Import Bank Statement"
+            >
+              <Ionicons name="document-text-outline" size={16} color={colors.darkButton} />
+              <Text style={styles.uploadStatementText}>CSV Statement</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.uploadStatementCta, { flex: 1, marginTop: 0 }]}
+              onPress={() => setWebhookModalVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Configure Fintech Webhooks"
+            >
+              <Ionicons name="globe-outline" size={16} color="#1D4ED8" />
+              <Text style={[styles.uploadStatementText, { color: '#1D4ED8' }]}>Fintech Webhook</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Recent Sync Audit Log */}
           <Text style={[styles.sectionHeader, { marginTop: 24 }]}>RECENT SYNC ACTIVITY</Text>
@@ -383,9 +460,15 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
               />
 
               <View style={styles.modalActionRow}>
-                <TouchableOpacity style={styles.sampleBtn} onPress={loadSampleStatement}>
-                  <Text style={styles.sampleBtnText}>Paste Sample</Text>
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', gap: 6 }}>
+                  <TouchableOpacity style={styles.sampleBtn} onPress={handlePickCsvFile}>
+                    <Ionicons name="attach" size={14} color={colors.darkButton} />
+                    <Text style={styles.sampleBtnText}>File</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.sampleBtn} onPress={loadSampleStatement}>
+                    <Text style={styles.sampleBtnText}>Sample</Text>
+                  </TouchableOpacity>
+                </View>
 
                 <TouchableOpacity
                   style={styles.importBtn}
@@ -396,6 +479,78 @@ export const ConnectorsHubModal: React.FC<ConnectorsHubModalProps> = ({
                     <ActivityIndicator size="small" color="#FFFFFF" />
                   ) : (
                     <Text style={styles.importBtnText}>Parse & Ingest</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Fintech Webhook Setup Modal */}
+        <Modal
+          visible={webhookModalVisible}
+          animationType="fade"
+          transparent
+          onRequestClose={() => setWebhookModalVisible(false)}
+        >
+          <View style={styles.modalBackdrop}>
+            <View style={styles.statementModalCard}>
+              <View style={styles.modalHeaderRow}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="globe" size={18} color="#1D4ED8" />
+                  <Text style={styles.modalTitle}>Fintech Webhook Ingestion</Text>
+                </View>
+                <IconButton
+                  icon="close"
+                  size={18}
+                  onPress={() => setWebhookModalVisible(false)}
+                  accessibilityLabel="Close webhook modal"
+                />
+              </View>
+              <Text style={styles.modalSubtitle}>
+                Stream real-time debit alerts & transactions directly from Plaid, Finvu Account Aggregator, or Zapier:
+              </Text>
+
+              <View style={{ backgroundColor: colors.secondary, padding: 12, borderRadius: radius.md, marginBottom: 12 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: colors.secondaryText, marginBottom: 4 }}>
+                  INCOMING WEBHOOK URL
+                </Text>
+                <Text style={{ fontSize: 12, fontFamily: 'monospace', color: colors.primaryText }} selectable>
+                  {CONFIG.API_URL}/api/ingestion/financial/webhook
+                </Text>
+              </View>
+
+              <View style={{ backgroundColor: colors.secondary, padding: 12, borderRadius: radius.md, marginBottom: 14 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: colors.secondaryText, marginBottom: 4 }}>
+                  REQUIRED HEADERS & HMAC SIGNATURE
+                </Text>
+                <Text style={{ fontSize: 11, color: colors.secondaryText, lineHeight: 16 }}>
+                  • Content-Type: application/json{'\n'}
+                  • X-Webhook-Signature: HMAC-SHA256 (optional in development){'\n'}
+                  • Payload provider: &quot;PLAID&quot; | &quot;FINVU&quot; | &quot;OPEN_BANKING&quot;
+                </Text>
+              </View>
+
+              <View style={styles.modalActionRow}>
+                <TouchableOpacity
+                  style={[styles.sampleBtn, { flexDirection: 'row', alignItems: 'center', gap: 4 }]}
+                  onPress={() => {
+                    Alert.alert('Webhook Docs', `Endpoint accepts standard transaction JSON with merchant_name, amount, date, and category. Transactions automatically merge into daily_spend telemetry.`);
+                  }}
+                >
+                  <Ionicons name="information-circle-outline" size={14} color={colors.darkButton} />
+                  <Text style={styles.sampleBtnText}>Spec</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.importBtn, { backgroundColor: '#1D4ED8' }]}
+                  onPress={handleSendTestWebhook}
+                  disabled={testingWebhook}
+                >
+                  {testingWebhook ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.importBtnText}>⚡ Send Test Ping</Text>
                   )}
                 </TouchableOpacity>
               </View>

@@ -71,6 +71,7 @@ import type {
   ExperimentTemplate,
   ExperimentStatus,
   ChatMessage,
+  ChatCardPayload,
   ChatSession,
   ChatSessionDetail,
   StarterPrompt,
@@ -409,6 +410,12 @@ export const authApi = {
 
   resetPassword: async (token: string, newPassword: string): Promise<{ message: string }> => {
     return apiPost('/api/auth/reset-password', { token, new_password: newPassword });
+  },
+
+  deleteAccount: async (): Promise<void> => {
+    await apiDelete('/api/auth/me');
+    await setAccessToken(null);
+    await setCurrentUserId(null);
   },
 };
 
@@ -784,6 +791,90 @@ export const assistantApi = {
     });
   },
 
+  streamMessage: async (
+    message: string,
+    sessionId: string | null,
+    onToken: (token: string) => void,
+    onCard?: (card: ChatCardPayload) => void,
+    onDone?: (info: { session_id?: string; message_id?: string; suggested_actions?: string[] }) => void
+  ): Promise<void> => {
+    const token = await getAccessToken();
+    const query = new URLSearchParams();
+    query.set('message', message);
+    if (sessionId) query.set('session_id', sessionId);
+
+    const url = `${BASE_URL}/api/assistant/chat/stream?${query.toString()}`;
+    const headers: Record<string, string> = {
+      Accept: 'text/event-stream',
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetchWithTimeout(url, { headers }, 30000);
+    if (!response.ok) {
+      throw new Error(`Streaming failed (${response.status})`);
+    }
+
+    if (response.body && typeof response.body.getReader === 'function') {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        let currentEvent = '';
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            currentEvent = line.replace('event: ', '').trim();
+          } else if (line.startsWith('data: ')) {
+            const dataStr = line.replace('data: ', '').trim();
+            try {
+              const data = JSON.parse(dataStr);
+              if (currentEvent === 'token' && data.token) {
+                onToken(data.token);
+              } else if (currentEvent === 'card' && data.card && onCard) {
+                onCard(data.card);
+              } else if (currentEvent === 'done' && onDone) {
+                onDone(data);
+              }
+            } catch {
+              // Ignore non-json lines
+            }
+          }
+        }
+      }
+    } else {
+      const fullText = await response.text();
+      const lines = fullText.split('\n');
+      let currentEvent = '';
+      for (const line of lines) {
+        if (line.startsWith('event: ')) {
+          currentEvent = line.replace('event: ', '').trim();
+        } else if (line.startsWith('data: ')) {
+          const dataStr = line.replace('data: ', '').trim();
+          try {
+            const data = JSON.parse(dataStr);
+            if (currentEvent === 'token' && data.token) {
+              onToken(data.token);
+            } else if (currentEvent === 'card' && data.card && onCard) {
+              onCard(data.card);
+            } else if (currentEvent === 'done' && onDone) {
+              onDone(data);
+            }
+          } catch {
+            // Ignore non-json
+          }
+        }
+      }
+    }
+  },
+
   listSessions: async (page = 1, pageSize = 20): Promise<ChatSession[]> => {
     const params = new URLSearchParams();
     params.set('page', String(page));
@@ -900,6 +991,10 @@ export const ingestionApi = {
       '/api/ingestion/sync',
       {}
     );
+  },
+
+  testWebhook: async (payload: { provider: string; event_type: string; transactions: unknown[] }): Promise<SyncResultResponse> => {
+    return apiPost<SyncResultResponse>('/api/ingestion/financial/webhook', payload);
   },
 };
 
