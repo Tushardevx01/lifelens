@@ -5,6 +5,9 @@ Uses SQLite in-memory via aiosqlite for fast, isolated, dependency-free tests.
 Each test function gets a fresh database (function scope).
 """
 
+import os
+os.environ["ENVIRONMENT"] = "testing"
+
 import uuid
 import pytest_asyncio
 from datetime import date, timedelta
@@ -14,6 +17,9 @@ from httpx import AsyncClient, ASGITransport
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.pool import StaticPool
+
+from app.config import get_settings
+get_settings.cache_clear()
 
 from app.main import app
 from app.database import Base, get_db

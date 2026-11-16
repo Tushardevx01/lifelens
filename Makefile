@@ -54,21 +54,21 @@ worker:
 
 # Install Expo deps
 install:
-	npm install
+	cd frontend && npm install
 
 # Start Expo dev server (mobile + web)
 expo:
-	npx expo start
+	cd frontend && npx expo start
 
 # Web only
 web:
-	npx expo start --web
+	cd frontend && npx expo start --web
 
 # Android
 android:
-	npx expo run:android
+	cd frontend && npx expo run:android
 
 # iOS
 ios:
-	npx expo run:ios
+	cd frontend && npx expo run:ios
 
