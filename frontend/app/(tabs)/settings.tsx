@@ -25,7 +25,7 @@ import { radius } from '@/src/theme/radius';
 import { authApi, entriesApi, getDashboardData, offlineSyncService } from '@/src/services/api';
 import type { User, DailyEntry } from '@/src/types/api.types';
 import { ConnectorsHubModal } from '@/src/components/connectors/ConnectorsHubModal';
-import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
+import { ScoreBadge, Toggle } from '@/src/components/ui';
 import { getScoreClassification } from '@/src/utils/scoreClassification';
 
 const STORAGE_KEYS = {
@@ -461,13 +461,12 @@ export default function SettingsScreen() {
                   </Text>
                 </View>
               </View>
-              <Switch
+              <Toggle
                 value={dailyInsights}
                 onValueChange={(val) =>
                   saveToggle(STORAGE_KEYS.DAILY_INSIGHTS, val, setDailyInsights)
                 }
-                trackColor={{ false: colors.border, true: colors.darkButton }}
-                thumbColor="#FFFFFF"
+                accessibilityLabel="Daily AI Synthesis toggle"
               />
             </View>
 
@@ -485,13 +484,12 @@ export default function SettingsScreen() {
                   </Text>
                 </View>
               </View>
-              <Switch
+              <Toggle
                 value={anomalyAlerts}
                 onValueChange={(val) =>
                   saveToggle(STORAGE_KEYS.ANOMALY_ALERTS, val, setAnomalyAlerts)
                 }
-                trackColor={{ false: colors.border, true: colors.darkButton }}
-                thumbColor="#FFFFFF"
+                accessibilityLabel="Anomaly Alerts toggle"
               />
             </View>
 
@@ -509,13 +507,12 @@ export default function SettingsScreen() {
                   </Text>
                 </View>
               </View>
-              <Switch
+              <Toggle
                 value={focusTracking}
                 onValueChange={(val) =>
                   saveToggle(STORAGE_KEYS.FOCUS_TRACKING, val, setFocusTracking)
                 }
-                trackColor={{ false: colors.border, true: colors.darkButton }}
-                thumbColor="#FFFFFF"
+                accessibilityLabel="Deep Work Optimization toggle"
               />
             </View>
           </View>
@@ -537,13 +534,12 @@ export default function SettingsScreen() {
                   </Text>
                 </View>
               </View>
-              <Switch
+              <Toggle
                 value={cloudSync}
                 onValueChange={(val) =>
                   saveToggle(STORAGE_KEYS.CLOUD_SYNC, val, setCloudSync)
                 }
-                trackColor={{ false: colors.border, true: colors.darkButton }}
-                thumbColor="#FFFFFF"
+                accessibilityLabel="LifeLens Cloud Sync toggle"
               />
             </View>
 
@@ -561,13 +557,12 @@ export default function SettingsScreen() {
                   </Text>
                 </View>
               </View>
-              <Switch
+              <Toggle
                 value={haptics}
                 onValueChange={(val) =>
                   saveToggle(STORAGE_KEYS.HAPTICS, val, setHaptics)
                 }
-                trackColor={{ false: colors.border, true: colors.darkButton }}
-                thumbColor="#FFFFFF"
+                accessibilityLabel="Haptic Feedback toggle"
               />
             </View>
           </View>

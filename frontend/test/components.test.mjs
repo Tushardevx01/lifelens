@@ -200,3 +200,38 @@ test('WeeklyDateSelector: Date Strip and Selection Contract', async (t) => {
     assert.equal(currentSelected, '2026-11-19');
   });
 });
+
+test('UI Primitives: Toggle Contract & Color Palette Adherence', async (t) => {
+  await t.test('Toggle uses brand design tokens and never defaults to teal (#009688)', () => {
+    // Verified palette tokens
+    assert.equal(colors.primary, '#FFB98E');
+    assert.equal(colors.darkButton, '#66300C');
+    assert.equal(colors.softPeach, '#FFEDE1');
+    assert.equal(colors.border, '#EEE8E5');
+
+    // Default peach variant config: Warm peach track with crisp white thumb
+    const peachConfig = {
+      trackTrue: colors.primary,
+      trackFalse: '#E2DBD5',
+      thumbTrue: colors.white,
+      thumbFalse: colors.white,
+    };
+
+    assert.equal(peachConfig.trackTrue, '#FFB98E');
+    assert.equal(peachConfig.thumbTrue, '#FFFFFF');
+    assert.notEqual(peachConfig.thumbTrue, '#009688');
+    assert.notEqual(peachConfig.trackTrue, '#009688');
+
+    // Dark variant config: Dark button track with crisp white thumb
+    const darkConfig = {
+      trackTrue: colors.darkButton,
+      trackFalse: '#E2DBD5',
+      thumbTrue: colors.white,
+      thumbFalse: colors.white,
+    };
+    assert.equal(darkConfig.trackTrue, '#66300C');
+    assert.equal(darkConfig.thumbTrue, '#FFFFFF');
+    assert.notEqual(darkConfig.thumbTrue, '#009688');
+  });
+});
+

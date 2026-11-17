@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/theme/colors';
 import { radius } from '@/src/theme/radius';
+import { Toggle } from '@/src/components/ui';
 import type { DataConnector } from '@/src/types/api.types';
 
 interface ConnectorCardProps {
@@ -51,11 +52,11 @@ export const ConnectorCard: React.FC<ConnectorCardProps> = ({
           </View>
           <Text style={styles.subtitle}>{subtitle}</Text>
         </View>
-        <Switch
+        <Toggle
           value={isEnabled}
           onValueChange={onToggle}
-          trackColor={{ false: colors.border, true: '#FFEDE1' }}
-          thumbColor={isEnabled ? colors.darkButton : colors.textMuted}
+          variant="peach"
+          accessibilityLabel={`${title} connector toggle`}
         />
       </View>
 

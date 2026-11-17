@@ -4,6 +4,7 @@ export { Button }                          from './Button';
 export { Input }                           from './Input';
 export { AppText, Display, HeroNumber, H1, H2, H3, BodyText, Caption, LabelCaps } from './Text';
 export { Pill }                            from './Pill';
+export { Toggle, ToggleProps }                from './Toggle';
 export { ScoreBadge }                       from './ScoreBadge';
 export { SectionTitle }                   from './SectionTitle';
 export { IconButton }                      from './IconButton';
