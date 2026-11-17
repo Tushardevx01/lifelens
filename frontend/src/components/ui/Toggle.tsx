@@ -75,7 +75,7 @@ export function Toggle({
       thumbColor={value ? config.thumbTrue : config.thumbFalse}
       ios_backgroundColor={config.trackFalse}
       style={style}
-      {...(webProps as any)}
+      {...(webProps as Record<string, unknown>)}
       {...rest}
     />
   );

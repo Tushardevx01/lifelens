@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Switch,
   StatusBar,
   Alert,
   ActivityIndicator,
