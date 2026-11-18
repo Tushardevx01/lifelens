@@ -12,13 +12,11 @@ Verifies:
 """
 
 import pytest
-import json
 from unittest.mock import AsyncMock, patch, MagicMock
 import httpx
 from httpx import AsyncClient
 
-from app.services.gemini_service import GeminiService, gemini_service
-from app.ai.agent import run_conversational_agent, SYSTEM_PROMPT
+from app.services.gemini_service import GeminiService
 
 
 class TestGeminiServiceConfiguration:

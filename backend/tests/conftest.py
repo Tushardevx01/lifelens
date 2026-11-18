@@ -5,6 +5,8 @@ Uses SQLite in-memory via aiosqlite for fast, isolated, dependency-free tests.
 Each test function gets a fresh database (function scope).
 """
 
+# ruff: noqa: E402
+
 import os
 os.environ["ENVIRONMENT"] = "testing"
 
