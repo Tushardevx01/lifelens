@@ -243,11 +243,19 @@ describe('Phase 6.5: API Client Contracts & Dashboard Integration', () => {
   });
 
   it('getDashboardData attaches morningBriefing and riskForecast in standalone mode', async () => {
-    const data = await getDashboardData();
-    assert.ok(data.morningBriefing, 'getDashboardData must provide morningBriefing');
-    assert.ok(data.riskForecast, 'getDashboardData must provide riskForecast');
-    assert.equal(data.morningBriefing.recovery_tier, 'OPTIMAL');
-    assert.equal(data.riskForecast.circadian_drift.status, 'STABLE');
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () => {
+      throw new Error('Backend offline standalone mode');
+    };
+    try {
+      const data = await getDashboardData();
+      assert.ok(data.morningBriefing, 'getDashboardData must provide morningBriefing');
+      assert.ok(data.riskForecast, 'getDashboardData must provide riskForecast');
+      assert.equal(data.morningBriefing.recovery_tier, 'OPTIMAL');
+      assert.equal(data.riskForecast.circadian_drift.status, 'STABLE');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 });
 

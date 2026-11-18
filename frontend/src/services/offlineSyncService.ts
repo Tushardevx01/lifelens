@@ -52,6 +52,8 @@ class OfflineSyncEngine {
   private isReconciling = false;
   private db: unknown = null;
   private isInitialized = false;
+  private connectivityListeners = new Set<(online: boolean) => void>();
+  private webListenersAttached = false;
 
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
@@ -63,19 +65,58 @@ class OfflineSyncEngine {
         this.db = null;
       }
     }
+
+    if (
+      !this.webListenersAttached &&
+      typeof window !== 'undefined' &&
+      typeof window.addEventListener === 'function'
+    ) {
+      if (typeof window.navigator?.onLine === 'boolean') {
+        this.isOnlineState = window.navigator.onLine;
+      }
+      window.addEventListener('online', () => this.setOnlineStatus(true));
+      window.addEventListener('offline', () => this.setOnlineStatus(false));
+      this.webListenersAttached = true;
+    }
+
     this.isInitialized = true;
   }
 
   // --------------------------------------------------------------------------
-  // Network Connectivity State
+  // Network Connectivity State & Listeners
   // --------------------------------------------------------------------------
 
   setOnlineStatus(online: boolean): void {
+    const previous = this.isOnlineState;
     this.isOnlineState = online;
+    if (previous !== online) {
+      this.connectivityListeners.forEach((listener) => {
+        try {
+          listener(online);
+        } catch (err) {
+          console.warn('[OfflineSyncEngine] Error in connectivity listener:', err);
+        }
+      });
+    }
   }
 
   isOnline(): boolean {
     return this.isOnlineState;
+  }
+
+  subscribeToConnectivity(listener: (online: boolean) => void): () => void {
+    this.connectivityListeners.add(listener);
+    return () => {
+      this.connectivityListeners.delete(listener);
+    };
+  }
+
+  onReconnect(callback: () => void): () => void {
+    return this.subscribeToConnectivity((online) => {
+      if (online) {
+        callback();
+      }
+    });
   }
 
   // --------------------------------------------------------------------------
