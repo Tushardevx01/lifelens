@@ -141,11 +141,6 @@ flowchart TD
   - **`build-web` Job:**
     - Exports static web application: `npx expo export --platform web`.
     - Uploads `dist/` web artifact (14 days retention).
-  - **`build-android` Job:**
-    - Triggered on main/master push and manual workflow dispatch.
-    - Sets up Java JDK 17 & Gradle.
-    - Runs `expo prebuild` and `./gradlew assembleRelease`.
-    - Uploads release APK artifact.
 
 ---
 
