@@ -2,7 +2,7 @@
  * LifeLens Conversational Assistant & Voice API Module
  */
 
-import { apiGet, apiPost, apiDelete, apiUpload, fetchWithTimeout, BASE_URL, getAccessToken } from './client';
+import { apiGet, apiPost, apiDelete, apiUpload, fetchWithTimeout, getBaseUrl, getAccessToken } from './client';
 import type {
   ChatMessage,
   ChatCardPayload,
@@ -69,7 +69,7 @@ export const assistantApi = {
     query.set('message', message);
     if (sessionId) query.set('session_id', sessionId);
 
-    const url = `${BASE_URL}/api/assistant/chat/stream?${query.toString()}`;
+    const url = `${getBaseUrl()}/api/assistant/chat/stream?${query.toString()}`;
     const headers: Record<string, string> = {
       Accept: 'text/event-stream',
     };

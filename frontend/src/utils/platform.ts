@@ -10,9 +10,6 @@ export function isNativePlatform(): boolean {
   if (typeof process !== 'undefined' && process.versions?.node && !process.env.EXPO_NATIVE) {
     return false;
   }
-  if (typeof window !== 'undefined') {
-    return false;
-  }
   try {
     // In React Native mobile runtime
     const rn = require('react-native');

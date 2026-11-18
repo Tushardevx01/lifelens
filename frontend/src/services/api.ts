@@ -24,6 +24,8 @@ export {
   USER_ID_STORAGE_KEY,
   BASE_URL,
   REQUEST_TIMEOUT_MS,
+  getBaseUrl,
+  setBaseUrl,
   getCurrentUserId,
   setCurrentUserId,
   setAccessToken,

@@ -30,7 +30,7 @@ export function DailyBriefingCard({
   const tierBg = getCategoryBadgeBg(tierColor, 0.15);
 
   const displayGreeting = briefing.greeting
-    ? briefing.greeting.replace(/Priya/gi, userName)
+    ? briefing.greeting.replace(/Demo|Priya/gi, userName)
     : `Good morning, ${userName}!`;
 
   return (

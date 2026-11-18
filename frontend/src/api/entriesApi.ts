@@ -2,7 +2,7 @@
  * LifeLens Daily Entries API Module
  */
 
-import { apiGet, apiPost, apiPut, apiDelete, fetchWithTimeout, BASE_URL, getAccessToken } from './client';
+import { apiGet, apiPost, apiPut, apiDelete, fetchWithTimeout, getBaseUrl, getAccessToken } from './client';
 import type { DailyEntry, DailyEntryCreate, DailyEntryUpdate, CsvUploadResponse } from '@/src/types/api.types';
 import { queryCache } from '@/src/utils/queryCache';
 
@@ -62,7 +62,7 @@ export const entriesApi = {
     const formData = new FormData();
     formData.append('file', file);
     const token = getAccessToken();
-    const res = await fetchWithTimeout(`${BASE_URL}/api/entries/upload-csv`, {
+    const res = await fetchWithTimeout(`${getBaseUrl()}/api/entries/upload-csv`, {
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,

@@ -15,7 +15,7 @@ import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
 
 type LoginScreenProps = {
-  onLogin?: (email: string, password: string) => void;
+  onLogin?: (email: string, password: string) => Promise<void> | void;
   onDemo?: () => void;
   onRegister?: () => void;
   onForgotPassword?: (email?: string) => void;
@@ -67,11 +67,14 @@ export function LoginScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSignIn = () => {
-    if (!email.trim() || !password.trim()) return;
+  const handleSignIn = async () => {
+    if (!email.trim() || !password.trim() || loading) return;
     setLoading(true);
-    onLogin?.(email.trim(), password);
-    setLoading(false);
+    try {
+      await onLogin?.(email.trim(), password);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

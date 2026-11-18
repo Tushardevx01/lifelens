@@ -2,22 +2,27 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   ActivityIndicator,
   StyleSheet,
   Alert,
   Pressable,
   StatusBar,
   Platform,
+  Modal,
 } from 'react-native';
 import { Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { authApi, checkBackendHealth } from '@/src/services/api';
+import { authApi, checkBackendHealth, setBaseUrl } from '@/src/services/api';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
 import { CONFIG } from '@/src/config';
+
+const STORAGE_CUSTOM_URL_KEY = '@lifelens_custom_api_url';
 
 export default function RootIndex() {
   const insets = useSafeAreaInsets();
@@ -26,24 +31,36 @@ export default function RootIndex() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [retrying, setRetrying] = useState(false);
 
+  // Edit Server URL Modal
+  const [urlModalVisible, setUrlModalVisible] = useState(false);
+  const [urlInput, setUrlInput] = useState(CONFIG.API_URL);
+  const [savingUrl, setSavingUrl] = useState(false);
+
   const verifyAndProceed = useCallback(async (isRetry = false) => {
     if (isRetry) setRetrying(true);
     try {
+      // 1. Check for stored custom URL override
+      const savedCustomUrl = await AsyncStorage.getItem(STORAGE_CUSTOM_URL_KEY);
+      if (savedCustomUrl && savedCustomUrl.trim()) {
+        setBaseUrl(savedCustomUrl.trim());
+      }
+
+      // 2. Test backend health
       const health = await checkBackendHealth();
       if (!health.ok) {
         setBackendOnline(false);
         setChecking(false);
         setRetrying(false);
-        Alert.alert(
-          'Backend Not Running',
-          `Without backend, no entry.\n\nThe LifeLens backend server is not running or unreachable at ${CONFIG.API_URL}.\n\nPlease start the backend server to continue.`,
-          [
-            {
-              text: 'Retry Connection',
-              onPress: () => verifyAndProceed(true),
-            },
-          ]
-        );
+        if (isRetry) {
+          Alert.alert(
+            'Backend Unreachable',
+            `Could not connect to the LifeLens server at:\n\n${CONFIG.API_URL}\n\nMake sure the FastAPI backend is running and that your device is on the same network.`,
+            [
+              { text: 'Edit URL', onPress: () => setUrlModalVisible(true) },
+              { text: 'Retry', onPress: () => verifyAndProceed(true) },
+            ]
+          );
+        }
         return;
       }
 
@@ -52,16 +69,16 @@ export default function RootIndex() {
       setIsAuthenticated(Boolean(user));
     } catch {
       setBackendOnline(false);
-      Alert.alert(
-        'Backend Not Running',
-        `Without backend, no entry.\n\nCould not connect to ${CONFIG.API_URL}. Please start the backend server.`,
-        [
-          {
-            text: 'Retry Connection',
-            onPress: () => verifyAndProceed(true),
-          },
-        ]
-      );
+      if (isRetry) {
+        Alert.alert(
+          'Backend Unreachable',
+          `Could not connect to ${CONFIG.API_URL}. Please verify your connection or update the server URL.`,
+          [
+            { text: 'Edit URL', onPress: () => setUrlModalVisible(true) },
+            { text: 'Retry', onPress: () => verifyAndProceed(true) },
+          ]
+        );
+      }
     } finally {
       setChecking(false);
       setRetrying(false);
@@ -71,6 +88,39 @@ export default function RootIndex() {
   useEffect(() => {
     verifyAndProceed();
   }, [verifyAndProceed]);
+
+  const handleSaveUrl = async () => {
+    const trimmed = urlInput.trim();
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      Alert.alert('Invalid URL', 'Please enter a valid URL starting with http:// or https://');
+      return;
+    }
+    setSavingUrl(true);
+    try {
+      await AsyncStorage.setItem(STORAGE_CUSTOM_URL_KEY, trimmed);
+      setBaseUrl(trimmed);
+      setUrlModalVisible(false);
+      setChecking(true);
+      await verifyAndProceed(false);
+    } catch {
+      Alert.alert('Error', 'Failed to save server URL.');
+    } finally {
+      setSavingUrl(false);
+    }
+  };
+
+  const handleResetUrl = async () => {
+    try {
+      await AsyncStorage.removeItem(STORAGE_CUSTOM_URL_KEY);
+      setUrlInput(CONFIG.API_URL);
+      setBaseUrl(CONFIG.API_URL);
+      setUrlModalVisible(false);
+      setChecking(true);
+      await verifyAndProceed(false);
+    } catch {
+      // ignore
+    }
+  };
 
   if (checking) {
     return (
@@ -103,10 +153,22 @@ export default function RootIndex() {
             LifeLens requires a live connection to your FastAPI backend server to authenticate, fetch personal telemetry, and compute health models. No mock data will be used.
           </Text>
 
-          <View style={styles.urlBox}>
+          {/* Current Target URL with Edit Button */}
+          <Pressable
+            style={styles.urlBox}
+            onPress={() => {
+              setUrlInput(CONFIG.API_URL);
+              setUrlModalVisible(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Edit server URL"
+          >
             <Ionicons name="link-outline" size={14} color={colors.textMuted} />
-            <Text style={styles.urlText}>{CONFIG.API_URL}</Text>
-          </View>
+            <Text style={styles.urlText} numberOfLines={1}>
+              {CONFIG.API_URL}
+            </Text>
+            <Ionicons name="pencil" size={12} color={colors.primaryText} style={{ marginLeft: 4 }} />
+          </Pressable>
 
           <Pressable
             style={({ pressed }) => [
@@ -128,7 +190,76 @@ export default function RootIndex() {
               </View>
             )}
           </Pressable>
+
+          {/* Edit Server URL secondary action */}
+          <Pressable
+            style={styles.changeUrlBtn}
+            onPress={() => {
+              setUrlInput(CONFIG.API_URL);
+              setUrlModalVisible(true);
+            }}
+          >
+            <Text style={styles.changeUrlText}>Configure Server Address</Text>
+          </Pressable>
         </View>
+
+        {/* Modal: Configure Server URL */}
+        <Modal
+          visible={urlModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setUrlModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Ionicons name="server-outline" size={24} color={colors.primaryText} />
+                <Text style={styles.modalTitle}>Backend Server Address</Text>
+              </View>
+
+              <Text style={styles.modalSubtitle}>
+                Enter the IP address of your computer running FastAPI (e.g. over local Wi-Fi or tunnel):
+              </Text>
+
+              <TextInput
+                style={styles.urlTextInput}
+                value={urlInput}
+                onChangeText={setUrlInput}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                placeholder="http://192.168.x.x:8000"
+                placeholderTextColor={colors.textMuted}
+              />
+
+              <View style={styles.modalActions}>
+                <Pressable
+                  style={[styles.modalBtn, styles.cancelBtn]}
+                  onPress={() => setUrlModalVisible(false)}
+                  disabled={savingUrl}
+                >
+                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                </Pressable>
+
+                <Pressable
+                  style={[styles.modalBtn, styles.saveBtn]}
+                  onPress={handleSaveUrl}
+                  disabled={savingUrl}
+                >
+                  {savingUrl ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.saveBtnText}>Save & Connect</Text>
+                  )}
+                </Pressable>
+              </View>
+
+              <Pressable style={styles.resetBtn} onPress={handleResetUrl}>
+                <Text style={styles.resetBtnText}>Reset to Default</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -227,17 +358,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surfaceSecondary,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
     borderRadius: radius.full,
     borderWidth: 1,
     borderColor: colors.border,
     gap: 6,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   urlText: {
     fontSize: 12,
     color: colors.textMuted,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    maxWidth: 240,
   },
   retryBtn: {
     width: '100%',
@@ -246,6 +378,17 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  changeUrlBtn: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+  },
+  changeUrlText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    textDecorationLine: 'underline',
   },
   btnContent: {
     flexDirection: 'row',
@@ -263,5 +406,91 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 18,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: spacing.sm,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.primaryText,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 18,
+    marginBottom: spacing.md,
+  },
+  urlTextInput: {
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: colors.primaryText,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginBottom: spacing.lg,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  modalBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelBtn: {
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cancelBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  saveBtn: {
+    backgroundColor: colors.darkButton,
+  },
+  saveBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  resetBtn: {
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  resetBtnText: {
+    fontSize: 12,
+    color: colors.textMuted,
   },
 });

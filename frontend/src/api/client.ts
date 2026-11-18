@@ -8,7 +8,7 @@
  * - Offline-first mutation queue interceptor for transparent background synchronization
  */
 
-import { CONFIG } from '@/src/config';
+import { CONFIG, setApiUrl as setConfigApiUrl } from '@/src/config';
 import { secureStorage } from '@/src/services/secureStore';
 import { offlineSyncService } from '@/src/services/offlineSyncService';
 import { authEvents } from '@/src/services/authEvents';
@@ -55,6 +55,15 @@ export function getAccessToken(): string | null {
 }
 
 export const REQUEST_TIMEOUT_MS = 8000;
+
+export function getBaseUrl(): string {
+  return CONFIG.API_URL;
+}
+
+export function setBaseUrl(url: string): void {
+  setConfigApiUrl(url);
+}
+
 export const BASE_URL = CONFIG.API_URL;
 
 export async function handleResponseError(method: string, path: string, res: Response): Promise<never> {
@@ -121,7 +130,7 @@ export function authHeaders(extra?: Record<string, string>): Record<string, stri
 }
 
 export async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetchWithTimeout(`${BASE_URL}${path}`, {
+  const res = await fetchWithTimeout(`${getBaseUrl()}${path}`, {
     method: 'GET',
     headers: authHeaders(),
   });
@@ -130,7 +139,7 @@ export async function apiGet<T>(path: string): Promise<T> {
 }
 
 export async function apiGetText(path: string): Promise<string> {
-  const res = await fetchWithTimeout(`${BASE_URL}${path}`, {
+  const res = await fetchWithTimeout(`${getBaseUrl()}${path}`, {
     method: 'GET',
     headers: authHeaders({ Accept: 'text/html, text/plain, */*' }),
   });
@@ -148,7 +157,7 @@ export async function apiPost<T>(path: string, body: unknown, formEncoded = fals
     ? { 'Content-Type': 'application/x-www-form-urlencoded' }
     : authHeaders();
   try {
-    const res = await fetchWithTimeout(`${BASE_URL}${path}`, {
+    const res = await fetchWithTimeout(`${getBaseUrl()}${path}`, {
       method: 'POST',
       headers,
       body: formEncoded ? (body as string) : JSON.stringify(body),
@@ -175,7 +184,7 @@ export async function apiPost<T>(path: string, body: unknown, formEncoded = fals
 export async function apiUpload<T>(path: string, formData: FormData): Promise<T> {
   const headers: Record<string, string> = {};
   if (_accessToken) headers['Authorization'] = `Bearer ${_accessToken}`;
-  const res = await fetchWithTimeout(`${BASE_URL}${path}`, {
+  const res = await fetchWithTimeout(`${getBaseUrl()}${path}`, {
     method: 'POST',
     headers,
     body: formData,
@@ -191,7 +200,7 @@ export async function apiPut<T>(path: string, body: unknown): Promise<T> {
     return { queued: true, mutationId: queued.id, optimistic: true } as unknown as T;
   }
   try {
-    const res = await fetchWithTimeout(`${BASE_URL}${path}`, {
+    const res = await fetchWithTimeout(`${getBaseUrl()}${path}`, {
       method: 'PUT',
       headers: authHeaders(),
       body: JSON.stringify(body),
@@ -221,7 +230,7 @@ export async function apiDelete(path: string): Promise<void> {
     return;
   }
   try {
-    const res = await fetchWithTimeout(`${BASE_URL}${path}`, {
+    const res = await fetchWithTimeout(`${getBaseUrl()}${path}`, {
       method: 'DELETE',
       headers: authHeaders(),
     });

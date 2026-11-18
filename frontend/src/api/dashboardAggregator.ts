@@ -5,7 +5,7 @@
  * in-memory caching to eliminate redundant parallel API calls during tab switching.
  */
 
-import { BASE_URL, authHeaders, fetchWithTimeout, getCurrentUserId, getAccessToken } from './client';
+import { getBaseUrl, authHeaders, fetchWithTimeout, getCurrentUserId, getAccessToken } from './client';
 import { analyticsApi } from './analyticsApi';
 import { briefingsApi } from './briefingsApi';
 import { forecastsApi } from './forecastsApi';
@@ -70,11 +70,12 @@ export async function checkBackendHealth(): Promise<{
   version?: string;
   error?: string;
 }> {
-  if (!BASE_URL) {
+  const baseUrl = getBaseUrl();
+  if (!baseUrl) {
     return { ok: false, error: 'BASE_URL is not defined in configuration.' };
   }
   try {
-    const res = await fetchWithTimeout(`${BASE_URL}/health`, { method: 'GET' }, 3000);
+    const res = await fetchWithTimeout(`${baseUrl}/health`, { method: 'GET' }, 3000);
     if (!res.ok) {
       return { ok: false, error: `Backend responded with HTTP status ${res.status}` };
     }
@@ -110,7 +111,7 @@ export async function getDashboardData(forceRefresh = false): Promise<DashboardD
      Boolean(process.env.JEST_WORKER_ID) ||
      (Array.isArray(process.argv) && process.argv.some((arg) => arg.includes('test'))));
 
-  if (!BASE_URL) return isTestEnv ? mockDashboardData : emptyDashboardData;
+  if (!getBaseUrl()) return isTestEnv ? mockDashboardData : emptyDashboardData;
 
   const fetcher = async (): Promise<DashboardData> => {
     try {
@@ -224,7 +225,8 @@ export async function getDashboardData(forceRefresh = false): Promise<DashboardD
     return fetcher();
   }
 
-  return queryCache.fetch<DashboardData>('dashboard:aggregated', fetcher, {
+  const cacheKey = `dashboard:aggregated:${getCurrentUserId() || 'anon'}`;
+  return queryCache.fetch<DashboardData>(cacheKey, fetcher, {
     staleTime: 60 * 1000, // 60 seconds fresh TTL
     forceRefresh,
   });
@@ -241,7 +243,7 @@ export async function syncOfflineMutations() {
   }
   return offlineSyncService.reconcilePendingMutations(async (mut) => {
     const headers = authHeaders();
-    const res = await fetchWithTimeout(`${BASE_URL}${mut.endpoint}`, {
+    const res = await fetchWithTimeout(`${getBaseUrl()}${mut.endpoint}`, {
       method: mut.method,
       headers,
       body: mut.method === 'DELETE' ? undefined : mut.payloadJson,
@@ -263,7 +265,7 @@ export async function syncOfflineMutations() {
       } catch {
         // Fall through and create with defaults only.
       }
-      const created = await fetchWithTimeout(`${BASE_URL}/api/entries/`, {
+      const created = await fetchWithTimeout(`${getBaseUrl()}/api/entries/`, {
         method: 'POST',
         headers,
         body: JSON.stringify({

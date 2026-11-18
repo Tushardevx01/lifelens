@@ -95,7 +95,7 @@ export function MorningBriefingModal({
   const tierName = classification.name;
 
   const displayGreeting = briefing.greeting
-    ? briefing.greeting.replace(/Priya/gi, userName)
+    ? briefing.greeting.replace(/Demo|Priya/gi, userName)
     : `Good morning, ${userName}!`;
 
   const formattedDate = (() => {
