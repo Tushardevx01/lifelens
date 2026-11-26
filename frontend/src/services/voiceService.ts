@@ -11,13 +11,20 @@
 import { Platform } from 'react-native';
 import * as Speech from 'expo-speech';
 
-// Safely resolve expo-av without crashing in Expo Go SDK 58 where ExponentAV is not compiled
+// Lazy-resolve expo-av ONLY on native so Web never loads deprecated expo-av
+// and Expo Go builds without ExponentAV never throw at startup.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let ExpoAudio: any = null;
-try {
-  ExpoAudio = require('expo-av')?.Audio ?? null;
-} catch {
-  ExpoAudio = null;
+let _cachedExpoAudio: any = undefined;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getExpoAudio(): any {
+  if (Platform.OS === 'web') return null;
+  if (_cachedExpoAudio !== undefined) return _cachedExpoAudio;
+  try {
+    _cachedExpoAudio = require('expo-av')?.Audio ?? null;
+  } catch {
+    _cachedExpoAudio = null;
+  }
+  return _cachedExpoAudio;
 }
 
 export type VoiceState = 'IDLE' | 'RECORDING' | 'PROCESSING' | 'SPEAKING' | 'ERROR';
@@ -52,6 +59,7 @@ class VoiceService {
   private webAudioContext: AudioContext | null = null;
   private webAnalyser: AnalyserNode | null = null;
   private webMediaStream: MediaStream | null = null;
+  private webPlaybackAudio: HTMLAudioElement | null = null;
 
   public setListeners(listeners: VoiceServiceListeners) {
     this.listeners = listeners;
@@ -81,10 +89,11 @@ class VoiceService {
         return true;
       }
 
-      if (!ExpoAudio) {
+      const expoAudio = getExpoAudio();
+      if (!expoAudio) {
         return false;
       }
-      const { status } = await ExpoAudio.requestPermissionsAsync();
+      const { status } = await expoAudio.requestPermissionsAsync();
       return status === 'granted';
     } catch {
       return false;
@@ -128,7 +137,8 @@ class VoiceService {
   }
 
   private async startNativeRecording(): Promise<boolean> {
-    if (!ExpoAudio) {
+    const expoAudio = getExpoAudio();
+    if (!expoAudio) {
       this.listeners.onError?.(
         'Voice recording on mobile requires a development build (expo-audio). Please use text input in Expo Go.'
       );
@@ -136,15 +146,15 @@ class VoiceService {
       return false;
     }
 
-    await ExpoAudio.setAudioModeAsync({
+    await expoAudio.setAudioModeAsync({
       allowsRecordingIOS: true,
       playsInSilentModeIOS: true,
       staysActiveInBackground: false,
     });
 
-    const recording = new ExpoAudio.Recording();
+    const recording = new expoAudio.Recording();
     await recording.prepareToRecordAsync({
-      ...ExpoAudio.RecordingOptionsPresets.HIGH_QUALITY,
+      ...expoAudio.RecordingOptionsPresets.HIGH_QUALITY,
       isMeteringEnabled: true,
     });
 
@@ -262,9 +272,10 @@ class VoiceService {
     this.recording = null;
 
     // Reset audio mode
-    if (ExpoAudio) {
+    const expoAudio = getExpoAudio();
+    if (expoAudio) {
       try {
-        await ExpoAudio.setAudioModeAsync({
+        await expoAudio.setAudioModeAsync({
           allowsRecordingIOS: false,
           playsInSilentModeIOS: true,
         });
@@ -420,15 +431,39 @@ class VoiceService {
     await this.stopSpeaking();
 
     this.setState('SPEAKING');
+    const soundUri = `data:${mimeType};base64,${base64Data}`;
 
-    if (!ExpoAudio) {
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && typeof window.Audio === 'function') {
+      try {
+        const audio = new window.Audio(soundUri);
+        this.webPlaybackAudio = audio;
+        audio.onended = () => {
+          this.webPlaybackAudio = null;
+          if (this.currentState === 'SPEAKING') {
+            this.setState('IDLE');
+          }
+        };
+        audio.onerror = () => {
+          this.webPlaybackAudio = null;
+          this.setState('IDLE');
+        };
+        await audio.play();
+        return;
+      } catch {
+        this.webPlaybackAudio = null;
+        this.setState('IDLE');
+        return;
+      }
+    }
+
+    const expoAudio = getExpoAudio();
+    if (!expoAudio) {
       this.setState('IDLE');
       return;
     }
 
     try {
-      const soundUri = `data:${mimeType};base64,${base64Data}`;
-      const { sound } = await ExpoAudio.Sound.createAsync(
+      const { sound } = await expoAudio.Sound.createAsync(
         { uri: soundUri },
         { shouldPlay: true }
       );
@@ -446,6 +481,15 @@ class VoiceService {
   }
 
   public async stopPlayback(): Promise<void> {
+    if (this.webPlaybackAudio) {
+      try {
+        this.webPlaybackAudio.pause();
+        this.webPlaybackAudio.currentTime = 0;
+      } catch {
+        // ignore
+      }
+      this.webPlaybackAudio = null;
+    }
     if (this.playbackSound) {
       try {
         await this.playbackSound.stopAsync();

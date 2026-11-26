@@ -12,6 +12,7 @@
 import React from 'react';
 import {
   Animated,
+  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -99,9 +100,10 @@ function TabBarButton({ route, isFocused, onPress }: TabBarButtonProps) {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const handlePress = () => {
+    const useNativeDriver = Platform.OS !== 'web';
     Animated.sequence([
-      Animated.timing(scaleAnim, { toValue: 0.92, duration: 80, useNativeDriver: true }),
-      Animated.timing(scaleAnim, { toValue: 1, duration: 80, useNativeDriver: true }),
+      Animated.timing(scaleAnim, { toValue: 0.92, duration: 80, useNativeDriver }),
+      Animated.timing(scaleAnim, { toValue: 1, duration: 80, useNativeDriver }),
     ]).start();
     onPress();
   };

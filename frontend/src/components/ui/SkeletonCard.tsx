@@ -6,11 +6,13 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { Animated, DimensionValue, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Animated, DimensionValue, Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 import { colors }  from '@/src/theme/colors';
 import { radius }  from '@/src/theme/radius';
 import { spacing } from '@/src/theme/spacing';
+
+const USE_NATIVE_DRIVER = Platform.OS !== 'web';
 
 type SkeletonLineProps = {
   width?: DimensionValue;
@@ -24,8 +26,8 @@ export function SkeletonLine({ width = '100%', height = 14, style }: SkeletonLin
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 0.8, duration: 900, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0.4, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0.8, duration: 900, useNativeDriver: USE_NATIVE_DRIVER }),
+        Animated.timing(pulse, { toValue: 0.4, duration: 900, useNativeDriver: USE_NATIVE_DRIVER }),
       ])
     ).start();
     // eslint-disable-next-line react-hooks/exhaustive-deps

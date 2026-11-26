@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+
+const USE_NATIVE_DRIVER = Platform.OS !== 'web';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -46,24 +49,24 @@ export function SignUpScreen({
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 500,
-        useNativeDriver: true,
+        useNativeDriver: USE_NATIVE_DRIVER,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 500,
-        useNativeDriver: true,
+        useNativeDriver: USE_NATIVE_DRIVER,
       }),
       Animated.timing(cardFadeAnim, {
         toValue: 1,
         duration: 500,
         delay: 150,
-        useNativeDriver: true,
+        useNativeDriver: USE_NATIVE_DRIVER,
       }),
       Animated.timing(cardSlideAnim, {
         toValue: 0,
         duration: 500,
         delay: 150,
-        useNativeDriver: true,
+        useNativeDriver: USE_NATIVE_DRIVER,
       }),
     ]).start();
     // eslint-disable-next-line react-hooks/exhaustive-deps

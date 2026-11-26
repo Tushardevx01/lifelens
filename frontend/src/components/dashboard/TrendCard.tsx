@@ -5,14 +5,19 @@
  * and score classification health indicators.
  */
 
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 
 import { colors }  from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius }  from '@/src/theme/radius';
 import { ScoreBadge } from '@/src/components/ui/ScoreBadge';
 import { getScoreClassification, SCORE_CATEGORIES } from '@/src/utils/scoreClassification';
+import {
+  formatAxisDate,
+  getMilestoneLabels,
+  sliceTrendData,
+} from '@/src/utils/trendChart';
 
 interface DataPoint {
   day:   string;
@@ -26,17 +31,31 @@ interface TrendCardProps {
 }
 
 const TIMEFRAMES = ['7D', '14D', '30D', '90D'] as const;
+type Timeframe = (typeof TIMEFRAMES)[number];
 
 export default function TrendCard({
   data         = [],
   latestScore  = 0,
   monthChange  = '0%',
 }: TrendCardProps) {
-  const [selected, setSelected] = useState<string>('30D');
+  const [selected, setSelected] = useState<Timeframe>('30D');
   const maxVal = 100;
-  const chartH = 80;
-  const hasScore = latestScore > 0;
-  const latestClass = getScoreClassification(latestScore);
+  const chartH = 88;
+
+  const visibleData = useMemo(() => sliceTrendData(data, selected), [data, selected]);
+
+  const displayScore =
+    latestScore > 0
+      ? latestScore
+      : (visibleData.length > 0 ? visibleData[visibleData.length - 1].value : 0);
+  const hasScore = displayScore > 0;
+  const latestClass = getScoreClassification(displayScore);
+  const showAllBarLabels = visibleData.length <= 7;
+
+  const milestoneLabels = useMemo(
+    () => getMilestoneLabels(visibleData.map((pt) => pt.day)),
+    [visibleData]
+  );
 
   if (data.length === 0) {
     return (
@@ -59,10 +78,10 @@ export default function TrendCard({
           <Text style={styles.eyebrow}>Score Trajectory</Text>
           <View style={styles.scoreRow}>
             <Text style={[styles.scoreNumber, { color: latestClass.color }]}>
-              {hasScore ? latestScore.toFixed(1) : '—'}
+              {hasScore ? displayScore.toFixed(1) : '—'}
             </Text>
             <Text style={styles.scoreOutOf}>/100</Text>
-            {hasScore && <ScoreBadge score={latestScore} size="sm" />}
+            {hasScore && <ScoreBadge score={displayScore} size="sm" />}
           </View>
         </View>
 
@@ -92,29 +111,64 @@ export default function TrendCard({
         ))}
       </View>
 
-      {/* Bar chart with category color-coded bars */}
-      <View style={[styles.chart, { height: chartH + 24 }]}>
-        {data.map((point, i) => {
-          const barH = (point.value / maxVal) * chartH;
-          const pointClass = getScoreClassification(point.value);
+      {/* Bar plot box — strictly bounded height so bars never bleed into header or axis */}
+      <View
+        style={[
+          styles.barsArea,
+          {
+            height: chartH,
+            gap: visibleData.length > 14 ? 2 : spacing.xs,
+          },
+        ]}
+      >
+        {visibleData.map((point, i) => {
+          const clamped = Math.max(0, Math.min(maxVal, point.value || 0));
+          const barH = Math.max(4, (clamped / maxVal) * chartH);
+          const pointClass = getScoreClassification(clamped);
           return (
-            <View key={i} style={styles.barGroup}>
-              <View style={[styles.barTrack, { height: chartH }]}>
-                <View
-                  style={[
-                    styles.bar,
-                    {
-                      height: barH,
-                      backgroundColor: pointClass.color,
-                    },
-                  ]}
-                />
-              </View>
-              <Text style={styles.dayLabel}>{point.day}</Text>
+            <View key={`${point.day}-${i}`} style={[styles.barTrack, { height: chartH }]}>
+              <View
+                style={[
+                  styles.bar,
+                  {
+                    height: barH,
+                    backgroundColor: pointClass.color,
+                  },
+                ]}
+              />
             </View>
           );
         })}
       </View>
+
+      {/* X-axis labels cleanly placed below baseline */}
+      {showAllBarLabels ? (
+        <View
+          style={[
+            styles.xAxisPerBarRow,
+            { gap: visibleData.length > 14 ? 2 : spacing.xs },
+          ]}
+        >
+          {visibleData.map((point, i) => (
+            <Text
+              key={`lbl-${point.day}-${i}`}
+              style={styles.dayLabel}
+              numberOfLines={1}
+              ellipsizeMode="clip"
+            >
+              {formatAxisDate(point.day, true)}
+            </Text>
+          ))}
+        </View>
+      ) : (
+        <View style={styles.xAxisMilestoneRow}>
+          {milestoneLabels.map((lbl, idx) => (
+            <Text key={`ms-${idx}`} style={styles.milestoneLabel} numberOfLines={1}>
+              {lbl}
+            </Text>
+          ))}
+        </View>
+      )}
 
       {/* Color-Coded Health Category Legend */}
       <View style={styles.legendRow}>
@@ -148,6 +202,7 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     borderWidth: 1,
     borderColor: colors.border,
+    overflow: 'hidden',
     shadowColor: colors.shadowWarm,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.05,
@@ -201,14 +256,21 @@ const styles = StyleSheet.create({
   },
   timeRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.xs,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   timePill: {
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: radius.full,
     backgroundColor: colors.surfaceSoft,
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        userSelect: 'none',
+      },
+    }),
   },
   timePillActive: {
     backgroundColor: colors.darkButton,
@@ -222,29 +284,46 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '700',
   },
-  chart: {
+  barsArea: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: spacing.xs,
-  },
-  barGroup: {
-    flex: 1,
-    alignItems: 'center',
-    gap: spacing.xs,
+    overflow: 'hidden',
+    paddingBottom: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
   },
   barTrack: {
+    flex: 1,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    width: '100%',
   },
   bar: {
-    width: '75%',
+    width: '78%',
     borderTopLeftRadius: radius.sm,
     borderTopRightRadius: radius.sm,
     minHeight: 4,
   },
+  xAxisPerBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.xs,
+  },
   dayLabel: {
+    flex: 1,
     fontSize: 10,
+    color: colors.textMuted,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  xAxisMilestoneRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing.xs,
+    paddingHorizontal: 2,
+  },
+  milestoneLabel: {
+    fontSize: 11,
     color: colors.textMuted,
     fontWeight: '600',
   },
@@ -252,7 +331,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.borderLight,

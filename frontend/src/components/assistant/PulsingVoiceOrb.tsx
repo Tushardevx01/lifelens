@@ -5,10 +5,13 @@ import {
   StyleSheet,
   Animated,
   Easing,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/src/theme/colors';
 import type { VoiceState } from '@/src/services/voiceService';
+
+const USE_NATIVE_DRIVER = Platform.OS !== 'web';
 
 interface PulsingVoiceOrbProps {
   state: VoiceState;
@@ -39,13 +42,13 @@ export function PulsingVoiceOrb({
             toValue: state === 'SPEAKING' ? 1.15 : 1.06,
             duration: state === 'SPEAKING' ? 600 : 1800,
             easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
+            useNativeDriver: USE_NATIVE_DRIVER,
           }),
           Animated.timing(pulseAnim, {
             toValue: 1,
             duration: state === 'SPEAKING' ? 600 : 1800,
             easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
+            useNativeDriver: USE_NATIVE_DRIVER,
           }),
         ])
       );
@@ -56,7 +59,7 @@ export function PulsingVoiceOrb({
         toValue: 1 + volume * 0.35,
         friction: 4,
         tension: 100,
-        useNativeDriver: true,
+        useNativeDriver: USE_NATIVE_DRIVER,
       }).start();
     } else if (state === 'PROCESSING') {
       // Fast rotation
@@ -65,7 +68,7 @@ export function PulsingVoiceOrb({
           toValue: 1,
           duration: 2000,
           easing: Easing.linear,
-          useNativeDriver: true,
+          useNativeDriver: USE_NATIVE_DRIVER,
         })
       );
       loop.start();
@@ -85,12 +88,12 @@ export function PulsingVoiceOrb({
             toValue: 1.45,
             duration: 1200,
             easing: Easing.out(Easing.ease),
-            useNativeDriver: true,
+            useNativeDriver: USE_NATIVE_DRIVER,
           }),
           Animated.timing(rippleAnim, {
             toValue: 1,
             duration: 0,
-            useNativeDriver: true,
+            useNativeDriver: USE_NATIVE_DRIVER,
           }),
         ])
       );

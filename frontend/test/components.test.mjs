@@ -7,6 +7,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 import { colors } from '../src/theme/colors.ts';
 import { radius } from '../src/theme/radius.ts';
@@ -16,6 +17,11 @@ import {
   WEIGHTS,
   MOOD_MODIFIER_MAX,
 } from '../src/utils/lifeScore.ts';
+import {
+  formatAxisDate,
+  getMilestoneLabels,
+  sliceTrendData,
+} from '../src/utils/trendChart.ts';
 
 test('UI Theme Tokens Integrity', async (t) => {
   await t.test('Core color palette tokens are defined with valid hex codes', () => {
@@ -198,6 +204,61 @@ test('WeeklyDateSelector: Date Strip and Selection Contract', async (t) => {
 
     onSelectDate('2026-11-19');
     assert.equal(currentSelected, '2026-11-19');
+  });
+});
+
+test('TrendCard & LifeScoreTrend: Axis Formatting, Slicing & Platform Safety', async (t) => {
+  await t.test('Formats ISO YYYY-MM-DD and MM-DD strings compactly without vertical wrapping', () => {
+    assert.equal(formatAxisDate('2026-10-11', true), '10/11');
+    assert.equal(formatAxisDate('2026-10-11', false), 'Oct 11');
+    assert.equal(formatAxisDate('11-05', true), '11/5');
+    assert.equal(formatAxisDate('11-05', false), 'Nov 5');
+    assert.equal(formatAxisDate('D1', true), 'D1');
+  });
+
+  await t.test('Slices trend data accurately for 7D, 14D, 30D, and 90D timeframes', () => {
+    const sample30 = Array.from({ length: 30 }, (_, idx) => ({
+      day: `2026-10-${String(idx + 1).padStart(2, '0')}`,
+      value: 50 + idx,
+    }));
+
+    assert.equal(sliceTrendData(sample30, '7D').length, 7);
+    assert.equal(sliceTrendData(sample30, '7D')[0].day, '2026-10-24');
+    assert.equal(sliceTrendData(sample30, '14D').length, 14);
+    assert.equal(sliceTrendData(sample30, '30D').length, 30);
+    assert.equal(sliceTrendData(sample30, '90D').length, 30);
+    assert.deepEqual(
+      getMilestoneLabels(sample30.map((d) => d.day)),
+      ['Oct 1', 'Oct 15', 'Oct 30']
+    );
+  });
+
+  await t.test('voiceService guards expo-av from executing on Web runtime', () => {
+    const voiceSource = readFileSync(
+      new globalThis.URL('../src/services/voiceService.ts', import.meta.url),
+      'utf8'
+    );
+    assert.match(voiceSource, /if \(Platform\.OS === 'web'\) return null;/);
+    assert.ok(!/let ExpoAudio.*=\s*require\(['"]expo-av['"]\)/.test(voiceSource));
+  });
+
+  await t.test('Animated calls never hardcode useNativeDriver: true on Web', () => {
+    const animatedFiles = [
+      '../src/components/ui/SkeletonCard.tsx',
+      '../src/components/dashboard/DashboardSkeleton.tsx',
+      '../src/components/navigation/FloatingTabBar.tsx',
+      '../src/components/assistant/PulsingVoiceOrb.tsx',
+      '../src/features/auth/LoginScreen.tsx',
+      '../src/features/auth/SignUpScreen.tsx',
+    ];
+    for (const relPath of animatedFiles) {
+      const src = readFileSync(new globalThis.URL(relPath, import.meta.url), 'utf8');
+      assert.ok(
+        !src.includes('useNativeDriver: true'),
+        `${relPath} must gate useNativeDriver via Platform.OS !== 'web'`
+      );
+      assert.match(src, /Platform\.OS !== 'web'/);
+    }
   });
 });
 

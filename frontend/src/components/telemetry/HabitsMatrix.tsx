@@ -117,7 +117,7 @@ export function HabitsMatrix({ onStreakUpdate }: HabitsMatrixProps) {
     <View style={styles.container}>
       {/* Card Header */}
       <View style={styles.headerRow}>
-        <View>
+        <View style={{ flex: 1, paddingRight: spacing.sm }}>
           <View style={styles.titleRow}>
             <Ionicons name="checkbox-outline" size={18} color={colors.primary} />
             <Text style={styles.cardTitle}>Daily Habits</Text>

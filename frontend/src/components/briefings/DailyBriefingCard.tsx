@@ -41,8 +41,8 @@ export function DailyBriefingCard({
           <View style={styles.sunBadge}>
             <Ionicons name="sunny" size={17} color="#D97706" />
           </View>
-          <View>
-            <Text style={styles.greetingText}>{displayGreeting}</Text>
+          <View style={{ flexShrink: 1 }}>
+            <Text style={styles.greetingText} numberOfLines={1}>{displayGreeting}</Text>
             <Text style={styles.dateText}>{briefing.title.replace('Morning Briefing — ', '')}</Text>
           </View>
         </View>
@@ -127,9 +127,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   greetingGroup: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+    paddingRight: spacing.sm,
   },
   sunBadge: {
     width: 36,

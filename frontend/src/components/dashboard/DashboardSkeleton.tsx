@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, ScrollView, ViewStyle } from 'react-native';
+import { View, StyleSheet, Animated, Platform, ScrollView, ViewStyle } from 'react-native';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
+
+const USE_NATIVE_DRIVER = Platform.OS !== 'web';
 
 function SkeletonBlock({ style }: { style?: ViewStyle | ViewStyle[] }) {
   const opacity = useRef(new Animated.Value(0.3)).current;
@@ -13,12 +15,12 @@ function SkeletonBlock({ style }: { style?: ViewStyle | ViewStyle[] }) {
         Animated.timing(opacity, {
           toValue: 0.7,
           duration: 800,
-          useNativeDriver: true,
+          useNativeDriver: USE_NATIVE_DRIVER,
         }),
         Animated.timing(opacity, {
           toValue: 0.3,
           duration: 800,
-          useNativeDriver: true,
+          useNativeDriver: USE_NATIVE_DRIVER,
         }),
       ])
     );

@@ -104,13 +104,13 @@ export default function AnalyticsScreen() {
         }));
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" />
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={{
-          paddingTop: Math.max(insets.top, 20),
+          paddingTop: spacing.sm,
           paddingBottom: 130,
         }}
         showsVerticalScrollIndicator={false}

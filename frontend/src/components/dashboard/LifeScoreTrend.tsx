@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
 import { radius } from '@/src/theme/radius';
 import { getScoreClassification, SCORE_CATEGORIES } from '@/src/utils/scoreClassification';
+import { formatAxisDate, sliceTrendData } from '@/src/utils/trendChart';
 
 interface DataPoint {
   day: string;
@@ -17,10 +18,14 @@ interface LifeScoreTrendProps {
 }
 
 const timeframes = ['7d', '14d', '30d', '90d'] as const;
+type Timeframe = (typeof timeframes)[number];
 
 export default function LifeScoreTrend({ data = [] }: LifeScoreTrendProps) {
-  const [selected, setSelected] = useState<string>('7d');
+  const [selected, setSelected] = useState<Timeframe>('7d');
   const maxScore = 100;
+  const barAreaH = 120;
+
+  const visibleData = useMemo(() => sliceTrendData(data, selected), [data, selected]);
 
   if (data.length === 0) {
     return (
@@ -33,9 +38,40 @@ export default function LifeScoreTrend({ data = [] }: LifeScoreTrendProps) {
     );
   }
 
+  const useHorizontalScroll = visibleData.length > 7;
+
+  const barsContent = visibleData.map((point, i) => {
+    const lifeHeight = Math.max(4, (Math.max(0, Math.min(maxScore, point.life || 0)) / maxScore) * barAreaH);
+    const sleepHeight = Math.max(4, (Math.max(0, Math.min(maxScore, point.sleep || 0)) / maxScore) * barAreaH);
+    const prodHeight = Math.max(4, (Math.max(0, Math.min(maxScore, point.productivity || 0)) / maxScore) * barAreaH);
+
+    const lifeColor = getScoreClassification(point.life).color;
+    const sleepColor = getScoreClassification(point.sleep).color;
+    const prodColor = getScoreClassification(point.productivity).color;
+
+    return (
+      <View
+        key={`${point.day}-${i}`}
+        style={[
+          styles.barGroup,
+          useHorizontalScroll ? styles.barGroupScroll : styles.barGroupFlex,
+        ]}
+      >
+        <View style={[styles.bars, { height: barAreaH }]}>
+          <View style={[styles.bar, { height: lifeHeight, backgroundColor: lifeColor }]} />
+          <View style={[styles.bar, { height: sleepHeight, backgroundColor: sleepColor }]} />
+          <View style={[styles.bar, { height: prodHeight, backgroundColor: prodColor }]} />
+        </View>
+        <Text style={styles.dayLabel} numberOfLines={1}>
+          {formatAxisDate(point.day, true)}
+        </Text>
+      </View>
+    );
+  });
+
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>30-Day Life Score Trend</Text>
+      <Text style={styles.title}>Life Score Trend</Text>
 
       <View style={styles.timeframeRow}>
         {timeframes.map((tf) => (
@@ -43,6 +79,8 @@ export default function LifeScoreTrend({ data = [] }: LifeScoreTrendProps) {
             key={tf}
             style={[styles.timeframeBtn, selected === tf && styles.timeframeActive]}
             onPress={() => setSelected(tf)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: selected === tf }}
           >
             <Text
               style={[styles.timeframeText, selected === tf && styles.timeframeTextActive]}
@@ -53,28 +91,18 @@ export default function LifeScoreTrend({ data = [] }: LifeScoreTrendProps) {
         ))}
       </View>
 
-      <View style={styles.chart}>
-        {data.map((point, i) => {
-          const lifeHeight = (point.life / maxScore) * 120;
-          const sleepHeight = (point.sleep / maxScore) * 120;
-          const prodHeight = (point.productivity / maxScore) * 120;
-
-          const lifeColor = getScoreClassification(point.life).color;
-          const sleepColor = getScoreClassification(point.sleep).color;
-          const prodColor = getScoreClassification(point.productivity).color;
-
-          return (
-            <View key={i} style={styles.barGroup}>
-              <View style={styles.bars}>
-                <View style={[styles.bar, { height: lifeHeight, backgroundColor: lifeColor }]} />
-                <View style={[styles.bar, { height: sleepHeight, backgroundColor: sleepColor }]} />
-                <View style={[styles.bar, { height: prodHeight, backgroundColor: prodColor }]} />
-              </View>
-              <Text style={styles.dayLabel}>{point.day}</Text>
-            </View>
-          );
-        })}
-      </View>
+      {useHorizontalScroll ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled={true}
+          contentContainerStyle={styles.scrollChart}
+        >
+          {barsContent}
+        </ScrollView>
+      ) : (
+        <View style={styles.chart}>{barsContent}</View>
+      )}
 
       {/* Metric Categories & Health Tier Legend */}
       <View style={styles.legendContainer}>
@@ -119,6 +147,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
+    overflow: 'hidden',
     shadowColor: colors.shadowWarm,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.05,
@@ -133,6 +162,7 @@ const styles = StyleSheet.create({
   },
   timeframeRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
     marginBottom: spacing.lg,
   },
@@ -141,6 +171,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     borderRadius: radius.full,
     backgroundColor: colors.surfaceSoft,
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        userSelect: 'none',
+      },
+    }),
   },
   timeframeActive: {
     backgroundColor: colors.darkButton,
@@ -157,13 +193,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    height: 140,
     marginBottom: spacing.md,
   },
+  scrollChart: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: spacing.sm,
+    paddingBottom: spacing.xs,
+    marginBottom: spacing.sm,
+  },
   barGroup: {
-    flex: 1,
     alignItems: 'center',
     gap: spacing.xs,
+  },
+  barGroupFlex: {
+    flex: 1,
+  },
+  barGroupScroll: {
+    minWidth: 38,
+    paddingHorizontal: 2,
   },
   bars: {
     flexDirection: 'row',
@@ -176,9 +224,10 @@ const styles = StyleSheet.create({
     minHeight: 4,
   },
   dayLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.textMuted,
     fontWeight: '600',
+    textAlign: 'center',
   },
   legendContainer: {
     borderTopWidth: 1,

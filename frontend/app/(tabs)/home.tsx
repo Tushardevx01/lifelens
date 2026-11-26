@@ -206,11 +206,11 @@ export default function DashboardScreen() {
       : (selectedDate === todayStr ? data.latestEntry : null);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" />
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={{ paddingBottom: 130, paddingTop: insets.top }}
+        contentContainerStyle={{ paddingBottom: 130, paddingTop: spacing.xs }}
         showsVerticalScrollIndicator={false}
       >
         {/* Header with Avatar, Greeting, Gemini AI Shortcut & Notifications */}
