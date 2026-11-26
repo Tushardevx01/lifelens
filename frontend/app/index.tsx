@@ -46,7 +46,16 @@ export default function RootIndex() {
       }
 
       // 2. Test backend health
-      const health = await checkBackendHealth();
+      let health = await checkBackendHealth();
+      if (!health.ok && savedCustomUrl) {
+        // If stored custom URL is stale/unreachable, fallback to dynamic CONFIG.API_URL
+        setBaseUrl(CONFIG.API_URL);
+        health = await checkBackendHealth();
+        if (health.ok) {
+          await AsyncStorage.removeItem(STORAGE_CUSTOM_URL_KEY);
+        }
+      }
+
       if (!health.ok) {
         setBackendOnline(false);
         setChecking(false);

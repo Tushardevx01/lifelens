@@ -14,7 +14,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { LoginScreen } from '@/src/features/auth/LoginScreen';
-import { authApi, checkBackendHealth } from '@/src/services/api';
+import { authApi, checkBackendHealth, setBaseUrl } from '@/src/services/api';
 import { CONFIG } from '@/src/config';
 import { colors } from '@/src/theme/colors';
 import { spacing } from '@/src/theme/spacing';
@@ -30,11 +30,15 @@ export default function LoginRoute() {
 
   useEffect(() => {
     async function verifyBackend() {
-      const health = await checkBackendHealth();
+      let health = await checkBackendHealth();
+      if (!health.ok) {
+        setBaseUrl(CONFIG.API_URL);
+        health = await checkBackendHealth();
+      }
       if (!health.ok) {
         Alert.alert(
           'Backend Not Running',
-          `Without backend, no entry.\n\nThe LifeLens backend server is not running at ${CONFIG.API_URL}.\n\nPlease start the backend server to sign in.`
+          `Without backend, no entry.\n\nThe LifeLens backend server is not running or unreachable at ${CONFIG.API_URL}.\n\nPlease ensure your device is on the same Wi-Fi and that FastAPI is running on 0.0.0.0:8000.`
         );
       }
     }

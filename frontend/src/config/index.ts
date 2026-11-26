@@ -48,19 +48,35 @@ export function getExpoDevServerHost(): string | null {
  */
 export function resolveApiUrl(): string {
   const configured = (process.env.EXPO_PUBLIC_API_URL ?? '').trim();
-  const isLoopback =
-    !configured ||
-    configured.includes('localhost') ||
-    configured.includes('127.0.0.1');
 
-  // If a production or custom non-loopback URL is explicitly configured, use it
-  if (configured && !isLoopback) {
+  // If a production HTTPS URL is explicitly configured, honor it immediately
+  if (configured.startsWith('https://')) {
     return configured.replace(/\/+$/, '');
   }
 
   const os = getPlatformOS();
 
-  // 1. Web Runtime
+  // 1. Native Mobile (Expo Go / Physical Device over Wi-Fi / Dev Client):
+  // Dynamically uses the computer's LAN IP where Metro is running.
+  // This automatically tracks changing Wi-Fi IPs without needing to reconfigure .env!
+  if (os !== 'web') {
+    const devHost = getExpoDevServerHost();
+    if (devHost) {
+      return `http://${devHost}:8000`;
+    }
+  }
+
+  // 2. Explicit non-loopback configured IP (e.g. standalone app or custom IP)
+  const isLoopback =
+    !configured ||
+    configured.includes('localhost') ||
+    configured.includes('127.0.0.1');
+
+  if (configured && !isLoopback) {
+    return configured.replace(/\/+$/, '');
+  }
+
+  // 3. Web Runtime: mirror browser hostname when accessed across LAN
   if (os === 'web') {
     if (typeof window !== 'undefined' && window.location?.hostname) {
       const hostname = window.location.hostname;
@@ -71,18 +87,12 @@ export function resolveApiUrl(): string {
     return configured.replace(/\/+$/, '') || 'http://localhost:8000';
   }
 
-  // 2. Native Mobile (Expo Go / Physical Device over Wi-Fi)
-  const devHost = getExpoDevServerHost();
-  if (devHost) {
-    return `http://${devHost}:8000`;
-  }
-
-  // 3. Android Emulator fallback (host machine loopback inside emulator)
+  // 4. Android Emulator fallback (host machine loopback inside emulator)
   if (os === 'android') {
     return 'http://10.0.2.2:8000';
   }
 
-  // 4. iOS Simulator / Default
+  // 5. iOS Simulator / Default
   return configured.replace(/\/+$/, '') || 'http://localhost:8000';
 }
 
